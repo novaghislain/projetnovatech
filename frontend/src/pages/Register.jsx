@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { reserveFormation } from '../services/formationService';
 
 const Register = () => {
   const [firstName, setFirstName] = useState('');
@@ -15,9 +16,19 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-  await auth.register({ firstName, email, password });
-  const dest = location.state?.from || '/mon-espace';
-  navigate(dest);
+      await auth.register({ firstName, email, password });
+      const auto = location.state?.autoReserve;
+      if (auto && auto.formationId) {
+        try {
+          await reserveFormation(auto.formationId, auth.user);
+          navigate('/mon-espace/inscriptions');
+          return;
+        } catch (err) {
+          alert(err.message);
+        }
+      }
+      const dest = location.state?.from || '/mon-espace';
+      navigate(dest);
     } catch (err) {
       alert('Erreur inscription (demo)');
     } finally {

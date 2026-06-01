@@ -26,8 +26,8 @@ const FormationDetails = () => {
   const handleReserve = async (e) => {
     e.preventDefault();
     if (!auth.user) {
-      // redirect to login and remember return url
-      navigate('/connexion', { state: { from: location.pathname } });
+      // redirect to login and remember return url + reservation intent
+      navigate('/connexion', { state: { from: location.pathname, autoReserve: { formationId: formation.id, childName, phone, session } } });
       return;
     }
     setLoading(true);
