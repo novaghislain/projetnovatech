@@ -2,16 +2,14 @@
    NAVBAR BASE
    ============================ */
 .navbar {
-  background-color: rgba(26, 26, 46, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background-color: #1A1A2E;
   color: var(--color-white);
   padding: 0.75rem 0;
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
-  border-bottom: 1px solid rgba(212, 160, 23, 0.12);
+  border-bottom: none;
+  box-shadow: none;
 }
 
 .navbar-container {
@@ -150,7 +148,7 @@
 .account-avatar {
   width: 30px;
   height: 30px;
-  background: linear-gradient(135deg, var(--color-accent), #b88a13);
+  background: var(--grad-accent);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -278,9 +276,11 @@
   .navbar-links {
     margin-left: 1.5rem;
   }
+
   .navbar-main-links {
     gap: 0;
   }
+
   .navbar-main-links a {
     padding: 0.45rem 0.55rem;
     font-size: 0.83rem;
@@ -300,9 +300,9 @@
     top: 100%;
     left: 0;
     width: 100%;
-    background: rgba(15, 52, 96, 0.97);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: #1A1A2E;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     flex-direction: column;
     align-items: flex-start;
     padding: 1.5rem 2rem;

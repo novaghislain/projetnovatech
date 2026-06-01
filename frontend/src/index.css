@@ -1,82 +1,143 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap');
 
 :root {
-  --color-primary: #1A1A2E;
-  --color-secondary: #0F3460;
-  --color-accent: #D4A017;
-  --color-alert: #E94560;
-  --color-text: #2D2D2D;
-  --color-bg-light: #F5F5F5;
-  --color-white: #FFFFFF;
+  /* ══ Palette officielle Novatech Vision ══ */
+  --color-primary:    #1A1A2E;   /* Noir / Bleu nuit */
+  --color-secondary:  #0F3460;   /* Bleu foncé */
+  --color-accent:     #D4A017;   /* Or / Jaune doré */
+  --color-alert:      #E94560;   /* Rouge vif */
+  --color-text:       #2D2D2D;   /* Noir doux */
+  --color-bg-light:   #F5F5F5;   /* Gris très clair */
+  --color-white:      #FFFFFF;
 
+  /* ── Dérivés utiles ── */
+  --color-text-muted: #6B7280;
+  --color-border:     #E8E8EE;
+  --color-bg-alt:     #F0F2F8;
+
+  /* ── Gradients ── */
+  --grad-hero:    linear-gradient(135deg, #1A1A2E 0%, #0F3460 60%, #1A1A2E 100%);
+  --grad-accent:  linear-gradient(135deg, #D4A017 0%, #b88a13 100%);
+  --grad-dark:    linear-gradient(135deg, #1A1A2E 0%, #0a0a1a 100%);
+  --grad-secondary: linear-gradient(135deg, #0F3460 0%, #1A1A2E 100%);
+
+  /* ── Typographie ── */
   --font-heading: 'Poppins', sans-serif;
-  --font-body: 'Open Sans', sans-serif;
+  --font-body:    'Inter', sans-serif;
+
+  /* ── Ombres ── */
+  --shadow-sm:  0 2px 8px rgba(26, 26, 46, 0.08);
+  --shadow-md:  0 8px 24px rgba(26, 26, 46, 0.12);
+  --shadow-lg:  0 20px 50px rgba(26, 26, 46, 0.16);
+  --shadow-glow:0 0 28px rgba(212, 160, 23, 0.30);
+
+  /* ── Rayons ── */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* ─── Reset ─── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-body);
   color: var(--color-text);
   background-color: var(--color-bg-light);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   color: var(--color-primary);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
+a { text-decoration: none; color: inherit; }
+img { display: block; max-width: 100%; }
 
+/* ─── Boutons ─── */
 .btn {
-  display: inline-block;
-  padding: 0.8rem 1.8rem;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 2rem;
+  border-radius: var(--radius-sm);
   font-family: var(--font-heading);
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.92rem;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.3s ease;
   border: none;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-accent) 0%, #b88a13 100%);
-  color: var(--color-white);
-  box-shadow: 0 4px 15px rgba(212, 160, 23, 0.3);
+  background: var(--grad-accent);
+  color: var(--color-primary);
+  box-shadow: 0 4px 16px rgba(212, 160, 23, 0.32);
 }
-
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(212, 160, 23, 0.4);
-  background: linear-gradient(135deg, #e5b32a 0%, #c29215 100%);
+  box-shadow: 0 10px 28px rgba(212, 160, 23, 0.45);
+  filter: brightness(1.06);
 }
 
 .btn-secondary {
-  background-color: transparent;
+  background: transparent;
   color: var(--color-primary);
   border: 2px solid var(--color-primary);
 }
-
 .btn-secondary:hover {
-  background-color: var(--color-primary);
+  background: var(--color-primary);
   color: var(--color-white);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(26, 26, 46, 0.2);
 }
 
-/* Container */
+/* ─── Layout ─── */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
+}
+
+.section-padding { padding: 5rem 0; }
+.text-center { text-align: center; }
+
+/* ─── Eyebrow ─── */
+.section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(212, 160, 23, 0.10);
+  color: #9a7010;
+  border: 1px solid rgba(212, 160, 23, 0.28);
+  border-radius: 100px;
+  padding: 0.3rem 1rem;
+  font-size: 0.73rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 0.9rem;
+}
+
+/* ─── Titres de section ─── */
+.section-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-bottom: 0.75rem;
+  font-family: var(--font-heading);
+}
+
+.section-subtitle {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  margin-bottom: 3rem;
+  max-width: 580px;
+  line-height: 1.7;
 }

@@ -45,6 +45,7 @@ const Navbar = () => {
             <Link to="/" onClick={closeAll}>Accueil</Link>
                       <a href="/formations">Formations</a>
             <Link to="/a-propos" onClick={closeAll}>À propos</Link>
+            <Link to="/galerie" onClick={closeAll}>Galerie</Link>
             <Link to="/temoignages" onClick={closeAll}>Témoignages</Link>
             <Link to="/contact" onClick={closeAll}>Contact</Link>
           </div>
