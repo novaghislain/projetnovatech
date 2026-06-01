@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css';
 import { Menu, X, User, ChevronDown, LayoutDashboard, BookOpen, LogOut, Settings } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 // Simulated logged-in user (replace with real auth context later)
 const MOCK_USER = { firstName: 'Herlance' };
@@ -11,6 +12,11 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // temp toggle
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const auth = useAuth();
+
+  useEffect(() => {
+    setIsLoggedIn(!!auth?.user);
+  }, [auth?.user]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -41,13 +47,15 @@ const Navbar = () => {
         <div className={`navbar-links ${isOpen ? 'active' : ''}`}>
 
           {/* Main links */}
-          <div className="navbar-main-links">
+      <div className="navbar-main-links">
             <Link to="/" onClick={closeAll}>Accueil</Link>
-                      <a href="/formations">Formations</a>
+          <a href="/formations">Formations</a>
             <Link to="/a-propos" onClick={closeAll}>À propos</Link>
             <Link to="/galerie" onClick={closeAll}>Galerie</Link>
             <Link to="/temoignages" onClick={closeAll}>Témoignages</Link>
             <Link to="/contact" onClick={closeAll}>Contact</Link>
+              <Link to="/formations" onClick={closeAll}>Formations</Link>
+              <Link to="/mon-espace/inscriptions" onClick={closeAll}>Mes inscriptions</Link>
           </div>
 
           {/* Auth section */}
@@ -68,16 +76,16 @@ const Navbar = () => {
                   aria-expanded={accountMenuOpen}
                 >
                   <div className="account-avatar">
-                    {MOCK_USER.firstName[0]}
+                    {auth.user?.firstName?.[0] || 'U'}
                   </div>
-                  <span>{MOCK_USER.firstName}</span>
+                  <span>{auth.user?.firstName || auth.user?.email || 'Mon compte'}</span>
                   <ChevronDown size={16} className={`chevron ${accountMenuOpen ? 'open' : ''}`} />
                 </button>
 
                 <div className={`account-menu ${accountMenuOpen ? 'open' : ''}`}>
                   <div className="account-menu-header">
-                    <strong>{MOCK_USER.firstName}</strong>
-                    <span>Élève</span>
+                    <strong>{auth.user?.firstName || auth.user?.email}</strong>
+                    <span>{auth.user?.role || 'Utilisateur'}</span>
                   </div>
                   <div className="account-menu-divider" />
                   <Link to="/mon-espace" className="account-menu-item" onClick={closeAll}>
@@ -92,7 +100,7 @@ const Navbar = () => {
                   <div className="account-menu-divider" />
                   <button
                     className="account-menu-item account-menu-logout"
-                    onClick={() => { setIsLoggedIn(false); closeAll(); }}
+                    onClick={() => { auth.logout(); closeAll(); }}
                   >
                     <LogOut size={16} /> Déconnexion
                   </button>
