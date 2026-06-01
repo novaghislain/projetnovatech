@@ -112,15 +112,11 @@ img { display: block; max-width: 100%; }
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(212, 160, 23, 0.10);
-  color: #9a7010;
-  border: 1px solid rgba(212, 160, 23, 0.28);
-  border-radius: 100px;
-  padding: 0.3rem 1rem;
-  font-size: 0.73rem;
-  font-weight: 700;
+  color: var(--color-accent);
+  font-size: 0.85rem;
+  font-weight: 800;
   font-family: var(--font-heading);
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   margin-bottom: 0.9rem;
 }

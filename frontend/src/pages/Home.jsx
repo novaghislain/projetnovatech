@@ -27,31 +27,35 @@ const features = [
 const testimonials = [
   {
     name: 'Sarah, 12 ans',
+    module: 'Bureautique',
     avatar: 'https://i.pravatar.cc/60?img=47',
     quote: "Grâce à Novatech Vision, j'ai appris à utiliser Word, PowerPoint et à créer mes premières présentations. Aujourd'hui, je suis beaucoup plus à l'aise avec l'ordinateur.",
   },
   {
     name: 'Kévin, 15 ans',
+    module: 'Programmation',
     avatar: 'https://i.pravatar.cc/60?img=15',
     quote: "Les cours sont simples à comprendre et très pratiques. J'ai découvert les bases de la programmation et ça m'a donné envie de poursuivre dans ce domaine.",
   },
   {
     name: 'Mme Agossou, Parent',
+    module: 'Sécurité & Internet',
     avatar: 'https://i.pravatar.cc/60?img=32',
     quote: "Mon fils a gagné en autonomie et en confiance. L'équipe pédagogique est professionnelle et très attentive au suivi des enfants.",
   },
   {
     name: 'David, 17 ans',
+    module: 'Intelligence Artificielle',
     avatar: 'https://i.pravatar.cc/60?img=13',
     quote: "La formation sur l'intelligence artificielle était passionnante. J'ai découvert des outils modernes que je peux utiliser pour mes études.",
   },
 ];
 
 const galleryImages = [
-  'https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=800&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=800&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=800&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=800&auto=format&fit=crop',
+  '/group-diverse-teens-young-people-doing-activities-together-celebrating-world-youth-skills-day.jpg',
+  '/small-black-boy-elearning-computer-home.jpg',
+  '/woman-teaching-kids-class.jpg',
+  '/9x.jpeg',
 ];
 
 const stats = [
@@ -69,7 +73,7 @@ const featuredCourses = [
     price: '25 000 FCFA',
     duration: '4 semaines',
     spots: '5 places restantes',
-    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=600&auto=format&fit=crop',
+    image: '/9x.jpeg',
     icon: <Code2 size={20} />
   },
   {
@@ -79,7 +83,7 @@ const featuredCourses = [
     price: '30 000 FCFA',
     duration: '6 semaines',
     spots: 'Complet',
-    image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=600&auto=format&fit=crop',
+    image: '/8x.jpeg',
     icon: <BrainCircuit size={20} />
   },
   {
@@ -89,7 +93,7 @@ const featuredCourses = [
     price: '20 000 FCFA',
     duration: '4 semaines',
     spots: '12 places restantes',
-    image: 'https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=600&auto=format&fit=crop',
+    image: '/10x.jpg',
     icon: <Monitor size={20} />
   }
 ];
@@ -223,11 +227,16 @@ const Home = () => {
                 </li>
               </ul>
             </div>
-            <div className="presentation-image" style={{ flex: 1, position: 'relative' }}>
-              <img src="/5x.png" alt="Élèves apprenant l'informatique" style={{ borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)' }} />
-              <div style={{ position: 'absolute', bottom: '-20px', left: '-20px', backgroundColor: 'var(--color-primary)', color: 'var(--color-white)', padding: '1.5rem', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-md)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--color-accent)', lineHeight: 1 }}>5+</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, lineHeight: 1.3 }}>Années<br />d'expérience</div>
+            <div className="presentation-image" style={{ flex: 1, position: 'relative', display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ position: 'relative', width: '90%' }}>
+                <img src="/10x.jpg" alt="Élèves apprenant l'informatique" style={{ width: '100%', borderRadius: 'var(--radius-lg)', boxShadow: '0 20px 40px rgba(26,26,46,0.15)', display: 'block' }} />
+                
+                {/* Decorative Elements */}
+                <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', border: '3px solid var(--color-accent)', borderRadius: 'var(--radius-lg)', zIndex: -1 }}></div>
+                <div style={{ position: 'absolute', bottom: '-20px', left: '-20px', backgroundColor: 'var(--color-primary)', color: 'var(--color-white)', padding: '1.5rem 2rem', borderRadius: 'var(--radius-md)', boxShadow: '0 10px 30px rgba(212,160,23,0.3)', display: 'flex', alignItems: 'center', gap: '1.2rem', zIndex: 2 }}>
+                  <div style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--color-accent)', lineHeight: 1 }}>5+</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Années<br />d'expérience</div>
+                </div>
               </div>
             </div>
           </div>
@@ -298,9 +307,6 @@ const Home = () => {
         {galleryImages.map((src, i) => (
           <div className="gallery-item" key={i}>
             <img src={src} alt={`Novatech Vision — Photo ${i + 1}`} />
-            <div className="gallery-overlay">
-              <img src="/4x.png" alt="Logo" className="gallery-logo" />
-            </div>
           </div>
         ))}
       </section>
@@ -345,7 +351,10 @@ const Home = () => {
                   </div>
                   <div className="testi-author">
                     <img src={t.avatar} alt={t.name} />
-                    <strong>{t.name}</strong>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <strong>{t.name}</strong>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-accent)', fontWeight: 600 }}>{t.module}</span>
+                    </div>
                   </div>
                   <p>"{t.quote}"</p>
                 </div>
@@ -420,18 +429,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ══════════ CTA BANNER ══════════ */}
-      <section className="cta-banner">
-        <div className="container cta-banner-inner">
-          <div>
-            <h2>Prêt à inscrire votre enfant ?</h2>
-            <p>Des places limitées — rejoignez Novatech Vision dès aujourd'hui.</p>
-          </div>
-          <Link to="/inscription" className="btn btn-primary btn-lg">
-            S'inscrire maintenant <ArrowRight size={18} />
-          </Link>
-        </div>
-      </section>
+
 
     </div>
   );
