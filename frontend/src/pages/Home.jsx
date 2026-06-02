@@ -161,7 +161,7 @@ const Home = () => {
                 ))}
               </div>
 
-              <Link to="/inscription" className="hero-cta-btn">
+              <Link to="/formations" className="hero-cta-btn">
                 S'inscrire Maintenant <ArrowRight size={18} />
               </Link>
             </div>
@@ -278,7 +278,7 @@ const Home = () => {
                       <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{course.spots}</span>
                       <strong style={{ fontSize: '1.1rem', color: 'var(--color-primary)', fontFamily: 'var(--font-heading)' }}>{course.price}</strong>
                     </div>
-                    <Link to="/inscription" className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
+                    <Link to="/formations" className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
                       S'inscrire
                     </Link>
                   </div>
