@@ -1,0 +1,93 @@
+.inscription-container {
+  background-color: #f8f9fa;
+  min-height: 80vh;
+}
+
+.inscription-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2.5rem;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
+}
+
+.course-recap {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.recap-img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #eee;
+}
+
+.recap-info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  color: var(--color-primary);
+}
+
+.recap-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.inscription-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.inscription-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.inscription-form .form-control {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.inscription-form .form-control:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(212, 160, 23, 0.1);
+}
+
+.inscription-form .form-row {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.inscription-form .form-row .form-group {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .inscription-form .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  .inscription-card {
+    padding: 1.5rem;
+  }
+}
+
+.payment-widget-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px dashed #ddd;
+}

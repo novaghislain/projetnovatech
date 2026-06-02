@@ -5,6 +5,7 @@ import {
   GraduationCap, BookOpen, FlaskConical, Award, Clock, ArrowRight,
   Star, Send, Mail, Phone, MapPin
 } from 'lucide-react';
+import AdBanner from '../components/AdBanner';
 import './Home.css';
 
 const programs = [
@@ -241,6 +242,11 @@ const Home = () => {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ══════════ BANNIÈRE PUBLICITAIRE ══════════ */}
+      <section className="container">
+        <AdBanner placement="Accueil" />
       </section>
 
       {/* ══════════ FORMATIONS EN VEDETTE ══════════ */}
