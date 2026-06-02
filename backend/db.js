@@ -53,8 +53,42 @@ db.serialize(() => {
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS Modules (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      formationId INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      orderIndex INTEGER DEFAULT 0,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS Chapters (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      moduleId INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      orderIndex INTEGER DEFAULT 0,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(moduleId) REFERENCES Modules(id) ON DELETE CASCADE
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS Lessons (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      chapterId INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      type TEXT NOT NULL, -- 'video' ou 'pdf'
+      contentUrl TEXT NOT NULL,
+      orderIndex INTEGER DEFAULT 0,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(chapterId) REFERENCES Chapters(id) ON DELETE CASCADE
+    )
+  `);
   
-  console.log('Tables initialisées (Users, Enrollments, Advertisements).');
+  console.log('Tables initialisées (Users, Enrollments, Advertisements, Modules, Chapters, Lessons).');
 });
 
 module.exports = db;

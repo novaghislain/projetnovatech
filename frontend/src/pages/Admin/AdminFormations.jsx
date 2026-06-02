@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Search, Filter, Image as ImageIcon, X, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Filter, Image as ImageIcon, X, AlertTriangle, BookOpen } from 'lucide-react';
+import AdminCourseBuilder from './AdminCourseBuilder';
 
 const initialFormations = [
   { id: 1, title: 'Initiation à la Programmation', category: 'Développement', price: 25000, duration: '4 semaines', ageGroup: '10-14 ans', maxPlaces: 20, enrolled: 15, status: 'active', image: '/7x.jpg' },
@@ -17,6 +18,9 @@ const AdminFormations = () => {
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  
+  // Builder State
+  const [builderFormation, setBuilderFormation] = useState(null); // { id, title }
   
   // Form state
   const [formData, setFormData] = useState({
@@ -71,6 +75,10 @@ const AdminFormations = () => {
     // Simulation upload image
     setFormData({...formData, image: '/placeholder.jpg'});
   };
+
+  if (builderFormation) {
+    return <AdminCourseBuilder formationId={builderFormation.id} formationTitle={builderFormation.title} onBack={() => setBuilderFormation(null)} />;
+  }
 
   return (
     <div className="fade-in">
@@ -134,12 +142,16 @@ const AdminFormations = () => {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="admin-btn admin-btn-outline" style={{ padding: '0.3rem 0.5rem' }} onClick={() => handleOpenModal(f)}>
+                      <button className="admin-btn admin-btn-outline" style={{ padding: '0.3rem 0.5rem', color: 'var(--color-secondary)', borderColor: 'var(--color-secondary)' }} title="Gérer le programme (Cours)" onClick={() => setBuilderFormation({ id: f.id, title: f.title })}>
+                        <BookOpen size={16} />
+                      </button>
+                      <button className="admin-btn admin-btn-outline" style={{ padding: '0.3rem 0.5rem' }} title="Modifier les infos" onClick={() => handleOpenModal(f)}>
                         <Edit size={16} />
                       </button>
                       <button 
                         className="admin-btn admin-btn-outline" 
                         style={{ padding: '0.3rem 0.5rem', color: '#ff4d4f', borderColor: '#ff4d4f' }} 
+                        title="Supprimer la formation"
                         onClick={() => setDeleteConfirm(f.id)}
                       >
                         <Trash2 size={16} />

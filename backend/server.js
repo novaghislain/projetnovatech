@@ -190,6 +190,121 @@ app.put('/api/ads/:id/toggle', (req, res) => {
   });
 });
 
+/**
+ * ROUTES: Module 3.1 - Constructeur de Cours
+ */
+
+// --- MODULES ---
+app.get('/api/courses/:formationId/structure', (req, res) => {
+  const { formationId } = req.params;
+  
+  // 1. Récupérer tous les modules
+  db.all(`SELECT * FROM Modules WHERE formationId = ? ORDER BY orderIndex ASC`, [formationId], (err, modules) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (modules.length === 0) return res.json([]);
+
+    // 2. Récupérer tous les chapitres de cette formation
+    const moduleIds = modules.map(m => m.id);
+    const placeholders = moduleIds.map(() => '?').join(',');
+    db.all(`SELECT * FROM Chapters WHERE moduleId IN (${placeholders}) ORDER BY orderIndex ASC`, moduleIds, (err, chapters) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      // 3. Récupérer toutes les leçons
+      let chapterIds = chapters.map(c => c.id);
+      if (chapterIds.length === 0) chapterIds = [-1]; // Eviter syntax error
+      const chPlaceholders = chapterIds.map(() => '?').join(',');
+      
+      db.all(`SELECT * FROM Lessons WHERE chapterId IN (${chPlaceholders}) ORDER BY orderIndex ASC`, chapterIds, (err, lessons) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        // Assemblage de l'arbre
+        const tree = modules.map(m => ({
+          ...m,
+          chapters: chapters.filter(c => c.moduleId === m.id).map(c => ({
+            ...c,
+            lessons: lessons.filter(l => l.chapterId === c.id)
+          }))
+        }));
+
+        res.json(tree);
+      });
+    });
+  });
+});
+
+app.post('/api/modules', (req, res) => {
+  const { formationId, title, orderIndex } = req.body;
+  db.run(`INSERT INTO Modules (formationId, title, orderIndex) VALUES (?, ?, ?)`, [formationId, title, orderIndex || 0], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ id: this.lastID, formationId, title, orderIndex: orderIndex || 0, chapters: [] });
+  });
+});
+
+app.put('/api/modules/:id', (req, res) => {
+  const { title, orderIndex } = req.body;
+  db.run(`UPDATE Modules SET title = ?, orderIndex = ? WHERE id = ?`, [title, orderIndex, req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+app.delete('/api/modules/:id', (req, res) => {
+  db.run(`DELETE FROM Modules WHERE id = ?`, [req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// --- CHAPITRES ---
+app.post('/api/chapters', (req, res) => {
+  const { moduleId, title, orderIndex } = req.body;
+  db.run(`INSERT INTO Chapters (moduleId, title, orderIndex) VALUES (?, ?, ?)`, [moduleId, title, orderIndex || 0], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ id: this.lastID, moduleId, title, orderIndex: orderIndex || 0, lessons: [] });
+  });
+});
+
+app.put('/api/chapters/:id', (req, res) => {
+  const { title, orderIndex } = req.body;
+  db.run(`UPDATE Chapters SET title = ?, orderIndex = ? WHERE id = ?`, [title, orderIndex, req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+app.delete('/api/chapters/:id', (req, res) => {
+  db.run(`DELETE FROM Chapters WHERE id = ?`, [req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// --- LECONS ---
+app.post('/api/lessons', (req, res) => {
+  const { chapterId, title, type, contentUrl, orderIndex } = req.body;
+  db.run(`INSERT INTO Lessons (chapterId, title, type, contentUrl, orderIndex) VALUES (?, ?, ?, ?, ?)`, 
+    [chapterId, title, type, contentUrl, orderIndex || 0], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ id: this.lastID, chapterId, title, type, contentUrl, orderIndex: orderIndex || 0 });
+  });
+});
+
+app.put('/api/lessons/:id', (req, res) => {
+  const { title, type, contentUrl, orderIndex } = req.body;
+  db.run(`UPDATE Lessons SET title = ?, type = ?, contentUrl = ?, orderIndex = ? WHERE id = ?`, 
+    [title, type, contentUrl, orderIndex, req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+app.delete('/api/lessons/:id', (req, res) => {
+  db.run(`DELETE FROM Lessons WHERE id = ?`, [req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
 // Démarrage du serveur
 app.listen(PORT, () => {
   console.log(`Serveur Backend démarré sur http://localhost:${PORT}`);

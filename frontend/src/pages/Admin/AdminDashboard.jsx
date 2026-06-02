@@ -64,31 +64,37 @@ const AdminDashboard = () => {
         </div>
         <nav className="admin-sidebar-nav">
           <div className={`admin-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
-            <LayoutDashboard size={20} /> Vue d'ensemble
+            <LayoutDashboard size={20} /> Dashboard
           </div>
           
-          <div style={{ padding: '1rem 1rem 0.5rem', fontSize: '0.75rem', fontWeight: 700, color: '#888', letterSpacing: '1px' }}>
-            GESTION DES COURS
-          </div>
           <div className={`admin-nav-item ${activeTab === 'formations' ? 'active' : ''}`} onClick={() => setActiveTab('formations')}>
             <BookOpen size={20} /> Formations
           </div>
-          <div className={`admin-nav-item ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => setActiveTab('categories')}>
-            <BookOpen size={20} /> Catégories
+          <div className={`admin-nav-item ${activeTab === 'inscriptions' ? 'active' : ''}`} onClick={() => setActiveTab('inscriptions')}>
+            <Users size={20} /> Inscriptions
           </div>
-          <div className={`admin-nav-item ${activeTab === 'sessions' ? 'active' : ''}`} onClick={() => setActiveTab('sessions')}>
-            <BookOpen size={20} /> Sessions
-          </div>
-
-          <div style={{ padding: '1rem 1rem 0.5rem', fontSize: '0.75rem', fontWeight: 700, color: '#888', letterSpacing: '1px' }}>
-            MONÉTISATION
+          <div className={`admin-nav-item ${activeTab === 'paiements' ? 'active' : ''}`} onClick={() => setActiveTab('paiements')}>
+            <CreditCard size={20} /> Paiements
           </div>
           <div className={`admin-nav-item ${activeTab === 'ads' ? 'active' : ''}`} onClick={() => setActiveTab('ads')}>
             <Megaphone size={20} /> Publicités
           </div>
-          <div className={`admin-nav-item ${activeTab === 'finances' ? 'active' : ''}`} onClick={() => setActiveTab('finances')}>
-            <CreditCard size={20} /> Finances
+          <div className={`admin-nav-item ${activeTab === 'temoignages' ? 'active' : ''}`} onClick={() => setActiveTab('temoignages')}>
+            <CheckCircle size={20} /> Témoignages
           </div>
+          <div className={`admin-nav-item ${activeTab === 'galerie' ? 'active' : ''}`} onClick={() => setActiveTab('galerie')}>
+            <Edit size={20} /> Galerie
+          </div>
+          <div className={`admin-nav-item ${activeTab === 'messages' ? 'active' : ''}`} onClick={() => setActiveTab('messages')}>
+            <Edit size={20} /> Messages
+          </div>
+          <div className={`admin-nav-item ${activeTab === 'utilisateurs' ? 'active' : ''}`} onClick={() => setActiveTab('utilisateurs')}>
+            <Users size={20} /> Utilisateurs
+          </div>
+          <div className={`admin-nav-item ${activeTab === 'parametres' ? 'active' : ''}`} onClick={() => setActiveTab('parametres')}>
+            <Edit size={20} /> Paramètres
+          </div>
+
         </nav>
         <div style={{ padding: '1.5rem 1rem' }}>
           <div className="admin-nav-item" style={{ color: '#ff4d4f' }} onClick={() => window.location.href = '/'}>
