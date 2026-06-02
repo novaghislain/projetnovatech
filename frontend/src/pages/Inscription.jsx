@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import PaymentWidget from '../components/PaymentWidget';
 import FedapayWidget from '../components/FedapayWidget';
 import './Inscription.css';
@@ -7,6 +8,7 @@ import './Inscription.css';
 const Inscription = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const auth = useAuth();
   
   // Liste complète des formations disponibles
   const allCourses = [
@@ -42,10 +44,23 @@ const Inscription = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!auth.user) {
+      navigate('/connexion', { state: { from: location.pathname, autoReserve: { formationId: selectedCourseId, formData } } });
+      return;
+    }
+
     if (formData.firstName && formData.lastName && formData.email && formData.phone) {
       setStep(2); // Go to payment step
     }
   };
+
+  useEffect(() => {
+    if (!auth.user) {
+      // if user landed here directly without being logged, redirect to login preserving intent
+      navigate('/connexion', { state: { from: location.pathname, autoReserve: { formationId: selectedCourseId, formData } } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="inscription-container section-padding">

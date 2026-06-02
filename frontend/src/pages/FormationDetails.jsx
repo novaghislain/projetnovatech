@@ -42,7 +42,12 @@ const FormationDetails = () => {
       await reserveFormation(formation.id, auth.user);
       navigate('/mon-espace/inscriptions');
     } catch (err) {
-      alert(err.message);
+      // If reservation failed due to auth or business rule, redirect to login preserving intent
+      if (err?.code === 'AUTH_REQUIRED') {
+        navigate('/connexion', { state: { from: location.pathname, autoReserve: { formationId: formation.id, childName, phone, session } } });
+        return;
+      }
+      console.error('Réservation échouée', err);
     } finally { setLoading(false); }
   };
 
