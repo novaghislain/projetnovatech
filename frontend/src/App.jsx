@@ -6,6 +6,8 @@ import Home from './pages/Home';
 import Galerie from './pages/Galerie';
 import Inscription from './pages/Inscription';
 import AdminDashboard from './pages/Admin/AdminDashboard';
+import FormateurDashboard from './pages/FormateurDashboard';
+import AnnonceurDashboard from './pages/AnnonceurDashboard';
 import Apropos from './pages/Apropos';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
@@ -31,7 +33,11 @@ const AppLayout = () => {
   if (isAdmin) {
     return (
       <Routes>
-        <Route path="/admin/*" element={<AdminDashboard />} />
+        <Route path="/admin/*" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
       </Routes>
     );
   }
@@ -51,11 +57,18 @@ const AppLayout = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/inscription" element={<Inscription />} />
           
-          <Route path="/mon-espace" element={<ProtectedRoute><MonEspace /></ProtectedRoute>} />
-          <Route path="/mon-espace/inscriptions" element={<ProtectedRoute><TableauInscriptions /></ProtectedRoute>} />
-          
           <Route path="/formations" element={<InscriptionFormation />} />
           <Route path="/formations/:id" element={<FormationDetails />} />
+
+          {/* Espace Apprenant */}
+          <Route path="/mon-espace" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><MonEspace /></ProtectedRoute>} />
+          <Route path="/mon-espace/inscriptions" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><TableauInscriptions /></ProtectedRoute>} />
+          
+          {/* Espace Formateur */}
+          <Route path="/formateur" element={<ProtectedRoute allowedRoles={['formateur', 'admin']}><FormateurDashboard /></ProtectedRoute>} />
+
+          {/* Espace Annonceur */}
+          <Route path="/annonceur" element={<ProtectedRoute allowedRoles={['annonceur', 'admin']}><AnnonceurDashboard /></ProtectedRoute>} />
           
           {/* Fallback backward compatibility */}
           <Route path="/inscriptions" element={<Navigate to="/mon-espace/inscriptions" replace />} />

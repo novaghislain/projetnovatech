@@ -57,12 +57,16 @@ const Navbar = () => {
                 <Link to="/temoignages" onClick={closeAll}>Témoignages</Link>
               </>
             ) : (
-              <Link to="/mon-espace" onClick={closeAll}>Mon espace</Link>
+              <>
+                {auth.user?.role === 'admin' && <Link to="/admin" onClick={closeAll}>Espace Admin</Link>}
+                {auth.user?.role === 'formateur' && <Link to="/formateur" onClick={closeAll}>Espace Formateur</Link>}
+                {auth.user?.role === 'annonceur' && <Link to="/annonceur" onClick={closeAll}>Espace Annonceur</Link>}
+                {auth.user?.role === 'apprenant' && <Link to="/mon-espace" onClick={closeAll}>Mon espace</Link>}
+              </>
             )}
             <Link to="/contact" onClick={closeAll}>Contact</Link>
           </div>
 
-          {/* Auth section */}
           <div className="navbar-auth-links">
             {!isLoggedIn ? (
               <>
@@ -81,20 +85,40 @@ const Navbar = () => {
                   <div className="account-avatar">
                     <User size={16} />
                   </div>
-                  <span>{auth.user?.firstName || auth.user?.email || 'Herlance'}</span>
+                  <span>{auth.user?.firstName || auth.user?.email || 'Utilisateur'}</span>
                   <ChevronDown size={16} className={`chevron ${accountMenuOpen ? 'open' : ''}`} />
                 </button>
 
                 <div className={`account-menu ${accountMenuOpen ? 'open' : ''}`}>
-                  <Link to="/mon-profil" className="account-menu-item" onClick={closeAll}>
-                    <User size={16} /> Mon profil
-                  </Link>
-                  <Link to="/mon-espace/paiements" className="account-menu-item" onClick={closeAll}>
-                    <CreditCard size={16} /> Mes paiements
-                  </Link>
-                  <Link to="/mon-espace/recus" className="account-menu-item" onClick={closeAll}>
-                    <FileText size={16} /> Mes reçus
-                  </Link>
+                  {auth.user?.role === 'admin' && (
+                    <Link to="/admin" className="account-menu-item" onClick={closeAll}>
+                      <LayoutDashboard size={16} /> Dashboard Admin
+                    </Link>
+                  )}
+                  {auth.user?.role === 'formateur' && (
+                    <Link to="/formateur" className="account-menu-item" onClick={closeAll}>
+                      <LayoutDashboard size={16} /> Espace Formateur
+                    </Link>
+                  )}
+                  {auth.user?.role === 'annonceur' && (
+                    <Link to="/annonceur" className="account-menu-item" onClick={closeAll}>
+                      <LayoutDashboard size={16} /> Espace Annonceur
+                    </Link>
+                  )}
+                  {auth.user?.role === 'apprenant' && (
+                    <>
+                      <Link to="/mon-espace" className="account-menu-item" onClick={closeAll}>
+                        <LayoutDashboard size={16} /> Mon Espace
+                      </Link>
+                      <Link to="/mon-espace/paiements" className="account-menu-item" onClick={closeAll}>
+                        <CreditCard size={16} /> Mes paiements
+                      </Link>
+                      <Link to="/mon-espace/recus" className="account-menu-item" onClick={closeAll}>
+                        <FileText size={16} /> Mes reçus
+                      </Link>
+                    </>
+                  )}
+                  
                   <Link to="/parametres" className="account-menu-item" onClick={closeAll}>
                     <Settings size={16} /> Paramètres
                   </Link>

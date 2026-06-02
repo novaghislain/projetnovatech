@@ -17,23 +17,28 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await auth.login({ email, password });
+      const loggedUser = await auth.login({ email, password });
+      
       // if reservation intent exists, perform reservation automatically
       const auto = location.state?.autoReserve;
-      if (auto && auto.formationId) {
+      if (auto && auto.formationId && loggedUser.role === 'apprenant') {
         try {
           await reserveFormation(auto.formationId, auth.user);
           navigate('/mon-espace/inscriptions');
           return;
         } catch (err) {
-          // reservation failed, fall back to original dest
-          alert(err.message);
+          // reservation failed, fall back to default routing
         }
       }
-      const dest = location.state?.from || '/mon-espace';
-      navigate(dest);
+
+      // Route based on role
+      if (loggedUser.role === 'admin') navigate('/admin');
+      else if (loggedUser.role === 'formateur') navigate('/formateur');
+      else if (loggedUser.role === 'annonceur') navigate('/annonceur');
+      else navigate('/mon-espace');
+
     } catch (err) {
-      alert('Erreur de connexion (demo)');
+      alert('Erreur de connexion. Vérifiez vos identifiants.');
     } finally {
       setLoading(false);
     }
@@ -71,7 +76,7 @@ const Login = () => {
               <Lock size={18} color="var(--color-text-muted)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
               <input 
                 type="password" 
-                placeholder="••••••••" 
+                placeholder="Votre mot de passe" 
                 value={password} 
                 onChange={e => setPassword(e.target.value)} 
                 required 
