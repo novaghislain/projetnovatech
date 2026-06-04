@@ -92,6 +92,57 @@ app.post('/api/auth/login', (req, res) => {
     });
   });
 });
+app.post('/api/auth/forgot-password', (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email requis.' });
+
+  db.get(`SELECT id, email FROM Users WHERE email = ?`, [email.toLowerCase()], (err, user) => {
+    if (err) return res.status(500).json({ error: 'Erreur serveur.' });
+    if (!user) return res.status(404).json({ error: 'Aucun compte associé à cet email.' });
+
+    // Générer un token unique
+    const crypto = require('crypto');
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000).toISOString(); // +1 heure
+
+    db.run(`UPDATE Users SET resetToken = ?, resetTokenExpiry = ? WHERE id = ?`, 
+      [resetToken, resetTokenExpiry, user.id], (err) => {
+      if (err) return res.status(500).json({ error: 'Erreur serveur.' });
+
+      // En mode développement/démo, on renvoie le token directement au frontend
+      const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+      console.log(`[EMAIL SIMULÉ] Lien de réinitialisation pour ${user.email} : ${resetLink}`);
+      
+      res.json({ 
+        success: true, 
+        message: 'Un lien de réinitialisation a été généré.',
+        demoLink: resetLink 
+      });
+    });
+  });
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword) return res.status(400).json({ error: 'Données manquantes.' });
+
+  db.get(`SELECT id, resetTokenExpiry FROM Users WHERE resetToken = ?`, [token], async (err, user) => {
+    if (err) return res.status(500).json({ error: 'Erreur serveur.' });
+    if (!user) return res.status(400).json({ error: 'Lien invalide ou expiré.' });
+
+    if (new Date(user.resetTokenExpiry) < new Date()) {
+      return res.status(400).json({ error: 'Ce lien de réinitialisation a expiré.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    db.run(`UPDATE Users SET password = ?, resetToken = NULL, resetTokenExpiry = NULL WHERE id = ?`, 
+      [hashedPassword, user.id], (err) => {
+      if (err) return res.status(500).json({ error: 'Erreur serveur.' });
+      res.json({ success: true, message: 'Mot de passe réinitialisé avec succès.' });
+    });
+  });
+});
+
 
 /**
  * ROUTES PROFIL UTILISATEUR
@@ -512,6 +563,25 @@ app.delete('/api/lessons/:id', (req, res) => {
     res.json({ success: true });
   });
 });
+// --- APPLICATIONS FORMATEUR ---
+app.post('/api/user/apply-formateur', authenticateToken, (req, res) => {
+  const { specialite, bio, photo } = req.body;
+  if (!specialite || !bio) return res.status(400).json({ error: "Spécialité et bio requises." });
+
+  db.run(`INSERT INTO FormateurApplications (userId, specialite, bio, photo) VALUES (?, ?, ?, ?)`,
+    [req.user.id, specialite, bio, photo || ''], function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, applicationId: this.lastID });
+  });
+});
+
+app.get('/api/user/application-status', authenticateToken, (req, res) => {
+  db.get(`SELECT status FROM FormateurApplications WHERE userId = ? ORDER BY id DESC LIMIT 1`, [req.user.id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ status: row ? row.status : null });
+  });
+});
+
 
 // --- ADMIN ROUTES ---
 app.use('/api/admin', require('./adminRoutes')(db, authenticateToken));

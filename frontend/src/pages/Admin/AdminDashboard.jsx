@@ -35,6 +35,7 @@ import AdminContent from './AdminContent';
 import AdminInscriptions from './AdminInscriptions';
 import AdminMessages from './AdminMessages';
 import AdminFormateurs from './AdminFormateurs';
+import AdminCandidatures from './AdminCandidatures';
 import { useAuth } from '../../contexts/AuthContext';
 
 
@@ -143,6 +144,9 @@ const AdminDashboard = () => {
           <div className={`admin-nav-item ${activeTab === 'formateurs' ? 'active' : ''}`} onClick={() => setActiveTab('formateurs')}>
             <Users size={20} /> Formateurs
           </div>
+          <div className={`admin-nav-item ${activeTab === 'candidatures' ? 'active' : ''}`} onClick={() => setActiveTab('candidatures')}>
+            <CheckCircle size={20} /> Candidatures
+          </div>
           <div className={`admin-nav-item ${activeTab === 'parametres' ? 'active' : ''}`} onClick={() => window.location.href = '/parametres'}>
             <Edit size={20} /> Paramètres
           </div>
@@ -169,6 +173,7 @@ const AdminDashboard = () => {
             {activeTab === 'inscriptions' && 'Gestion des Inscriptions'}
             {activeTab === 'contenu' && 'Gestion du Contenu'}
             {activeTab === 'messages' && 'Messages de Contact'}
+            {activeTab === 'candidatures' && 'Candidatures Formateurs'}
           </div>
           <div className="admin-header-user">
             <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#333' }}>{user?.firstName || 'Admin'} {user?.lastName || ''}</span>
@@ -246,6 +251,9 @@ const AdminDashboard = () => {
 
           {/* TAB: FORMATEURS */}
           {activeTab === 'formateurs' && <AdminFormateurs />}
+
+          {/* TAB: CANDIDATURES */}
+          {activeTab === 'candidatures' && <AdminCandidatures />}
 
           {/* TAB: CONTENU */}
           {activeTab === 'contenu' && <AdminContent />}

@@ -84,7 +84,7 @@ const Login = () => {
               />
             </div>
             <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
-              <a href="#" style={{ fontSize: '0.85rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Mot de passe oublié ?</a>
+              <Link to="/mot-de-passe-oublie" style={{ fontSize: '0.85rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Mot de passe oublié ?</Link>
             </div>
           </div>
 

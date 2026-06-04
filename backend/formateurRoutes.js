@@ -168,10 +168,15 @@ module.exports = (db, authenticateToken) => {
   // GESTION DES FORMATIONS (par le formateur)
   // ============================================
 
-  // Helper: récupère l'ID formateur à partir de userId
+  // Helper: récupère l'ID formateur à partir de l'email de l'utilisateur
   const getFormateurId = (userId, callback) => {
-    db.get('SELECT id FROM Formateurs WHERE userId = ?', [userId], (err, row) => {
-      callback(err, row ? row.id : null);
+    db.get('SELECT email FROM Users WHERE id = ?', [userId], (err, user) => {
+      if (err || !user) return callback(err, null);
+      db.get('SELECT id FROM Formateurs WHERE email = ?', [user.email], (err, row) => {
+        // Si aucune fiche formateur n'existe avec cet email, on retourne l'ID utilisateur
+        // pour qu'il puisse au moins gérer ses cours via son ID User
+        callback(err, row ? row.id : userId);
+      });
     });
   };
 

@@ -54,6 +54,19 @@ db.serialize(() => {
     }
   });
 
+  // Migrations pour la réinitialisation de mot de passe
+  db.run("ALTER TABLE Users ADD COLUMN resetToken TEXT", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {
+      console.log("Migration 'resetToken' sur Users : ignorée ou erreur (", err.message, ")");
+    }
+  });
+
+  db.run("ALTER TABLE Users ADD COLUMN resetTokenExpiry DATETIME", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {
+      console.log("Migration 'resetTokenExpiry' sur Users : ignorée ou erreur (", err.message, ")");
+    }
+  });
+
   db.run(`
     CREATE TABLE IF NOT EXISTS Formations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -306,6 +319,20 @@ db.serialize(() => {
       });
     }
   });
+  
+  // Table FormateurApplications
+  db.run(`
+    CREATE TABLE IF NOT EXISTS FormateurApplications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER NOT NULL,
+      specialite TEXT NOT NULL,
+      bio TEXT NOT NULL,
+      photo TEXT,
+      status TEXT DEFAULT 'pending',
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(userId) REFERENCES Users(id)
+    )
+  `);
   
   console.log('Tables initialisées (Users, Enrollments, Advertisements, Modules, Chapters, Lessons).');
 });

@@ -247,5 +247,61 @@ module.exports = function(db, authenticateToken) {
     });
   });
 
+  // ── APPLICATIONS FORMATEUR ──
+  router.get('/applications', (req, res) => {
+    db.all(`
+      SELECT a.*, u.firstName, u.lastName, u.email 
+      FROM FormateurApplications a 
+      JOIN Users u ON a.userId = u.id 
+      ORDER BY a.createdAt DESC
+    `, (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    });
+  });
+
+  router.post('/applications/:id/approve', (req, res) => {
+    db.get(`SELECT * FROM FormateurApplications WHERE id = ?`, [req.params.id], (err, application) => {
+      if (err || !application) return res.status(404).json({ error: "Candidature introuvable." });
+      
+      db.get(`SELECT firstName, lastName, email, phone FROM Users WHERE id = ?`, [application.userId], (err, user) => {
+        if (err || !user) return res.status(404).json({ error: "Utilisateur introuvable." });
+        
+        // 1. Mettre à jour le statut de la candidature
+        db.run(`UPDATE FormateurApplications SET status = 'approved' WHERE id = ?`, [req.params.id], (err) => {
+          if (err) return res.status(500).json({ error: err.message });
+          
+          // 2. Changer le rôle du User
+          db.run(`UPDATE Users SET role = 'formateur' WHERE id = ?`, [application.userId], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            // 3. Créer la fiche publique du formateur
+            db.run(`INSERT INTO Formateurs (nom, prenom, email, telephone, specialite, bio, photo) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+              [user.lastName, user.firstName, user.email, user.phone || '', application.specialite, application.bio, application.photo || '/default-avatar.png'],
+              (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true });
+              }
+            );
+          });
+        });
+      });
+    });
+  });
+
+  router.post('/applications/:id/reject', (req, res) => {
+    db.run(`UPDATE FormateurApplications SET status = 'rejected' WHERE id = ?`, [req.params.id], (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true });
+    });
+  });
+
+  router.delete('/applications/:id', (req, res) => {
+    db.run(`DELETE FROM FormateurApplications WHERE id = ?`, [req.params.id], (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true });
+    });
+  });
+
   return router;
 };

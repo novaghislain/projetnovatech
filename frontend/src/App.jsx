@@ -13,6 +13,8 @@ import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import MonEspace from './pages/MonEspace';
 import InscriptionFormation from './pages/InscriptionFormation';
 import FormationDetails from './pages/FormationDetails';
@@ -58,6 +60,8 @@ const AppLayout = () => {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/inscription" element={<Inscription />} />
           <Route path="/formations" element={<InscriptionFormation />} />
           <Route path="/formations/:id" element={<FormationDetails />} />

@@ -12,6 +12,13 @@ const MonEspace = () => {
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [questionStatus, setQuestionStatus] = useState('');
   
+  // Trainer Application
+  const [showTrainerModal, setShowTrainerModal] = useState(false);
+  const [trainerBio, setTrainerBio] = useState('');
+  const [trainerSpecialite, setTrainerSpecialite] = useState('');
+  const [applicationStatus, setApplicationStatus] = useState(null);
+  const [appSubmitStatus, setAppSubmitStatus] = useState('');
+  
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState('');
 
@@ -21,9 +28,10 @@ const MonEspace = () => {
         const token = localStorage.getItem('nv_token');
         const headers = { 'Authorization': `Bearer ${token}` };
         
-        const [enrollRes, questionsRes] = await Promise.all([
+        const [enrollRes, questionsRes, appRes] = await Promise.all([
           fetch('http://localhost:5001/api/enroll/my-enrollments', { headers }),
-          fetch('http://localhost:5001/api/enroll/my-questions', { headers })
+          fetch('http://localhost:5001/api/enroll/my-questions', { headers }),
+          fetch('http://localhost:5001/api/user/application-status', { headers })
         ]);
 
         if (enrollRes.ok) {
@@ -35,12 +43,45 @@ const MonEspace = () => {
         if (questionsRes.ok) {
           setMyQuestions(await questionsRes.json());
         }
+        
+        if (appRes.ok) {
+          const appData = await appRes.json();
+          setApplicationStatus(appData.status);
+        }
       } catch (err) {
         console.error(err);
       }
     };
     fetchData();
   }, []);
+
+  const handleSubmitTrainer = async (e) => {
+    e.preventDefault();
+    if (!trainerBio || !trainerSpecialite) return;
+    try {
+      const token = localStorage.getItem('nv_token');
+      const res = await fetch('http://localhost:5001/api/user/apply-formateur', {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ specialite: trainerSpecialite, bio: trainerBio })
+      });
+      if (res.ok) {
+        setAppSubmitStatus('success');
+        setApplicationStatus('pending');
+        setTimeout(() => {
+          setShowTrainerModal(false);
+          setAppSubmitStatus('');
+        }, 2000);
+      } else {
+        setAppSubmitStatus('error');
+      }
+    } catch (err) {
+      setAppSubmitStatus('error');
+    }
+  };
 
   const handleSendQuestion = async (e) => {
     e.preventDefault();
@@ -169,6 +210,70 @@ const MonEspace = () => {
             <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.95rem' }}>Retrouvez les attestations de vos formations complétées.</p>
           </div>
         </div>
+
+        {/* DEVENIR FORMATEUR */}
+        {user?.role === 'apprenant' && applicationStatus !== 'approved' && (
+          <div style={{ marginTop: '3rem', backgroundColor: 'var(--color-primary)', padding: '2.5rem', borderRadius: 'var(--radius-lg)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '2rem' }}>
+            <div>
+              <h2 style={{ fontSize: '1.5rem', margin: '0 0 0.5rem 0' }}>Partagez vos connaissances</h2>
+              <p style={{ opacity: 0.9, margin: 0, maxWidth: '500px' }}>Devenez formateur sur Novatech Vision et aidez des centaines d'élèves à développer leurs compétences. Rejoignez notre équipe d'experts !</p>
+            </div>
+            
+            {applicationStatus === 'pending' ? (
+              <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', padding: '0.8rem 1.5rem', borderRadius: '50px', fontWeight: 600 }}>
+                ⏳ Candidature en cours d'examen
+              </div>
+            ) : applicationStatus === 'rejected' ? (
+              <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)', padding: '0.8rem 1.5rem', borderRadius: '50px', fontWeight: 600, color: '#fca5a5' }}>
+                ❌ Candidature non retenue
+              </div>
+            ) : (
+              <button onClick={() => setShowTrainerModal(true)} className="btn btn-accent" style={{ padding: '1rem 2rem', fontSize: '1.05rem' }}>
+                Postuler pour devenir Formateur
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* MODAL DEVENIR FORMATEUR */}
+        {showTrainerModal && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+            <div style={{ backgroundColor: 'var(--color-white)', padding: '2.5rem', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--color-primary)', marginBottom: '1.5rem' }}>Candidature Formateur</h2>
+              <form onSubmit={handleSubmitTrainer} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-primary)' }}>Votre Spécialité</label>
+                  <input 
+                    type="text" 
+                    value={trainerSpecialite}
+                    onChange={(e) => setTrainerSpecialite(e.target.value)}
+                    placeholder="Ex: Développement Web, Intelligence Artificielle..."
+                    style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-primary)' }}>Votre Biographie</label>
+                  <textarea 
+                    value={trainerBio}
+                    onChange={(e) => setTrainerBio(e.target.value)}
+                    placeholder="Décrivez votre parcours, vos expériences et pourquoi vous souhaitez enseigner sur Novatech Vision..."
+                    style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', minHeight: '150px', resize: 'vertical' }}
+                    required
+                  ></textarea>
+                </div>
+                
+                {appSubmitStatus === 'success' && <div style={{ color: '#10b981', fontWeight: 600, padding: '1rem', backgroundColor: '#ecfdf5', borderRadius: '8px' }}>✅ Votre candidature a été envoyée avec succès !</div>}
+                {appSubmitStatus === 'error' && <div style={{ color: '#ef4444', fontWeight: 600, padding: '1rem', backgroundColor: '#fef2f2', borderRadius: '8px' }}>❌ Erreur lors de l'envoi de la candidature.</div>}
+                
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  <button type="button" onClick={() => setShowTrainerModal(false)} className="btn btn-outline" style={{ flex: 1 }}>Annuler</button>
+                  <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>Soumettre ma candidature</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* POSER UNE QUESTION */}
         <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', margin: '3rem 0 1.5rem 0' }}>Poser une question à un formateur</h2>
