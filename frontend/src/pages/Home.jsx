@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   Monitor, Shield, Code2, BrainCircuit, UserCheck,
   GraduationCap, BookOpen, FlaskConical, Award, Clock, ArrowRight,
-  Star, Send, Mail, Phone, MapPin
+  Send, Mail, Phone, MapPin
 } from 'lucide-react';
 import AdBanner from '../components/AdBanner';
 import './Home.css';
@@ -25,32 +25,7 @@ const features = [
   { icon: <Clock size={32} />, title: 'Horaires flexibles', desc: 'Formations disponibles en présentiel, à domicile ou en ligne selon vos besoins.' },
 ];
 
-const testimonials = [
-  {
-    name: 'Sarah, 12 ans',
-    module: 'Bureautique',
-    avatar: 'https://i.pravatar.cc/60?img=47',
-    quote: "Grâce à Novatech Vision, j'ai appris à utiliser Word, PowerPoint et à créer mes premières présentations. Aujourd'hui, je suis beaucoup plus à l'aise avec l'ordinateur.",
-  },
-  {
-    name: 'Kévin, 15 ans',
-    module: 'Programmation',
-    avatar: 'https://i.pravatar.cc/60?img=15',
-    quote: "Les cours sont simples à comprendre et très pratiques. J'ai découvert les bases de la programmation et ça m'a donné envie de poursuivre dans ce domaine.",
-  },
-  {
-    name: 'Mme Agossou, Parent',
-    module: 'Sécurité & Internet',
-    avatar: 'https://i.pravatar.cc/60?img=32',
-    quote: "Mon fils a gagné en autonomie et en confiance. L'équipe pédagogique est professionnelle et très attentive au suivi des enfants.",
-  },
-  {
-    name: 'David, 17 ans',
-    module: 'Intelligence Artificielle',
-    avatar: 'https://i.pravatar.cc/60?img=13',
-    quote: "La formation sur l'intelligence artificielle était passionnante. J'ai découvert des outils modernes que je peux utiliser pour mes études.",
-  },
-];
+
 
 
 
@@ -96,50 +71,29 @@ const featuredCourses = [
 
 
 
-const heroBackgrounds = [
-  '/7x.jpg',
-  '/12x.jpg',
-  '/13x.jpg'
-];
-
 const Home = () => {
-  const [currentBgIndex, setCurrentBgIndex] = useState(0);
-
-  useEffect(() => {
-    const bgInterval = setInterval(() => {
-      setCurrentBgIndex((prevIndex) => (prevIndex + 1) % heroBackgrounds.length);
-    }, 6000); // Change hero background every 6 seconds
-
-    return () => {
-      clearInterval(bgInterval);
-    };
-  }, []);
-
   return (
     <div className="home-page">
 
-      {/* ══════════ HERO ══════════ */}
+      {/* Hero Section */}
       <section className="hero">
         <div className="hero-layout">
 
           {/* Main hero block (left + center) */}
           <div className="hero-main">
-            {/* Background Carousel */}
-            {heroBackgrounds.map((bg, i) => (
-              <img
-                key={i}
-                src={bg}
-                alt="Formateur Novatech Vision avec des élèves"
-                className={`hero-bg-img ${i === currentBgIndex ? 'active' : ''}`}
-              />
-            ))}
+            {/* Background Image */}
+            <img
+              src="/7x.jpg"
+              alt="Formateur Novatech Vision avec des élèves"
+              className="hero-bg-img active"
+            />
             {/* Dark overlay */}
             <div className="hero-overlay" />
 
             <div className="hero-text-block">
               <h1>
                 Former Aujourd'hui<br />
-                <span className="hero-gold">Les Talents Numériques</span><br />
+                <span className="hero-blue">Les Talents Numériques</span><br />
                 de Demain
               </h1>
               <p>
@@ -199,7 +153,7 @@ const Home = () => {
 
 
 
-      {/* ══════════ PRÉSENTATION ══════════ */}
+      {/* Presentation Section */}
       <section className="presentation-section section-padding" style={{ backgroundColor: 'var(--color-bg-light)' }}>
         <div className="container">
           <div className="presentation-content" style={{ display: 'flex', gap: '4rem', alignItems: 'center' }}>
@@ -214,11 +168,11 @@ const Home = () => {
               </p>
               <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontWeight: 600, color: 'var(--color-primary)' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(212,160,23,0.15)', color: 'var(--color-accent)' }}><Award size={18} /></span>
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(15, 52, 96,0.15)', color: '#0F3460' }}><Award size={18} /></span>
                   Excellence pédagogique
                 </li>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontWeight: 600, color: 'var(--color-primary)' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(212,160,23,0.15)', color: 'var(--color-accent)' }}><Shield size={18} /></span>
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(15, 52, 96,0.15)', color: '#0F3460' }}><Shield size={18} /></span>
                   Environnement sécurisé
                 </li>
               </ul>
@@ -226,11 +180,11 @@ const Home = () => {
             <div className="presentation-image" style={{ flex: 1, position: 'relative', display: 'flex', justifyContent: 'flex-end' }}>
               <div style={{ position: 'relative', width: '90%' }}>
                 <img src="/10x.jpg" alt="Élèves apprenant l'informatique" style={{ width: '100%', borderRadius: 'var(--radius-lg)', boxShadow: '0 20px 40px rgba(26,26,46,0.15)', display: 'block' }} />
-                
+
                 {/* Decorative Elements */}
                 <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', border: '3px solid var(--color-accent)', borderRadius: 'var(--radius-lg)', zIndex: -1 }}></div>
-                <div style={{ position: 'absolute', bottom: '-20px', left: '-20px', backgroundColor: 'var(--color-primary)', color: 'var(--color-white)', padding: '1.5rem 2rem', borderRadius: 'var(--radius-md)', boxShadow: '0 10px 30px rgba(212,160,23,0.3)', display: 'flex', alignItems: 'center', gap: '1.2rem', zIndex: 2 }}>
-                  <div style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--color-accent)', lineHeight: 1 }}>5+</div>
+                <div style={{ position: 'absolute', bottom: '-20px', left: '-20px', backgroundColor: 'var(--color-primary)', color: 'var(--color-white)', padding: '1.5rem 2rem', borderRadius: 'var(--radius-md)', boxShadow: '0 10px 30px rgba(15, 52, 96,0.3)', display: 'flex', alignItems: 'center', gap: '1.2rem', zIndex: 2 }}>
+                  <div style={{ fontSize: '3rem', fontWeight: 900, color: '#0F3460', lineHeight: 1 }}>5+</div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Années<br />d'expérience</div>
                 </div>
               </div>
@@ -239,12 +193,12 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ══════════ BANNIÈRE PUBLICITAIRE ══════════ */}
+      {/* Ad Banner */}
       <section className="container">
         <AdBanner placement="Accueil" />
       </section>
 
-      {/* ══════════ FORMATIONS EN VEDETTE ══════════ */}
+      {/* Featured Courses */}
       <section className="featured-courses-section section-padding" style={{ backgroundColor: 'var(--color-white)' }}>
         <div className="container">
           <div className="text-center">
@@ -252,7 +206,7 @@ const Home = () => {
             <h2 className="section-title">Formations en vedette</h2>
             <p className="section-subtitle" style={{ margin: '0 auto 3rem' }}>Découvrez nos programmes les plus populaires conçus pour vos enfants.</p>
           </div>
-          
+
           <div className="courses-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
             {featuredCourses.map((course, i) => (
               <div className="course-card" key={i} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-light)', transition: 'all 0.3s ease', display: 'flex', flexDirection: 'column' }}>
@@ -287,7 +241,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ══════════ KEY FIGURES ══════════ */}
+      {/* Statistics / Key Figures */}
       <section className="key-figures-section section-padding">
         <div className="container text-center">
           <h2 className="section-title">Novatech Vision en Chiffres</h2>
@@ -303,7 +257,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ══════════ POURQUOI NOUS CHOISIR ══════════ */}
+      {/* Why Choose Us */}
       <section className="why-us-section section-padding" style={{ backgroundColor: 'var(--color-bg-alt)' }}>
         <div className="container">
           <div className="text-center">
@@ -311,7 +265,7 @@ const Home = () => {
             <h2 className="section-title">Pourquoi nous choisir ?</h2>
             <p className="section-subtitle" style={{ margin: '0 auto 3rem' }}>L'environnement idéal pour le développement des compétences de vos enfants.</p>
           </div>
-          
+
           <div className="features-strip-grid" style={{ gap: '2rem' }}>
             {features.map((f, i) => (
               <div className="strip-item" key={i} style={{ backgroundColor: 'var(--color-white)' }}>
@@ -324,62 +278,32 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ══════════ TESTIMONIALS ══════════ */}
-      <section className="testimonials-section section-padding">
-        <div className="container">
-          <div className="testimonials-layout">
-            <div className="testimonials-heading">
-              <h2>Ce que disent<br />nos apprenants<br />et parents</h2>
-              <Link to="/temoignages" className="btn btn-primary" style={{ marginTop: '1.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                Voir tous <ArrowRight size={16} />
-              </Link>
-            </div>
 
-            <div className="testimonials-cards">
-              {testimonials.map((t, i) => (
-                <div className="testi-card" key={i}>
-                  <div className="testi-stars">
-                    {[...Array(5)].map((_, s) => <Star key={s} size={13} fill="#D4A017" color="#D4A017" />)}
-                  </div>
-                  <div className="testi-author">
-                    <img src={t.avatar} alt={t.name} />
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <strong>{t.name}</strong>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--color-accent)', fontWeight: 600 }}>{t.module}</span>
-                    </div>
-                  </div>
-                  <p>"{t.quote}"</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ══════════ QUICK CONTACT & SOCIAL ══════════ */}
+      {/* Quick Contact and Social Media Links */}
       <section className="contact-quick-section section-padding" style={{ backgroundColor: 'var(--color-white)', borderTop: '1px solid var(--color-border)' }}>
         <div className="container">
           <div className="contact-layout" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem' }}>
-            
+
             <div className="contact-info-block">
               <div className="section-eyebrow">Restons connectés</div>
               <h2 className="section-title">Rejoignez la communauté</h2>
               <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', lineHeight: 1.7 }}>
                 Suivez nos actualités, nos événements et interagissez avec nous sur les réseaux sociaux. Nous sommes disponibles pour répondre à toutes vos questions.
               </p>
-              
+
               <div className="social-links-grid" style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem' }}>
                 <a href="https://www.facebook.com/novatechvision" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '45px', height: '45px', backgroundColor: 'var(--color-bg-light)', color: 'var(--color-primary)', borderRadius: '50%', transition: 'all 0.3s' }} className="social-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
                 </a>
                 <a href="https://x.com/novatechvision" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '45px', height: '45px', backgroundColor: 'var(--color-bg-light)', color: 'var(--color-primary)', borderRadius: '50%', transition: 'all 0.3s' }} className="social-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></svg>
                 </a>
                 <a href="https://www.instagram.com/novatechvision" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '45px', height: '45px', backgroundColor: 'var(--color-bg-light)', color: 'var(--color-primary)', borderRadius: '50%', transition: 'all 0.3s' }} className="social-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                 </a>
                 <a href="https://www.linkedin.com/company/novatech-vision" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '45px', height: '45px', backgroundColor: 'var(--color-bg-light)', color: 'var(--color-primary)', borderRadius: '50%', transition: 'all 0.3s' }} className="social-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect width="4" height="12" x="2" y="9" /><circle cx="4" cy="4" r="2" /></svg>
                 </a>
               </div>
 

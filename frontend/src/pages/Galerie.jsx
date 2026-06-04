@@ -94,13 +94,10 @@ const Galerie = () => {
     <div className="galerie-page">
 
       {/* ── Header ── */}
-      <div className="galerie-hero">
-        <div className="galerie-hero-content container">
-          <div className="galerie-icon-wrap">
-            <Images size={32} />
-          </div>
-          <h1>Notre Galerie</h1>
-          <p>Découvrez nos sessions de formation, ateliers et cérémonies en images.</p>
+      <div className="page-top-bar">
+        <div className="container">
+          <h1>Galerie Photo</h1>
+          <p className="page-top-desc">Découvrez nos sessions de formation, ateliers et cérémonies en images.</p>
         </div>
       </div>
 

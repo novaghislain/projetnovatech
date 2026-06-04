@@ -9,7 +9,7 @@ const AdBanner = ({ placement }) => {
     // 1. Fetch available ads from backend
     const fetchAd = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/ads');
+        const response = await axios.get('http://localhost:5001/api/ads');
         const ads = response.data;
         
         // Filtrer par placement si fourni
@@ -21,7 +21,7 @@ const AdBanner = ({ placement }) => {
           setAd(randomAd);
           
           // 2. Enregistrer la Vue
-          await axios.post(`http://localhost:5000/api/ads/${randomAd.id}/view`);
+          await axios.post(`http://localhost:5001/api/ads/${randomAd.id}/view`);
         }
       } catch (error) {
         console.error("Erreur de chargement de la pub:", error);
@@ -49,7 +49,7 @@ const AdBanner = ({ placement }) => {
       }}>Publicité</span>
       
       {/* Le clic passe par notre backend pour le tracking avant la redirection */}
-      <a href={`http://localhost:5000/api/ads/${ad.id}/click`} target="_blank" rel="noopener noreferrer">
+      <a href={`http://localhost:5001/api/ads/${ad.id}/click`} target="_blank" rel="noopener noreferrer">
         <img 
           src={ad.imageUrl} 
           alt={`Publicité ${ad.advertiserName}`} 

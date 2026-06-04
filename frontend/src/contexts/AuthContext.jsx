@@ -36,47 +36,70 @@ export const AuthProvider = ({ children }) => {
     } else if (email === 'eleve@novatech.com' && password === 'eleve123') {
       role = 'apprenant';
       firstName = 'Élève';
-    } else {
-      // 2. Check if user registered locally
-      const storedUsers = JSON.parse(localStorage.getItem('mock_users') || '[]');
-      const foundUser = storedUsers.find(u => u.email === email && u.password === password);
-      
-      if (foundUser) {
-        role = foundUser.role;
-        firstName = foundUser.firstName;
-      } else {
-        throw new Error("Identifiants incorrects. Veuillez créer un compte ou utiliser les comptes de démonstration.");
-      }
     }
 
-    const mockUser = { email, firstName, role };
-    setUser(mockUser);
-    return mockUser;
+    if (role) {
+      const mockUser = { email, firstName, role };
+      setUser(mockUser);
+      return mockUser;
+    }
+
+    // 2. Fetch from Real Backend
+    try {
+      const response = await fetch('http://localhost:5001/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur de connexion');
+      }
+
+      localStorage.setItem('nv_token', data.token);
+      setUser(data.user);
+      return data.user;
+    } catch (err) {
+      throw new Error("Identifiants incorrects ou serveur injoignable.");
+    }
   };
 
   const register = async ({ firstName, email, password }) => {
-    // Par défaut, toute nouvelle inscription est un apprenant
-    const role = 'apprenant';
-    const newUser = { email, firstName: firstName || email.split('@')[0], role, password };
-    
-    // Save to local mock database
-    const storedUsers = JSON.parse(localStorage.getItem('mock_users') || '[]');
-    storedUsers.push(newUser);
-    localStorage.setItem('mock_users', JSON.stringify(storedUsers));
+    try {
+      const response = await fetch('http://localhost:5001/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, email, password, role: 'apprenant' })
+      });
+      const data = await response.json();
 
-    // Remove password before setting active session
-    const sessionUser = { email, firstName: newUser.firstName, role };
-    setUser(sessionUser);
-    return sessionUser;
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur lors de l'inscription");
+      }
+
+      localStorage.setItem('nv_token', data.token);
+      setUser(data.user);
+      return data.user;
+    } catch (err) {
+      throw new Error(err.message || "Impossible de créer le compte.");
+    }
+  };
+
+  const updateUserDetails = (newDetails) => {
+    const updatedUser = { ...user, ...newDetails };
+    setUser(updatedUser);
+    localStorage.setItem('nv_user', JSON.stringify(updatedUser)); // backup fallback
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem('nv_token');
     navigate('/');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateUserDetails }}>
       {children}
     </AuthContext.Provider>
   );

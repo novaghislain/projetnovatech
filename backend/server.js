@@ -5,16 +5,173 @@ const axios = require('axios');
 const crypto = require('crypto');
 const db = require('./db');
 
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Configuration Multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, req.user?.id + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
 
 // Clés API Secrètes (à mettre dans un .env en production)
 const KKIAPAY_SECRET_KEY = 'sk_dda4ec528f20248b56c654d95880c8f73d4525b863d5f60c0297152277ba3a46';
-// La clé secrète FedaPay devra être ajoutée ici une fois fournie.
+const JWT_SECRET = 'super_secret_novatech_key_2026';
+
+/**
+ * ROUTES D'AUTHENTIFICATION
+ */
+
+app.post('/api/auth/register', async (req, res) => {
+  const { firstName, lastName, email, phone, password, role } = req.body;
+  if (!firstName || !email || !password) {
+    return res.status(400).json({ error: 'Le prénom, email et mot de passe sont requis' });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const userRole = role || 'apprenant';
+
+    db.run(
+      `INSERT INTO Users (firstName, lastName, email, phone, password, role) VALUES (?, ?, ?, ?, ?, ?)`,
+      [firstName, lastName || '', email.toLowerCase(), phone || '', hashedPassword, userRole],
+      function (err) {
+        if (err) {
+          if (err.message.includes('UNIQUE')) {
+            return res.status(400).json({ error: 'Cet email est déjà utilisé.' });
+          }
+          return res.status(500).json({ error: 'Erreur lors de la création du compte.' });
+        }
+
+        const token = jwt.sign({ id: this.lastID, email, role: userRole }, JWT_SECRET, { expiresIn: '7d' });
+        res.json({
+          user: { id: this.lastID, firstName, lastName, email, role: userRole },
+          token
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ error: "Erreur serveur lors de l'inscription" });
+  }
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email et mot de passe requis.' });
+  }
+
+  db.get(`SELECT * FROM Users WHERE email = ?`, [email.toLowerCase()], async (err, user) => {
+    if (err) return res.status(500).json({ error: 'Erreur serveur.' });
+    if (!user) return res.status(400).json({ error: 'Identifiants incorrects.' });
+
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) return res.status(400).json({ error: 'Identifiants incorrects.' });
+
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({
+      user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, avatar: user.avatar },
+      token
+    });
+  });
+});
+
+/**
+ * ROUTES PROFIL UTILISATEUR
+ */
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.sendStatus(401);
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+};
+
+app.post('/api/user/avatar', authenticateToken, upload.single('avatar'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Aucun fichier fourni' });
+  }
+
+  const avatarUrl = 'http://localhost:5001/uploads/' + req.file.filename;
+
+  db.run(`UPDATE Users SET avatar = ? WHERE id = ?`, [avatarUrl, req.user.id], function(err) {
+    if (err) return res.status(500).json({ error: "Erreur lors de la mise à jour de l'avatar" });
+    res.json({ avatar: avatarUrl });
+  });
+});
+
+app.delete('/api/user/avatar', authenticateToken, (req, res) => {
+  db.run(`UPDATE Users SET avatar = NULL WHERE id = ?`, [req.user.id], function(err) {
+    if (err) return res.status(500).json({ error: "Erreur lors de la suppression de l'avatar" });
+    res.json({ success: true });
+  });
+});
+
+app.get('/api/user/payments', authenticateToken, (req, res) => {
+  db.all(`SELECT * FROM Enrollments WHERE userId = ? ORDER BY id DESC`, [req.user.id], (err, rows) => {
+    if (err) return res.status(500).json({ error: "Erreur lors de la récupération des paiements" });
+    res.json(rows);
+  });
+});
+
+app.put('/api/user/profile', authenticateToken, (req, res) => {
+  const { firstName, lastName } = req.body;
+  if (!firstName || !lastName) {
+    return res.status(400).json({ error: "Le prénom et le nom sont requis." });
+  }
+
+  db.run(`UPDATE Users SET firstName = ?, lastName = ? WHERE id = ?`, [firstName, lastName, req.user.id], function(err) {
+    if (err) return res.status(500).json({ error: "Erreur lors de la mise à jour du profil" });
+    res.json({ success: true, firstName, lastName });
+  });
+});
+
+app.put('/api/user/password', authenticateToken, (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: "L'ancien et le nouveau mot de passe sont requis." });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: "Le nouveau mot de passe doit contenir au moins 6 caractères." });
+  }
+
+  db.get(`SELECT password FROM Users WHERE id = ?`, [req.user.id], async (err, user) => {
+    if (err) return res.status(500).json({ error: "Erreur serveur." });
+    if (!user) return res.status(404).json({ error: "Utilisateur non trouvé." });
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) return res.status(400).json({ error: "Le mot de passe actuel est incorrect." });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    db.run(`UPDATE Users SET password = ? WHERE id = ?`, [hashedPassword, req.user.id], function(err) {
+      if (err) return res.status(500).json({ error: "Erreur lors de la mise à jour du mot de passe." });
+      res.json({ success: true, message: "Mot de passe mis à jour avec succès." });
+    });
+  });
+});
 
 /**
  * Utilitaires pour gérer les utilisateurs et débloquer les cours

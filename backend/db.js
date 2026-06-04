@@ -20,9 +20,25 @@ db.serialize(() => {
       email TEXT UNIQUE NOT NULL,
       phone TEXT,
       password TEXT,
+      role TEXT DEFAULT 'apprenant',
+      avatar TEXT,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Migration: Ajouter la colonne role si elle n'existe pas
+  db.run("ALTER TABLE Users ADD COLUMN role TEXT DEFAULT 'apprenant'", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {
+      console.log("Migration 'role' sur Users : ignorée ou erreur (", err.message, ")");
+    }
+  });
+
+  // Migration: Ajouter la colonne avatar si elle n'existe pas
+  db.run("ALTER TABLE Users ADD COLUMN avatar TEXT", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {
+      console.log("Migration 'avatar' sur Users : ignorée ou erreur (", err.message, ")");
+    }
+  });
 
   db.run(`
     CREATE TABLE IF NOT EXISTS Enrollments (

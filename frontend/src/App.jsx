@@ -11,13 +11,15 @@ import AnnonceurDashboard from './pages/AnnonceurDashboard';
 import Apropos from './pages/Apropos';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
-import Temoignages from './pages/Temoignages';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MonEspace from './pages/MonEspace';
 import InscriptionFormation from './pages/InscriptionFormation';
 import FormationDetails from './pages/FormationDetails';
 import TableauInscriptions from './pages/TableauInscriptions';
+import Paiements from './pages/Paiements';
+import Recus from './pages/Recus';
+import Parametres from './pages/Parametres';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -52,7 +54,6 @@ const AppLayout = () => {
           <Route path="/a-propos" element={<Apropos />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
-          <Route path="/temoignages" element={<Temoignages />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/inscription" element={<Inscription />} />
@@ -63,6 +64,10 @@ const AppLayout = () => {
           {/* Espace Apprenant */}
           <Route path="/mon-espace" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><MonEspace /></ProtectedRoute>} />
           <Route path="/mon-espace/inscriptions" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><TableauInscriptions /></ProtectedRoute>} />
+          <Route path="/mon-espace/paiements" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><Paiements /></ProtectedRoute>} />
+          <Route path="/mon-espace/recus" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><Recus /></ProtectedRoute>} />
+          
+          <Route path="/parametres" element={<ProtectedRoute><Parametres /></ProtectedRoute>} />
           
           {/* Espace Formateur */}
           <Route path="/formateur" element={<ProtectedRoute allowedRoles={['formateur', 'admin']}><FormateurDashboard /></ProtectedRoute>} />

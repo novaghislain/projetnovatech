@@ -8,7 +8,7 @@ const Footer = () => {
     <footer className="footer">
       <div className="container footer-container">
         <div className="footer-section">
-          <img src="/4x.png" alt="Novatech Vision Logo" className="footer-logo-image" />
+          <h3 style={{ color: 'var(--color-white)', marginBottom: '1rem', fontFamily: 'var(--font-heading)', fontSize: '1.5rem' }}>NOVATECH VISION</h3>
           <p className="footer-desc">
             Organisme de formation spécialisé dans l'éducation informatique des enfants et jeunes de 8 à 18 ans.
           </p>

@@ -1,0 +1,4 @@
+Tables initialisées (Users, Enrollments, Advertisements, Modules, Chapters, Lessons).
+Serveur Backend démarré sur http://localhost:5001
+[En attente des webhooks Kkiapay et FedaPay]
+Connecté à la base de données SQLite.
