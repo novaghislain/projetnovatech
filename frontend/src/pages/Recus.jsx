@@ -107,7 +107,7 @@ const Recus = () => {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ color: '#555', fontSize: '0.95rem', maxWidth: '60%' }}>{getCourseTitle(payment.courseId)}</div>
-                    <div style={{ color: 'var(--color-accent)', fontWeight: 'bold' }}>{payment.amount.toLocaleString()} F</div>
+                    <div style={{ color: 'var(--color-accent)', fontWeight: 'bold' }}>{(payment.amount || 0).toLocaleString()} F</div>
                   </div>
                 </div>
 

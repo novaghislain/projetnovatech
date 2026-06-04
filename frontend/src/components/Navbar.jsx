@@ -58,7 +58,7 @@ const Navbar = () => {
                 {auth.user?.role === 'admin' && <Link to="/admin" onClick={closeAll}>Espace Admin</Link>}
                 {auth.user?.role === 'formateur' && <Link to="/formateur" onClick={closeAll}>Espace Formateur</Link>}
                 {auth.user?.role === 'annonceur' && <Link to="/annonceur" onClick={closeAll}>Espace Annonceur</Link>}
-                {auth.user?.role === 'apprenant' && <Link to="/mon-espace" onClick={closeAll}>Mon espace</Link>}
+                {/* For apprenant, 'Mon Espace' is now on the right side */}
               </>
             )}
             <Link to="/contact" onClick={closeAll}>Contact</Link>
@@ -73,65 +73,95 @@ const Navbar = () => {
                 </Link>
               </>
             ) : (
-              <div className="account-dropdown" ref={dropdownRef}>
-                <button
-                  className="account-trigger"
-                  onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                  aria-expanded={accountMenuOpen}
-                >
-                  <div className="account-avatar">
-                    {auth.user?.avatar ? (
-                      <img src={auth.user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                    ) : (
-                      <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>
-                        {auth.user?.firstName ? auth.user.firstName.charAt(0).toUpperCase() : <User size={16} />}
-                      </span>
-                    )}
-                  </div>
-                  <span>{auth.user?.firstName || auth.user?.email || 'Utilisateur'}</span>
-                  <ChevronDown size={16} className={`chevron ${accountMenuOpen ? 'open' : ''}`} />
-                </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
-                <div className={`account-menu ${accountMenuOpen ? 'open' : ''}`}>
-                  {auth.user?.role === 'admin' && (
-                    <Link to="/admin" className="account-menu-item" onClick={closeAll}>
-                      <LayoutDashboard size={16} /> Dashboard Admin
+                {/* Quick links for apprenant */}
+                {auth.user?.role === 'apprenant' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.5rem' }}>
+                    <Link
+                      to="/mon-espace"
+                      onClick={closeAll}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.45rem 0.9rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.75)', textDecoration: 'none', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}
+                    >
+                      <BookOpen size={15} /> Mon Espace
                     </Link>
-                  )}
-                  {auth.user?.role === 'formateur' && (
-                    <Link to="/formateur" className="account-menu-item" onClick={closeAll}>
-                      <LayoutDashboard size={16} /> Espace Formateur
+                    <Link
+                      to="/mon-espace/inscriptions"
+                      onClick={closeAll}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.45rem 0.9rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.75)', textDecoration: 'none', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}
+                    >
+                      <CreditCard size={15} /> Mes Inscriptions
                     </Link>
-                  )}
-                  {auth.user?.role === 'annonceur' && (
-                    <Link to="/annonceur" className="account-menu-item" onClick={closeAll}>
-                      <LayoutDashboard size={16} /> Espace Annonceur
-                    </Link>
-                  )}
-                  {auth.user?.role === 'apprenant' && (
-                    <>
-                      <Link to="/mon-espace" className="account-menu-item" onClick={closeAll}>
-                        <LayoutDashboard size={16} /> Mon Espace
-                      </Link>
-                      <Link to="/mon-espace/paiements" className="account-menu-item" onClick={closeAll}>
-                        <CreditCard size={16} /> Mes paiements
-                      </Link>
-                      <Link to="/mon-espace/recus" className="account-menu-item" onClick={closeAll}>
-                        <FileText size={16} /> Mes reçus
-                      </Link>
-                    </>
-                  )}
-                  
-                  <Link to="/parametres" className="account-menu-item" onClick={closeAll}>
-                    <Settings size={16} /> Paramètres
-                  </Link>
-                  <div className="account-menu-divider" />
+                  </div>
+                )}
+
+                <div className="account-dropdown" ref={dropdownRef}>
                   <button
-                    className="account-menu-item account-menu-logout"
-                    onClick={() => { auth.logout(); closeAll(); }}
+                    className="account-trigger"
+                    onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                    aria-expanded={accountMenuOpen}
                   >
-                    <LogOut size={16} /> Déconnexion
+                    <div className="account-avatar">
+                      {auth.user?.avatar ? (
+                        <img src={auth.user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                      ) : (
+                        <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>
+                          {auth.user?.firstName ? auth.user.firstName.charAt(0).toUpperCase() : <User size={16} />}
+                        </span>
+                      )}
+                    </div>
+                    <span>{auth.user?.firstName || auth.user?.email || 'Utilisateur'}</span>
+                    <ChevronDown size={16} className={`chevron ${accountMenuOpen ? 'open' : ''}`} />
                   </button>
+
+                  <div className={`account-menu ${accountMenuOpen ? 'open' : ''}`}>
+                    {auth.user?.role === 'admin' && (
+                      <Link to="/admin" className="account-menu-item" onClick={closeAll}>
+                        <LayoutDashboard size={16} /> Dashboard Admin
+                      </Link>
+                    )}
+                    {auth.user?.role === 'formateur' && (
+                      <Link to="/formateur" className="account-menu-item" onClick={closeAll}>
+                        <LayoutDashboard size={16} /> Espace Formateur
+                      </Link>
+                    )}
+                    {auth.user?.role === 'annonceur' && (
+                      <Link to="/annonceur" className="account-menu-item" onClick={closeAll}>
+                        <LayoutDashboard size={16} /> Espace Annonceur
+                      </Link>
+                    )}
+                    {auth.user?.role === 'apprenant' && (
+                      <>
+                        <Link to="/mon-espace" className="account-menu-item" onClick={closeAll}>
+                          <LayoutDashboard size={16} /> Mon Espace
+                        </Link>
+                        <Link to="/mon-espace/inscriptions" className="account-menu-item" onClick={closeAll}>
+                          <BookOpen size={16} /> Mes Inscriptions
+                        </Link>
+                        <Link to="/mon-espace/paiements" className="account-menu-item" onClick={closeAll}>
+                          <CreditCard size={16} /> Mes paiements
+                        </Link>
+                        <Link to="/mon-espace/recus" className="account-menu-item" onClick={closeAll}>
+                          <FileText size={16} /> Mes reçus
+                        </Link>
+                      </>
+                    )}
+                    
+                    <Link to="/parametres" className="account-menu-item" onClick={closeAll}>
+                      <Settings size={16} /> Paramètres
+                    </Link>
+                    <div className="account-menu-divider" />
+                    <button
+                      className="account-menu-item account-menu-logout"
+                      onClick={() => { auth.logout(); closeAll(); }}
+                    >
+                      <LogOut size={16} /> Déconnexion
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

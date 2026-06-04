@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import FedapayWidget from '../components/FedapayWidget';
-import { CheckCircle, ShieldCheck, User, Users, MapPin, Mail, Phone, CreditCard, BookOpen, ArrowRight } from 'lucide-react';
+import { CheckCircle, ShieldCheck, User, Users, MapPin, Mail, Phone, CreditCard, BookOpen, ArrowRight, Lock } from 'lucide-react';
 import './Inscription.css';
 
 const Inscription = () => {
@@ -136,21 +136,19 @@ const Inscription = () => {
 
   return (
     <div className="inscription-page page-transition">
-      <div className="container" style={{ padding: '3rem 0' }}>
+      <div className="inscription-layout">
         
-        <div className="inscription-layout">
+        {/* MAIN FORM */}
+        <div className="inscription-main">
+          <h1 className="inscription-title">Formulaire d'Inscription</h1>
           
-          {/* MAIN FORM */}
-          <div className="inscription-main">
-            <h1 className="inscription-title">Formulaire d'Inscription</h1>
-            
-            <div className="inscription-steps">
-              <div className={`step ${step >= 1 ? 'active' : ''}`}>1. Informations</div>
-              <div className={`step ${step >= 2 ? 'active' : ''}`}>2. Confirmation & Paiement</div>
-            </div>
+          <div className="inscription-steps">
+            <div className={`step ${step >= 1 ? 'active' : ''}`}>1. Informations</div>
+            <div className={`step ${step >= 2 ? 'active' : ''}`}>2. Paiement</div>
+          </div>
 
-            {step === 1 && (
-              <form onSubmit={handleStep1Submit} className="inscription-form fade-in">
+          {step === 1 && (
+            <form onSubmit={handleStep1Submit} className="fade-in">
                 
                 <div className="form-section">
                   <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
@@ -225,116 +223,108 @@ const Inscription = () => {
                   </div>
                 )}
 
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', padding: '1rem' }}>
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', padding: '1rem', fontSize: '1rem', borderRadius: '12px' }}>
                   Étape Suivante <ArrowRight size={18} style={{ marginLeft: '0.5rem' }} />
                 </button>
               </form>
-            )}
+          )}
 
-            {step === 2 && course && (
-              <div className="inscription-payment fade-in">
-                <button className="btn btn-outline" onClick={() => setStep(1)} style={{ marginBottom: '2rem' }}>
-                  ← Retour
-                </button>
+          {step === 2 && course && (
+            <div className="inscription-payment fade-in">
+              <button className="btn btn-outline" onClick={() => setStep(1)} style={{ marginBottom: '2rem' }}>
+                ← Retour
+              </button>
 
-                <h3 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)' }}>Récapitulatif</h3>
-                
-                <div style={{ backgroundColor: '#f9fafb', padding: '1.5rem', borderRadius: '8px', marginBottom: '2rem' }}>
-                  <p style={{ margin: '0 0 0.5rem 0' }}><strong>Formation :</strong> {course.title}</p>
-                  <p style={{ margin: '0 0 0.5rem 0' }}><strong>Apprenant :</strong> {formData.childFirstName} {formData.childLastName} ({formData.childAge} ans)</p>
-                  <p style={{ margin: '0 0 0.5rem 0' }}><strong>Parent :</strong> {formData.parentName} ({formData.parentPhone})</p>
-                  <hr style={{ margin: '1rem 0', borderColor: '#e5e7eb' }} />
-                  <p style={{ margin: '0', fontSize: '1.2rem', display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Total à payer :</span>
-                    <strong style={{ color: 'var(--color-primary)' }}>{course.price?.toLocaleString()} FCFA</strong>
-                  </p>
-                </div>
-
-                {isFull ? (
-                  <div style={{ backgroundColor: '#fff7ed', padding: '1.5rem', borderRadius: '8px', border: '1px solid #ffedd5' }}>
-                    <h4 style={{ color: '#c2410c', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                      <CheckCircle size={20} /> Formation complète
-                    </h4>
-                    <p style={{ color: '#9a3412', marginBottom: '1.5rem' }}>
-                      Aucun paiement n'est requis pour le moment. Vous allez être placé(e) sur liste d'attente.
-                    </p>
-                    <button className="btn btn-primary" onClick={handleWaitlistSubmit} disabled={submitLoading} style={{ width: '100%' }}>
-                      {submitLoading ? 'Validation...' : 'Confirmer l\'inscription sur liste d\'attente'}
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <h4 style={{ marginBottom: '1rem' }}>Procéder au paiement</h4>
-                    <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
-                      Cliquez sur le bouton ci-dessous pour régler par Mobile Money ou Carte Bancaire via notre partenaire sécurisé.
-                    </p>
-                    <FedapayWidget 
-                      amount={course.price} 
-                      description={`Inscription: ${course.title}`}
-                      customerEmail={formData.parentEmail}
-                      customerFirstname={formData.parentName}
-                      customerLastname=""
-                      onSuccess={handlePaymentComplete}
-                    />
-                    
-                    {/* Fallback Mock Payment for Demo */}
-                    <button 
-                      className="btn btn-outline" 
-                      onClick={() => processEnrollment('Test Mock', 'TRX-MOCK-123')}
-                      style={{ width: '100%', marginTop: '1rem' }}
-                      disabled={submitLoading}
-                    >
-                      {submitLoading ? 'Validation...' : '[Démo] Simuler un paiement réussi'}
-                    </button>
-                  </div>
-                )}
+              <h3 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)', fontSize: '1.3rem', fontWeight: 700 }}>Récapitulatif de votre inscription</h3>
+              
+              <div style={{ backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '14px', marginBottom: '2rem', border: '1px solid #e2e8f0' }}>
+                <p style={{ margin: '0 0 0.6rem 0' }}><strong>Formation :</strong> {course.title}</p>
+                <p style={{ margin: '0 0 0.6rem 0' }}><strong>Apprenant :</strong> {formData.childFirstName} {formData.childLastName} ({formData.childAge} ans)</p>
+                <p style={{ margin: '0 0 0.6rem 0' }}><strong>Parent :</strong> {formData.parentName} ({formData.parentPhone})</p>
+                <hr style={{ margin: '1rem 0', borderColor: '#e5e7eb' }} />
+                <p style={{ margin: '0', fontSize: '1.1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 600 }}>Total à payer :</span>
+                  <strong style={{ color: 'var(--color-primary)', fontSize: '1.3rem' }}>{course.price?.toLocaleString()} FCFA</strong>
+                </p>
               </div>
-            )}
-          </div>
 
-          {/* SIDEBAR */}
-          <div className="inscription-sidebar">
-            <div className="summary-card sticky">
-              {course ? (
-                <>
-                  <div className="summary-image" style={{ height: '150px', backgroundImage: `url(${course.imageUrl || '/10x.jpg'})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: '8px', marginBottom: '1.5rem' }}></div>
-                  <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>{course.title}</h3>
-                  <ul className="summary-details">
-                    <li><span>Durée:</span> <strong>{course.duration}</strong></li>
-                    <li><span>Public:</span> <strong>{course.ageGroup}</strong></li>
-                    <li><span>Format:</span> <strong>{course.isOnline ? 'En ligne' : 'Présentiel'}</strong></li>
-                    {isFull && <li style={{ color: '#dc2626', fontWeight: 'bold' }}>COMPLET (Liste d'attente)</li>}
-                  </ul>
-                  <div className="summary-total">
-                    <span>Prix total</span>
-                    <strong style={{ fontSize: '1.5rem', color: 'var(--color-primary)' }}>{course.price?.toLocaleString()} FCFA</strong>
-                  </div>
-                </>
+              {isFull ? (
+                <div style={{ backgroundColor: '#fff7ed', padding: '1.5rem', borderRadius: '12px', border: '1px solid #ffedd5' }}>
+                  <h4 style={{ color: '#c2410c', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <CheckCircle size={20} /> Formation complète
+                  </h4>
+                  <p style={{ color: '#9a3412', marginBottom: '1.5rem' }}>
+                    Aucun paiement n'est requis pour le moment. Vous allez être placé(e) sur liste d'attente.
+                  </p>
+                  <button className="btn btn-primary" onClick={handleWaitlistSubmit} disabled={submitLoading} style={{ width: '100%' }}>
+                    {submitLoading ? 'Validation...' : "Confirmer l'inscription sur liste d'attente"}
+                  </button>
+                </div>
               ) : (
-                <div style={{ textAlign: 'center', color: '#888', padding: '2rem 0' }}>
-                  Sélectionnez une formation pour voir le détail
+                <div>
+                  <h4 style={{ marginBottom: '1rem', color: '#0f172a' }}>Procéder au paiement</h4>
+                  <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
+                    Cliquez sur le bouton ci-dessous pour régler par Mobile Money ou Carte Bancaire via notre partenaire sécurisé.
+                  </p>
+                  <FedapayWidget 
+                    amount={course.price} 
+                    description={`Inscription: ${course.title}`}
+                    customerInfo={{
+                      email: formData.parentEmail,
+                      firstName: formData.parentName,
+                      lastName: "",
+                      phone: formData.parentPhone
+                    }}
+                    onSuccess={handlePaymentComplete}
+                  />
                 </div>
               )}
+            </div>
+          )}
+        </div>
 
-              <div className="trust-badges" style={{ marginTop: '2rem' }}>
-                <div className="trust-badge">
-                  <ShieldCheck size={24} color="var(--color-accent)" />
-                  <div>
-                    <strong>Paiement Sécurisé</strong>
-                    <span>Vos données sont chiffrées de bout en bout</span>
-                  </div>
+        {/* SIDEBAR */}
+        <div className="inscription-sidebar">
+          <div className="summary-card">
+            {course ? (
+              <>
+                <div style={{ height: '160px', backgroundImage: `url(${course.imageUrl || '/10x.jpg'})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: '12px', marginBottom: '1.5rem' }}></div>
+                <h3>{course.title}</h3>
+                <ul className="summary-details">
+                  <li><span>Durée</span><strong>{course.duration || '—'}</strong></li>
+                  <li><span>Public</span><strong>{course.ageGroup || '—'}</strong></li>
+                  <li><span>Format</span><strong>{course.isOnline ? 'En ligne 💻' : 'Présentiel 🏫'}</strong></li>
+                  {isFull && <li><span style={{ color: '#ef4444', fontWeight: 700 }}>⚠ COMPLET — Liste d'attente</span></li>}
+                </ul>
+                <div className="summary-total">
+                  <span>Prix total</span>
+                  <strong>{course.price?.toLocaleString()} FCFA</strong>
                 </div>
-                <div className="trust-badge">
-                  <Lock size={24} color="var(--color-accent)" />
-                  <div>
-                    <strong>Confidentialité</strong>
-                    <span>Vos informations ne sont jamais partagées</span>
-                  </div>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', color: '#64748b', padding: '2rem 0' }}>
+                <BookOpen size={40} style={{ marginBottom: '1rem', opacity: 0.4 }} />
+                <p>Sélectionnez une formation pour voir les détails</p>
+              </div>
+            )}
+
+            <div className="trust-badges">
+              <div className="trust-badge">
+                <ShieldCheck size={22} />
+                <div>
+                  <strong>Paiement Sécurisé</strong>
+                  <span>Vos données sont chiffrées de bout en bout</span>
+                </div>
+              </div>
+              <div className="trust-badge">
+                <Lock size={22} />
+                <div>
+                  <strong>Confidentialité</strong>
+                  <span>Vos informations ne sont jamais partagées</span>
                 </div>
               </div>
             </div>
           </div>
-          
         </div>
       </div>
     </div>

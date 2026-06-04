@@ -7,27 +7,39 @@ import './Home.css';
 const MonEspace = () => {
   const { user } = useAuth();
   const [enrollments, setEnrollments] = useState([]);
+  const [myQuestions, setMyQuestions] = useState([]);
   const [questionText, setQuestionText] = useState('');
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [questionStatus, setQuestionStatus] = useState('');
+  
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
 
   useEffect(() => {
-    const fetchMyEnrollments = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem('nv_token');
-        const res = await fetch('http://localhost:5001/api/enroll/my-enrollments', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
+        const headers = { 'Authorization': `Bearer ${token}` };
+        
+        const [enrollRes, questionsRes] = await Promise.all([
+          fetch('http://localhost:5001/api/enroll/my-enrollments', { headers }),
+          fetch('http://localhost:5001/api/enroll/my-questions', { headers })
+        ]);
+
+        if (enrollRes.ok) {
+          const data = await enrollRes.json();
           setEnrollments(data);
           if (data.length > 0) setSelectedCourseId(data[0].courseId);
+        }
+        
+        if (questionsRes.ok) {
+          setMyQuestions(await questionsRes.json());
         }
       } catch (err) {
         console.error(err);
       }
     };
-    fetchMyEnrollments();
+    fetchData();
   }, []);
 
   const handleSendQuestion = async (e) => {
@@ -48,6 +60,14 @@ const MonEspace = () => {
         setQuestionStatus('success');
         setQuestionText('');
         setTimeout(() => setQuestionStatus(''), 3000);
+        
+        // Refresh questions
+        const newQuestionsRes = await fetch('http://localhost:5001/api/enroll/my-questions', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (newQuestionsRes.ok) {
+          setMyQuestions(await newQuestionsRes.json());
+        }
       } else {
         setQuestionStatus('error');
       }
@@ -55,9 +75,39 @@ const MonEspace = () => {
       setQuestionStatus('error');
     }
   };
+
+  const handleSendReply = async (questionId) => {
+    if (!replyText.trim()) return;
+    try {
+      const token = localStorage.getItem('nv_token');
+      const res = await fetch(`http://localhost:5001/api/enroll/questions/${questionId}/reply`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: replyText })
+      });
+      
+      if (res.ok) {
+        setReplyText('');
+        setReplyingTo(null);
+        // Refresh questions
+        const newQuestionsRes = await fetch('http://localhost:5001/api/enroll/my-questions', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (newQuestionsRes.ok) {
+          setMyQuestions(await newQuestionsRes.json());
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
   
-  return (
-    <div className="page-transition" style={{ backgroundColor: 'var(--color-bg-light)', minHeight: '80vh', padding: '3rem 0' }}>
+  try {
+    return (
+      <div className="page-transition" style={{ backgroundColor: 'var(--color-bg-light)', minHeight: '80vh', padding: '3rem 0' }}>
       <div className="container">
         
         {/* HEADER */}
@@ -158,9 +208,99 @@ const MonEspace = () => {
           )}
         </div>
 
+        {/* HISTORIQUE DES QUESTIONS */}
+        {myQuestions.length > 0 && (
+          <>
+            <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', margin: '3rem 0 1.5rem 0' }}>Historique de vos questions</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {myQuestions.map(q => (
+                <div key={q.id} style={{ backgroundColor: 'var(--color-white)', padding: '1.5rem', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>{q.courseTitle}</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>{new Date(q.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  
+                  {/* Premier message (Question initiale) */}
+                  <div style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: '#f1f5f9', borderRadius: '8px', borderLeft: '4px solid #3b82f6' }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#3b82f6', marginBottom: '0.3rem' }}>Vous</div>
+                    <p style={{ margin: 0, color: '#334155', lineHeight: 1.5 }}>{q.text}</p>
+                  </div>
+                  
+                  {/* Affichage des réponses (Formateur et Vous) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1rem' }}>
+                    {/* Ancien système de réponse formateur pour la rétrocompatibilité si pas de réponses dans le tableau */}
+                    {q.answerText && (!q.replies || q.replies.length === 0) && (
+                      <div style={{ padding: '1rem', background: '#ecfdf5', borderLeft: '4px solid #10b981', borderRadius: '8px', alignSelf: 'flex-start', maxWidth: '90%' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#10b981', marginBottom: '0.3rem' }}>Formateur</div>
+                        <p style={{ margin: 0, color: '#065f46', lineHeight: 1.5 }}>{q.answerText}</p>
+                      </div>
+                    )}
+                    
+                    {/* Nouveau système de fil de discussion */}
+                    {q.replies && q.replies.map(reply => (
+                      <div key={reply.id} style={{ 
+                        padding: '1rem', 
+                        borderRadius: '8px', 
+                        maxWidth: '90%',
+                        alignSelf: reply.senderRole === 'student' ? 'flex-end' : 'flex-start',
+                        background: reply.senderRole === 'student' ? '#f1f5f9' : '#ecfdf5',
+                        borderLeft: reply.senderRole === 'student' ? 'none' : '4px solid #10b981',
+                        borderRight: reply.senderRole === 'student' ? '4px solid #3b82f6' : 'none',
+                      }}>
+                        <div style={{ 
+                          fontSize: '0.85rem', 
+                          fontWeight: 700, 
+                          color: reply.senderRole === 'student' ? '#3b82f6' : '#10b981', 
+                          marginBottom: '0.3rem',
+                          textAlign: reply.senderRole === 'student' ? 'right' : 'left'
+                        }}>
+                          {reply.senderRole === 'student' ? 'Vous' : 'Formateur'}
+                          <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginLeft: '0.5rem', fontWeight: 400 }}>
+                            {new Date(reply.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, color: reply.senderRole === 'student' ? '#334155' : '#065f46', lineHeight: 1.5 }}>{reply.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Action pour répondre */}
+                  {q.status === 'replied' || (q.replies && q.replies.some(r => r.senderRole === 'formateur')) ? (
+                    replyingTo === q.id ? (
+                      <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem', alignItems: 'flex-end' }}>
+                        <textarea 
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="Votre réponse..."
+                          style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', resize: 'vertical', minHeight: '80px' }}
+                        />
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button onClick={() => { setReplyingTo(null); setReplyText(''); }} className="btn" style={{ padding: '0.5rem 1rem', background: '#e2e8f0', color: '#475569' }}>Annuler</button>
+                          <button onClick={() => handleSendReply(q.id)} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>Envoyer</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setReplyingTo(q.id)} className="btn btn-outline" style={{ marginTop: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
+                        Répondre
+                      </button>
+                    )
+                  ) : (
+                    <div style={{ display: 'inline-block', padding: '0.3rem 0.8rem', background: '#fef3c7', color: '#d97706', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 600 }}>
+                      En attente de réponse du formateur
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
       </div>
     </div>
-  );
+    );
+  } catch (renderError) {
+    return <div style={{ padding: '2rem', color: 'red' }}><h1>Runtime Error in MonEspace</h1><pre>{renderError.message}</pre><pre>{renderError.stack}</pre></div>;
+  }
 };
 
 export default MonEspace;

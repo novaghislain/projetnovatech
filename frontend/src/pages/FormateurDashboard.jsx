@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { BookOpen, Users, Star, MessageCircle, LogOut, Video, FileText, CheckCircle, Clock, ChevronRight } from 'lucide-react';
+import { BookOpen, Users, Star, MessageCircle, LogOut, Video, FileText, CheckCircle, Clock, ChevronRight, Plus, Trash2, Edit2, X } from 'lucide-react';
 import './Home.css';
+
+const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Débutant', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', location: '', isOnline: false, meetLink: '', whatsappLink: '', imageUrl: '', sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
 
 const FormateurDashboard = () => {
   const { user, logout } = useAuth();
@@ -10,6 +12,17 @@ const FormateurDashboard = () => {
   
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [selectedLiveCourse, setSelectedLiveCourse] = useState('');
+  const [activeLiveRoom, setActiveLiveRoom] = useState(null);
+  const [liveCourseId, setLiveCourseId] = useState(null);
+
+  // Course management state
+  const [showCourseForm, setShowCourseForm] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null); // null = create, object = edit
+  const [courseForm, setCourseForm] = useState(EMPTY_FORM);
+  const [courseFormLoading, setCourseFormLoading] = useState(false);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -22,6 +35,13 @@ const FormateurDashboard = () => {
         });
         const result = await res.json();
         setData(result);
+        
+        // Check if any course is already live
+        const liveCourse = result.courses?.find(c => c.isLive);
+        if (liveCourse) {
+          setActiveLiveRoom(liveCourse.liveRoomName);
+          setLiveCourseId(liveCourse.id);
+        }
       } catch (err) {
         console.error('Erreur de chargement:', err);
       } finally {
@@ -31,14 +51,45 @@ const FormateurDashboard = () => {
     fetchData();
   }, []);
 
+  const startLive = async (courseId) => {
+    try {
+      const token = localStorage.getItem('nv_token');
+      const res = await fetch(`http://localhost:5001/api/formateur/courses/${courseId}/live/start`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (result.success) {
+        setActiveLiveRoom(result.liveRoomName);
+        setLiveCourseId(courseId);
+        setShowLiveModal(false);
+      }
+    } catch (err) { alert('Erreur lors du démarrage du live'); }
+  };
+
+  const stopLive = async () => {
+    try {
+      const token = localStorage.getItem('nv_token');
+      await fetch(`http://localhost:5001/api/formateur/courses/${liveCourseId}/live/stop`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setActiveLiveRoom(null);
+      setLiveCourseId(null);
+      window.location.reload();
+    } catch (err) { alert('Erreur lors de la fermeture du live'); }
+  };
+
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f4f7fe' }}>Chargement des données...</div>;
 
   const stats = data?.stats || { courses: 0, students: 0, rating: 0 };
   const courses = data?.courses || [];
+  const rawCourses = data?.rawCourses || [];
   const questions = data?.questions || [];
 
-  return (
-    <div style={{ backgroundColor: '#f4f7fe', minHeight: '100vh', display: 'flex' }}>
+  try {
+    return (
+      <div style={{ backgroundColor: '#f4f7fe', minHeight: '100vh', display: 'flex' }}>
       
       {/* SIDEBAR */}
       <aside style={{ width: '280px', backgroundColor: '#fff', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
@@ -64,6 +115,12 @@ const FormateurDashboard = () => {
             style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'students' ? '#eff6ff' : 'transparent', color: activeTab === 'students' ? '#3b82f6' : '#64748b', fontWeight: activeTab === 'students' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
           >
             <Users size={20} /> Apprenants
+          </button>
+          <button 
+            onClick={() => setActiveTab('manage')}
+            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'manage' ? '#eff6ff' : 'transparent', color: activeTab === 'manage' ? '#3b82f6' : '#64748b', fontWeight: activeTab === 'manage' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
+          >
+            <Plus size={20} /> Mes Formations
           </button>
           <button 
             onClick={() => setActiveTab('messages')}
@@ -103,9 +160,15 @@ const FormateurDashboard = () => {
             <h1 style={{ fontSize: '2rem', color: '#0f172a', margin: '0 0 0.5rem 0' }}>Bonjour, {user?.firstName} 👋</h1>
             <p style={{ color: '#64748b', margin: 0, fontSize: '1.1rem' }}>Voici l'activité de vos classes aujourd'hui.</p>
           </div>
-          <button onClick={() => setShowLiveModal(true)} style={{ padding: '0.8rem 1.5rem', background: '#fff', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}>
-            <Video size={18} /> Lancer un Live
-          </button>
+          {!activeLiveRoom ? (
+            <button onClick={() => setShowLiveModal(true)} style={{ padding: '0.8rem 1.5rem', background: '#fff', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}>
+              <Video size={18} color="#ef4444" /> Lancer un Live
+            </button>
+          ) : (
+            <button onClick={stopLive} style={{ padding: '0.8rem 1.5rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', boxShadow: '0 4px 10px rgba(239, 68, 68, 0.3)' }}>
+              <Video size={18} /> Terminer le Live
+            </button>
+          )}
         </header>
 
         {activeTab === 'overview' && (
@@ -183,25 +246,72 @@ const FormateurDashboard = () => {
                       <div style={{ fontSize: '0.8rem', color: '#4285f4', fontWeight: 600, marginBottom: '0.5rem' }}>{q.course}</div>
                       <p style={{ margin: '0 0 0.8rem 0', fontSize: '0.9rem', color: '#475569', lineHeight: 1.4 }}>"{q.text}"</p>
                       
-                      {q.status === 'pending' ? (
+                      {/* Threaded replies */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1rem', marginTop: '0.5rem' }}>
+                        {q.answerText && (!q.replies || q.replies.length === 0) && (
+                          <div style={{ padding: '0.8rem', background: '#ecfdf5', borderRadius: '8px', alignSelf: 'flex-start', maxWidth: '90%' }}>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#10b981', marginBottom: '0.2rem' }}>Vous</div>
+                            <p style={{ margin: 0, color: '#065f46', fontSize: '0.85rem' }}>{q.answerText}</p>
+                          </div>
+                        )}
+                        {q.replies && q.replies.map(reply => (
+                          <div key={reply.id} style={{ 
+                            padding: '0.8rem', 
+                            borderRadius: '8px', 
+                            maxWidth: '90%',
+                            alignSelf: reply.senderRole === 'formateur' ? 'flex-start' : 'flex-end',
+                            background: reply.senderRole === 'formateur' ? '#ecfdf5' : '#f1f5f9',
+                          }}>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: reply.senderRole === 'formateur' ? '#10b981' : '#3b82f6', marginBottom: '0.2rem', textAlign: reply.senderRole === 'formateur' ? 'left' : 'right' }}>
+                              {reply.senderRole === 'formateur' ? 'Vous' : 'Apprenant'}
+                              <span style={{ fontSize: '0.65rem', color: '#94a3b8', marginLeft: '0.4rem', fontWeight: 400 }}>{new Date(reply.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <p style={{ margin: 0, color: reply.senderRole === 'formateur' ? '#065f46' : '#334155', fontSize: '0.85rem' }}>{reply.text}</p>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {replyingTo === q.id ? (
+                        <div style={{ marginTop: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '10px' }}>
+                          <textarea 
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Tapez votre réponse ici..."
+                            style={{ width: '100%', minHeight: '80px', padding: '0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '0.8rem', outline: 'none', resize: 'vertical' }}
+                          />
+                          <div style={{ display: 'flex', gap: '0.8rem' }}>
+                            <button 
+                              onClick={async () => {
+                                if (!replyText) return;
+                                try {
+                                  const token = localStorage.getItem('nv_token');
+                                  await fetch(`http://localhost:5001/api/formateur/questions/${q.id}/reply`, {
+                                    method: 'PUT',
+                                    headers: { 
+                                      'Authorization': `Bearer ${token}`,
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ answerText: replyText })
+                                  });
+                                  window.location.reload();
+                                } catch(e) { alert('Erreur'); }
+                              }} 
+                              style={{ padding: '0.5rem 1rem', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+                              Envoyer
+                            </button>
+                            <button 
+                              onClick={() => { setReplyingTo(null); setReplyText(''); }} 
+                              style={{ padding: '0.5rem 1rem', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+                              Annuler
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
                         <button 
-                          onClick={async () => {
-                            try {
-                              const token = localStorage.getItem('nv_token');
-                              await fetch(`http://localhost:5001/api/formateur/questions/${q.id}/reply`, {
-                                method: 'PUT',
-                                headers: { 'Authorization': `Bearer ${token}` }
-                              });
-                              window.location.reload();
-                            } catch(e) { alert('Erreur'); }
-                          }} 
+                          onClick={() => { setReplyingTo(q.id); setReplyText(''); }} 
                           style={{ padding: '0.5rem 1rem', background: '#eff6ff', color: '#3b82f6', border: 'none', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           Répondre <ChevronRight size={14} />
                         </button>
-                      ) : (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', color: '#10b981', fontWeight: 600 }}>
-                          <CheckCircle size={14} /> Répondu
-                        </span>
                       )}
                     </div>
                   ))}
@@ -311,72 +421,296 @@ const FormateurDashboard = () => {
                   <div style={{ fontSize: '0.85rem', color: '#4285f4', fontWeight: 600, marginBottom: '0.8rem' }}>Formation : {q.course}</div>
                   <p style={{ margin: '0 0 1.2rem 0', fontSize: '0.95rem', color: '#475569', lineHeight: 1.5 }}>"{q.text}"</p>
                   
-                  {q.status === 'pending' ? (
+                  {/* Threaded replies */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1rem', marginTop: '0.5rem' }}>
+                    {q.answerText && (!q.replies || q.replies.length === 0) && (
+                      <div style={{ padding: '1rem', background: '#ecfdf5', borderRadius: '8px', alignSelf: 'flex-start', maxWidth: '90%' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#10b981', marginBottom: '0.3rem' }}>Vous</div>
+                        <p style={{ margin: 0, color: '#065f46', fontSize: '0.95rem' }}>{q.answerText}</p>
+                      </div>
+                    )}
+                    {q.replies && q.replies.map(reply => (
+                      <div key={reply.id} style={{ 
+                        padding: '1rem', 
+                        borderRadius: '8px', 
+                        maxWidth: '90%',
+                        alignSelf: reply.senderRole === 'formateur' ? 'flex-start' : 'flex-end',
+                        background: reply.senderRole === 'formateur' ? '#ecfdf5' : '#f1f5f9',
+                      }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: reply.senderRole === 'formateur' ? '#10b981' : '#3b82f6', marginBottom: '0.3rem', textAlign: reply.senderRole === 'formateur' ? 'left' : 'right' }}>
+                          {reply.senderRole === 'formateur' ? 'Vous' : 'Apprenant'}
+                          <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginLeft: '0.5rem', fontWeight: 400 }}>{new Date(reply.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <p style={{ margin: 0, color: reply.senderRole === 'formateur' ? '#065f46' : '#334155', fontSize: '0.95rem' }}>{reply.text}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {replyingTo === q.id ? (
+                    <div style={{ marginTop: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '10px' }}>
+                      <textarea 
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder="Tapez votre réponse ici..."
+                        style={{ width: '100%', minHeight: '100px', padding: '1rem', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '1rem', outline: 'none', resize: 'vertical' }}
+                      />
+                      <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button 
+                          onClick={async () => {
+                            if (!replyText) return;
+                            try {
+                              const token = localStorage.getItem('nv_token');
+                              await fetch(`http://localhost:5001/api/formateur/questions/${q.id}/reply`, {
+                                method: 'PUT',
+                                headers: { 
+                                  'Authorization': `Bearer ${token}`,
+                                  'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ answerText: replyText })
+                              });
+                              window.location.reload();
+                            } catch(e) { alert('Erreur'); }
+                          }} 
+                          style={{ padding: '0.6rem 1.2rem', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}>
+                          Envoyer la réponse
+                        </button>
+                        <button 
+                          onClick={() => { setReplyingTo(null); setReplyText(''); }} 
+                          style={{ padding: '0.6rem 1.2rem', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}>
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
                     <button 
-                      onClick={async () => {
-                        try {
-                          const token = localStorage.getItem('nv_token');
-                          await fetch(`http://localhost:5001/api/formateur/questions/${q.id}/reply`, {
-                            method: 'PUT',
-                            headers: { 'Authorization': `Bearer ${token}` }
-                          });
-                          window.location.reload();
-                        } catch(e) { alert('Erreur'); }
-                      }} 
-                      style={{ padding: '0.6rem 1.2rem', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      onClick={() => { setReplyingTo(q.id); setReplyText(''); }} 
+                      style={{ padding: '0.6rem 1.2rem', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
                       Répondre <ChevronRight size={16} />
                     </button>
-                  ) : (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem', color: '#10b981', fontWeight: 600 }}>
-                      <CheckCircle size={16} /> Répondu
-                    </span>
                   )}
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* ===== GÉRER LES FORMATIONS ===== */}
+        {activeTab === 'manage' && (
+          <div className="fade-in">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#0f172a' }}>Mes Formations</h2>
+              <button
+                onClick={() => { setCourseForm(EMPTY_FORM); setEditingCourse(null); setShowCourseForm(true); }}
+                style={{ padding: '0.8rem 1.5rem', background: 'linear-gradient(135deg, #3b82f6, #6366f1)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 15px rgba(99,102,241,0.3)' }}
+              >
+                <Plus size={18} /> Ajouter une formation
+              </button>
+            </div>
+
+            {courses.length === 0 ? (
+              <div style={{ background: '#fff', borderRadius: '20px', padding: '4rem', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+                <BookOpen size={48} color="#94a3b8" style={{ marginBottom: '1rem' }} />
+                <h3 style={{ color: '#64748b', marginBottom: '0.5rem' }}>Aucune formation</h3>
+                <p style={{ color: '#94a3b8' }}>Cliquez sur "Ajouter une formation" pour créer votre premier cours.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {courses.map(course => (
+                  <div key={course.id} style={{ background: '#fff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '200px' }}>
+                      <div style={{ width: '54px', height: '54px', background: '#eff6ff', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', flexShrink: 0 }}>
+                        <FileText size={26} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '1.05rem' }}>{course.title}</div>
+                        <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.2rem' }}>
+                          {course.category} &bull; {course.students || 0} apprenants &bull; {course.nextSession}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <button
+                        onClick={() => {
+                          const raw = rawCourses.find(c => c.id === course.id) || course;
+                          setCourseForm({
+                            title: raw.title || '', description: raw.description || '', category: raw.category || 'Développement',
+                            ageGroup: raw.ageGroup || '', level: raw.level || '', duration: raw.duration || '',
+                            price: raw.price || '', registrationFee: raw.registrationFee || '', maxParticipants: raw.maxParticipants || 20,
+                            startDate: raw.startDate || '', endDate: raw.endDate || '', location: raw.location || '',
+                            isOnline: !!raw.isOnline, meetLink: raw.meetLink || '', whatsappLink: raw.whatsappLink || '',
+                            imageUrl: raw.imageUrl || '', sessionsPerWeek: raw.sessionsPerWeek || 2, sessionDuration: raw.sessionDuration || '',
+                            status: raw.status || 'published'
+                          });
+                          setEditingCourse(course.id);
+                          setShowCourseForm(true);
+                        }}
+                        style={{ padding: '0.6rem 1.2rem', background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                      >
+                        <Edit2 size={15} /> Modifier
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm(`Supprimer "${course.title}" ? Cette action est irréversible.`)) return;
+                          const token = localStorage.getItem('nv_token');
+                          const res = await fetch(`http://localhost:5001/api/formateur/courses/${course.id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                          });
+                          if (res.ok) window.location.reload();
+                          else alert('Erreur lors de la suppression');
+                        }}
+                        style={{ padding: '0.6rem 1.2rem', background: '#fff1f2', color: '#e11d48', border: '1px solid #ffe4e6', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                      >
+                        <Trash2 size={15} /> Supprimer
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
-      {/* Live Chat Modal Mock */}
+      {/* ===== MODALE CRÉATION / MODIFICATION FORMATION ===== */}
+      {showCourseForm && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '1rem', overflowY: 'auto' }}>
+          <div style={{ background: '#fff', width: '100%', maxWidth: '680px', borderRadius: '24px', padding: '2.5rem', boxShadow: '0 25px 50px rgba(0,0,0,0.4)', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
+            <button onClick={() => setShowCourseForm(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={18} /></button>
+            <h2 style={{ margin: '0 0 2rem 0', color: '#0f172a', fontSize: '1.5rem' }}>{editingCourse ? 'Modifier la formation' : 'Créer une nouvelle formation'}</h2>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setCourseFormLoading(true);
+              try {
+                const token = localStorage.getItem('nv_token');
+                const url = editingCourse
+                  ? `http://localhost:5001/api/formateur/courses/${editingCourse}`
+                  : 'http://localhost:5001/api/formateur/courses';
+                const method = editingCourse ? 'PUT' : 'POST';
+                const res = await fetch(url, {
+                  method,
+                  headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify(courseForm)
+                });
+                const result = await res.json();
+                if (result.success || result.id) {
+                  setShowCourseForm(false);
+                  window.location.reload();
+                } else {
+                  alert(result.error || 'Erreur');
+                }
+              } catch(err) { alert('Erreur réseau'); }
+              finally { setCourseFormLoading(false); }
+            }} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+
+              {[['Titre *', 'title', 'text', true], ['Description', 'description', 'text', false], ['Image URL', 'imageUrl', 'text', false], ['Lien Meet (si en ligne)', 'meetLink', 'text', false], ['Lien WhatsApp', 'whatsappLink', 'text', false], ['Date de début', 'startDate', 'date', false], ['Date de fin', 'endDate', 'date', false], ['Lieu (si présentiel)', 'location', 'text', false]].map(([label, key, type, required]) => (
+                <div key={key}>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{label}</label>
+                  <input
+                    type={type}
+                    required={required}
+                    value={courseForm[key]}
+                    onChange={e => setCourseForm(f => ({ ...f, [key]: e.target.value }))}
+                    style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                  />
+                </div>
+              ))}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>Catégorie</label>
+                  <select value={courseForm.category} onChange={e => setCourseForm(f => ({ ...f, category: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
+                    {['Développement', 'Intelligence Artificielle', 'Bureautique', 'Cybersécurité', 'Design', 'Robotique', 'Autre'].map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>Tranche d'âge</label>
+                  <select value={courseForm.ageGroup} onChange={e => setCourseForm(f => ({ ...f, ageGroup: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
+                    {['8-10 ans', '10-12 ans', '12-14 ans', '14-16 ans', '16-18 ans', 'Tous âges'].map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>Prix (FCFA)</label>
+                  <input type="number" value={courseForm.price} onChange={e => setCourseForm(f => ({ ...f, price: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>Frais inscription (FCFA)</label>
+                  <input type="number" value={courseForm.registrationFee} onChange={e => setCourseForm(f => ({ ...f, registrationFee: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>Places max</label>
+                  <input type="number" value={courseForm.maxParticipants} onChange={e => setCourseForm(f => ({ ...f, maxParticipants: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>Durée totale</label>
+                  <input type="text" placeholder="ex: 4 semaines" value={courseForm.duration} onChange={e => setCourseForm(f => ({ ...f, duration: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '1rem', background: '#f8fafc', borderRadius: '10px' }}>
+                <input type="checkbox" id="isOnlineCheck" checked={courseForm.isOnline} onChange={e => setCourseForm(f => ({ ...f, isOnline: e.target.checked }))} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                <label htmlFor="isOnlineCheck" style={{ fontWeight: 600, color: '#374151', cursor: 'pointer' }}>Cours en ligne (visioconférence)</label>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+                <button type="button" onClick={() => setShowCourseForm(false)} style={{ padding: '0.9rem 1.8rem', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}>Annuler</button>
+                <button type="submit" disabled={courseFormLoading} style={{ padding: '0.9rem 1.8rem', background: courseFormLoading ? '#94a3b8' : 'linear-gradient(135deg, #3b82f6, #6366f1)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: courseFormLoading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 15px rgba(99,102,241,0.3)' }}>
+                  {courseFormLoading ? 'Enregistrement...' : (editingCourse ? 'Enregistrer les modifications' : 'Créer la formation')}
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Course Selection Modal */}
       {showLiveModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '2rem' }}>
-          <div style={{ background: '#0f172a', width: '100%', maxWidth: '1000px', height: '80vh', borderRadius: '24px', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid #1e293b' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ width: '12px', height: '12px', background: '#ef4444', borderRadius: '50%', boxShadow: '0 0 10px #ef4444' }}></div>
-                <h3 style={{ margin: 0, color: '#fff', fontSize: '1.2rem' }}>Live Session : Découverte de l'IA</h3>
-                <span style={{ background: '#1e293b', color: '#94a3b8', padding: '0.3rem 0.8rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 600 }}>02:45</span>
-              </div>
-              <button onClick={() => setShowLiveModal(false)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Terminer le Live</button>
+          <div style={{ background: '#fff', width: '100%', maxWidth: '500px', borderRadius: '24px', padding: '2rem', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)' }}>
+            <h3 style={{ margin: '0 0 1.5rem 0', color: '#0f172a', fontSize: '1.3rem' }}>Sélectionnez un cours pour le live</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {courses.map(course => (
+                <button 
+                  key={course.id}
+                  onClick={() => setSelectedLiveCourse(course.id)}
+                  style={{ padding: '1rem', background: selectedLiveCourse === course.id ? '#eff6ff' : '#f8fafc', border: selectedLiveCourse === course.id ? '2px solid #3b82f6' : '1px solid #e2e8f0', borderRadius: '12px', textAlign: 'left', cursor: 'pointer', transition: 'all 0.2s' }}>
+                  <div style={{ fontWeight: 600, color: '#0f172a' }}>{course.title}</div>
+                  <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.3rem' }}>{course.enrolled} apprenants inscrits</div>
+                </button>
+              ))}
             </div>
-            
-            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-              <div style={{ flex: 1, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                <Video size={64} color="#334155" />
-                <div style={{ position: 'absolute', bottom: '2rem', display: 'flex', gap: '1rem' }}>
-                  <button style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', cursor: 'pointer', backdropFilter: 'blur(10px)' }}>🎤</button>
-                  <button style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', cursor: 'pointer', backdropFilter: 'blur(10px)' }}>📷</button>
-                  <button style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', cursor: 'pointer', backdropFilter: 'blur(10px)' }}>⚙️</button>
-                </div>
-              </div>
-              <div style={{ width: '350px', background: '#1e293b', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '1rem', borderBottom: '1px solid #334155', color: '#fff', fontWeight: 600 }}>Chat en direct (24 spectateurs)</div>
-                <div style={{ flex: 1, padding: '1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ fontSize: '0.9rem' }}><span style={{ color: '#60a5fa', fontWeight: 600 }}>Herlo :</span> <span style={{ color: '#cbd5e1' }}>Bonjour !</span></div>
-                  <div style={{ fontSize: '0.9rem' }}><span style={{ color: '#34d399', fontWeight: 600 }}>Lucas :</span> <span style={{ color: '#cbd5e1' }}>Est-ce qu'on aura le replay ?</span></div>
-                  <div style={{ fontSize: '0.9rem' }}><span style={{ color: '#f87171', fontWeight: 600 }}>Admin :</span> <span style={{ color: '#cbd5e1' }}>Bienvenue à tous sur ce live !</span></div>
-                </div>
-                <div style={{ padding: '1rem', borderTop: '1px solid #334155' }}>
-                  <input type="text" placeholder="Écrire un message..." style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #475569', background: '#0f172a', color: '#fff' }} />
-                </div>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
+              <button onClick={() => setShowLiveModal(false)} style={{ padding: '0.8rem 1.5rem', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={() => { if(selectedLiveCourse) startLive(selectedLiveCourse); }} disabled={!selectedLiveCourse} style={{ padding: '0.8rem 1.5rem', background: selectedLiveCourse ? '#3b82f6' : '#94a3b8', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: selectedLiveCourse ? 'pointer' : 'not-allowed' }}>Démarrer</button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Jitsi Meet Live Iframe */}
+      {activeLiveRoom && (
+        <div style={{ position: 'fixed', top: '2rem', right: '2rem', width: '800px', maxWidth: '90%', height: '500px', background: '#000', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', zIndex: 1000, border: '4px solid #3b82f6', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#3b82f6', padding: '0.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ width: '10px', height: '10px', background: '#ef4444', borderRadius: '50%', display: 'inline-block', boxShadow: '0 0 5px #ef4444' }}></span>
+              Live en cours
+            </div>
+            <button onClick={stopLive} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>Fermer</button>
+          </div>
+          <iframe 
+            src={`https://meet.jit.si/${activeLiveRoom}`} 
+            allow="camera; microphone; display-capture; autoplay; clipboard-write" 
+            style={{ width: '100%', height: '100%', border: 'none' }} 
+          />
+        </div>
+      )}
     </div>
   );
+} catch (renderError) {
+  return <div style={{ padding: '2rem', color: 'red' }}><h1>Runtime Error</h1><pre>{renderError.message}</pre><pre>{renderError.stack}</pre></div>;
+}
 };
 
 export default FormateurDashboard;

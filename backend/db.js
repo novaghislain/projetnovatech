@@ -95,10 +95,21 @@ db.serialize(() => {
     }
   });
 
-  // Migration: Ajouter la colonne isFull si elle n'existe pas
   db.run("ALTER TABLE Formations ADD COLUMN isFull BOOLEAN DEFAULT 0", (err) => {
     if (err && !err.message.includes("duplicate column name")) {
       console.log("Migration 'isFull' sur Formations : ignorée ou erreur (", err.message, ")");
+    }
+  });
+
+  // Migrations: Live streaming
+  db.run("ALTER TABLE Formations ADD COLUMN isLive BOOLEAN DEFAULT 0", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {
+      console.log("Migration 'isLive' sur Formations : ignorée ou erreur (", err.message, ")");
+    }
+  });
+  db.run("ALTER TABLE Formations ADD COLUMN liveRoomName TEXT", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {
+      console.log("Migration 'liveRoomName' sur Formations : ignorée ou erreur (", err.message, ")");
     }
   });
 
@@ -127,6 +138,13 @@ db.serialize(() => {
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Migration: Ajouter la colonne rating à Enrollments
+  db.run("ALTER TABLE Enrollments ADD COLUMN rating INTEGER", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {
+      console.log("Migration 'rating' sur Enrollments : ignorée ou erreur (", err.message, ")");
+    }
+  });
 
   // Migrations Enrollments
   const enrollCols = [
@@ -243,8 +261,21 @@ db.serialize(() => {
       studentName TEXT NOT NULL,
       text TEXT NOT NULL,
       status TEXT DEFAULT 'pending',
+      answerText TEXT,
+      repliedAt DATETIME,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(courseId) REFERENCES Formations(id) ON DELETE CASCADE
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS CourseQuestionReplies (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      questionId INTEGER NOT NULL,
+      senderRole TEXT NOT NULL,
+      text TEXT NOT NULL,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(questionId) REFERENCES CourseQuestions(id) ON DELETE CASCADE
     )
   `);
 

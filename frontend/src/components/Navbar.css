@@ -41,9 +41,9 @@
 .navbar-main-links {
   display: flex;
   align-items: center;
-  gap: 0.2rem;
-  margin-left: 1rem;
-  margin-right: auto;
+  gap: 1.5rem;
+  margin-left: auto; /* Pousse les liens vers la droite */
+  margin-right: 2.5rem; /* Espace avec le bloc profil/auth */
 }
 
 .navbar-main-links a {
