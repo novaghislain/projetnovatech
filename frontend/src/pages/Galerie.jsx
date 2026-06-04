@@ -1,91 +1,51 @@
-import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, ZoomIn, Images } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { X, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
+import axios from 'axios';
 import './Galerie.css';
 
-const allPhotos = [
-  {
-    src: 'https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=1200&auto=format&fit=crop',
-    caption: 'Atelier Bureautique — Session Juin 2025',
-    tag: 'Bureautique',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1200&auto=format&fit=crop',
-    caption: 'Cours de Programmation — Groupe A',
-    tag: 'Programmation',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop',
-    caption: 'Travaux en équipe — Projet Final',
-    tag: 'Collaboration',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=1200&auto=format&fit=crop',
-    caption: 'Remise des Attestations 2025',
-    tag: 'Cérémonie',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1603354350317-6f7aaa5911c5?q=80&w=1200&auto=format&fit=crop',
-    caption: 'Session Intelligence Artificielle',
-    tag: 'IA',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?q=80&w=1200&auto=format&fit=crop',
-    caption: 'Formation en ligne — Apprenants connectés',
-    tag: 'En ligne',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop',
-    caption: 'Atelier Sécurité Internet',
-    tag: 'Internet & Sécurité',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1200&auto=format&fit=crop',
-    caption: 'Présentation de projet — Groupe C',
-    tag: 'Programmation',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1200&auto=format&fit=crop',
-    caption: 'Session de formation collective',
-    tag: 'Bureautique',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1200&auto=format&fit=crop',
-    caption: 'Travail collaboratif en groupe',
-    tag: 'Collaboration',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1200&auto=format&fit=crop',
-    caption: 'Atelier découverte de l\'IA',
-    tag: 'IA',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1529390079861-591de354faf5?q=80&w=1200&auto=format&fit=crop',
-    caption: 'Cours de programmation avancée',
-    tag: 'Programmation',
-  },
-];
-
-const tags = ['Tous', ...Array.from(new Set(allPhotos.map(p => p.tag)))];
-
 const Galerie = () => {
+  const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState('Tous');
   const [lightboxIdx, setLightboxIdx] = useState(null);
 
-  const filtered = activeTag === 'Tous' ? allPhotos : allPhotos.filter(p => p.tag === activeTag);
+  useEffect(() => {
+    const fetchGallery = async () => {
+      try {
+        const res = await axios.get('http://localhost:5001/api/public/gallery');
+        // Convert API format to the expected format
+        const formatted = res.data.map(g => ({
+          id: g.id,
+          src: g.imageUrl,
+          caption: g.title || 'Sans titre',
+          tag: g.category || 'Autre'
+        }));
+        setPhotos(formatted);
+      } catch (err) {
+        console.error('Error fetching gallery:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGallery();
+  }, []);
+
+  const tags = ['Tous', ...Array.from(new Set(photos.map(p => p.tag)))];
+  const filtered = activeTag === 'Tous' ? photos : photos.filter(p => p.tag === activeTag);
 
   const openLightbox = (idx) => setLightboxIdx(idx);
   const closeLightbox = () => setLightboxIdx(null);
   const next = () => setLightboxIdx(i => (i + 1) % filtered.length);
   const prev = () => setLightboxIdx(i => (i - 1 + filtered.length) % filtered.length);
 
-  const handleKey = React.useCallback((e) => {
+  const handleKey = useCallback((e) => {
     if (lightboxIdx === null) return;
     if (e.key === 'Escape') closeLightbox();
     if (e.key === 'ArrowRight') next();
     if (e.key === 'ArrowLeft') prev();
-  }, [lightboxIdx]);
+  }, [lightboxIdx, filtered.length]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [handleKey]);
@@ -97,52 +57,60 @@ const Galerie = () => {
       <div className="page-top-bar">
         <div className="container">
           <h1>Galerie Photo</h1>
-          <p className="page-top-desc">Découvrez nos sessions de formation, ateliers et cérémonies en images.</p>
+          <p className="page-top-desc">Découvrez nos sessions de formation, ateliers et événements en images.</p>
         </div>
       </div>
 
-      {/* ── Filter Tags ── */}
-      <div className="galerie-filters container">
-        {tags.map(tag => (
-          <button
-            key={tag}
-            className={`filter-btn ${activeTag === tag ? 'filter-btn--active' : ''}`}
-            onClick={() => setActiveTag(tag)}
-          >
-            {tag}
-            <span className="filter-count">
-              {tag === 'Tous' ? allPhotos.length : allPhotos.filter(p => p.tag === tag).length}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* ── Grid ── */}
-      <div className="galerie-grid container">
-        {filtered.map((photo, i) => (
-          <div
-            className="galerie-card"
-            key={i}
-            onClick={() => openLightbox(i)}
-            role="button"
-            tabIndex={0}
-            aria-label={`Voir: ${photo.caption}`}
-            onKeyDown={e => e.key === 'Enter' && openLightbox(i)}
-          >
-            <img src={photo.src} alt={photo.caption} loading="lazy" />
-            <div className="galerie-card-overlay">
-              <span className="galerie-tag">{photo.tag}</span>
-              <div className="galerie-card-bottom">
-                <ZoomIn size={20} color="#fff" />
-                <span>{photo.caption}</span>
-              </div>
-            </div>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '5rem', color: '#666' }}>Chargement de la galerie...</div>
+      ) : photos.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '5rem', color: '#666' }}>La galerie est actuellement vide.</div>
+      ) : (
+        <>
+          {/* ── Filter Tags ── */}
+          <div className="galerie-filters container">
+            {tags.map(tag => (
+              <button
+                key={tag}
+                className={`filter-btn ${activeTag === tag ? 'filter-btn--active' : ''}`}
+                onClick={() => setActiveTag(tag)}
+              >
+                {tag}
+                <span className="filter-count">
+                  {tag === 'Tous' ? photos.length : photos.filter(p => p.tag === tag).length}
+                </span>
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
+
+          {/* ── Grid ── */}
+          <div className="galerie-grid container">
+            {filtered.map((photo, i) => (
+              <div
+                className="galerie-card"
+                key={photo.id || i}
+                onClick={() => openLightbox(i)}
+                role="button"
+                tabIndex={0}
+                aria-label={`Voir: ${photo.caption}`}
+                onKeyDown={e => e.key === 'Enter' && openLightbox(i)}
+              >
+                <img src={photo.src} alt={photo.caption} loading="lazy" />
+                <div className="galerie-card-overlay">
+                  <span className="galerie-tag">{photo.tag}</span>
+                  <div className="galerie-card-bottom">
+                    <ZoomIn size={20} color="#fff" />
+                    <span>{photo.caption}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* ── Lightbox ── */}
-      {lightboxIdx !== null && (
+      {lightboxIdx !== null && filtered[lightboxIdx] && (
         <div className="lb-backdrop" onClick={closeLightbox}>
           <button className="lb-close" onClick={closeLightbox} aria-label="Fermer">
             <X size={22} />

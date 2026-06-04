@@ -20,30 +20,6 @@ export const AuthProvider = ({ children }) => {
   }, [user]);
 
   const login = async ({ email, password }) => {
-    // 1. Check Hardcoded demo accounts
-    let role = null;
-    let firstName = 'Utilisateur';
-
-    if (email === 'admin@novatech.com' && password === 'admin123') {
-      role = 'admin';
-      firstName = 'Direction';
-    } else if (email === 'formateur@novatech.com' && password === 'formateur123') {
-      role = 'formateur';
-      firstName = 'Professeur';
-    } else if (email === 'annonceur@novatech.com' && password === 'annonceur123') {
-      role = 'annonceur';
-      firstName = 'Partenaire';
-    } else if (email === 'eleve@novatech.com' && password === 'eleve123') {
-      role = 'apprenant';
-      firstName = 'Élève';
-    }
-
-    if (role) {
-      const mockUser = { email, firstName, role };
-      setUser(mockUser);
-      return mockUser;
-    }
-
     // 2. Fetch from Real Backend
     try {
       const response = await fetch('http://localhost:5001/api/auth/login', {

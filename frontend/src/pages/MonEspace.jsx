@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, Award, Clock, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -6,6 +6,55 @@ import './Home.css';
 
 const MonEspace = () => {
   const { user } = useAuth();
+  const [enrollments, setEnrollments] = useState([]);
+  const [questionText, setQuestionText] = useState('');
+  const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [questionStatus, setQuestionStatus] = useState('');
+
+  useEffect(() => {
+    const fetchMyEnrollments = async () => {
+      try {
+        const token = localStorage.getItem('nv_token');
+        const res = await fetch('http://localhost:5001/api/enroll/my-enrollments', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setEnrollments(data);
+          if (data.length > 0) setSelectedCourseId(data[0].courseId);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchMyEnrollments();
+  }, []);
+
+  const handleSendQuestion = async (e) => {
+    e.preventDefault();
+    if (!selectedCourseId || !questionText) return;
+    
+    try {
+      const token = localStorage.getItem('nv_token');
+      const res = await fetch('http://localhost:5001/api/enroll/questions', {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ courseId: selectedCourseId, text: questionText })
+      });
+      if (res.ok) {
+        setQuestionStatus('success');
+        setQuestionText('');
+        setTimeout(() => setQuestionStatus(''), 3000);
+      } else {
+        setQuestionStatus('error');
+      }
+    } catch (err) {
+      setQuestionStatus('error');
+    }
+  };
   
   return (
     <div className="page-transition" style={{ backgroundColor: 'var(--color-bg-light)', minHeight: '80vh', padding: '3rem 0' }}>
@@ -69,6 +118,44 @@ const MonEspace = () => {
             <h3 style={{ color: 'var(--color-text-muted)', margin: 0 }}>Mes Certificats (Bientôt)</h3>
             <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.95rem' }}>Retrouvez les attestations de vos formations complétées.</p>
           </div>
+        </div>
+
+        {/* POSER UNE QUESTION */}
+        <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', margin: '3rem 0 1.5rem 0' }}>Poser une question à un formateur</h2>
+        <div style={{ backgroundColor: 'var(--color-white)', padding: '2rem', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+          {enrollments.length === 0 ? (
+            <p style={{ color: 'var(--color-text-muted)' }}>Vous n'êtes inscrit à aucune formation pour le moment. Vous ne pouvez pas poser de question.</p>
+          ) : (
+            <form onSubmit={handleSendQuestion} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '600px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-primary)' }}>Formation concernée</label>
+                <select 
+                  value={selectedCourseId} 
+                  onChange={(e) => setSelectedCourseId(e.target.value)}
+                  style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none' }}
+                >
+                  {enrollments.map(e => (
+                    <option key={e.id} value={e.courseId}>{e.courseTitle}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-primary)' }}>Votre question</label>
+                <textarea 
+                  value={questionText}
+                  onChange={(e) => setQuestionText(e.target.value)}
+                  placeholder="Écrivez votre question ici..."
+                  style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', minHeight: '120px', resize: 'vertical' }}
+                  required
+                ></textarea>
+              </div>
+              <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', padding: '0.8rem 1.5rem' }}>
+                Envoyer la question
+              </button>
+              {questionStatus === 'success' && <p style={{ color: '#10b981', fontWeight: 600 }}>Votre question a été envoyée avec succès !</p>}
+              {questionStatus === 'error' && <p style={{ color: '#ef4444', fontWeight: 600 }}>Erreur lors de l'envoi de la question.</p>}
+            </form>
+          )}
         </div>
 
       </div>

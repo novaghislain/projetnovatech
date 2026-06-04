@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import FedapayWidget from '../components/FedapayWidget';
-import { CheckCircle, ShieldCheck, Lock, CreditCard } from 'lucide-react';
+import { CheckCircle, ShieldCheck, User, Users, MapPin, Mail, Phone, CreditCard, BookOpen, ArrowRight } from 'lucide-react';
 import './Inscription.css';
 
 const Inscription = () => {
@@ -10,180 +10,331 @@ const Inscription = () => {
   const navigate = useNavigate();
   const auth = useAuth();
   
-  const allCourses = [
-    { id: 1, title: 'Initiation à la Programmation', price: 25000, image: '/9x.jpeg' },
-    { id: 2, title: "Découverte de l'Intelligence Artificielle", price: 30000, image: '/8x.jpeg' },
-    { id: 3, title: 'Maîtrise de la Bureautique', price: 20000, image: '/10x.jpg' },
-    { id: 4, title: 'Création de sites Web (HTML/CSS)', price: 35000, image: '/11x.jpg' }
-  ];
+  const initialFormationId = location.state?.formationId || null;
 
-  const [selectedCourseId, setSelectedCourseId] = useState(
-    location.state?.course?.id || allCourses[0].id
-  );
-
-  const course = allCourses.find(c => c.id === Number(selectedCourseId)) || allCourses[0];
+  const [formations, setFormations] = useState([]);
+  const [selectedCourseId, setSelectedCourseId] = useState(initialFormationId || '');
+  const [course, setCourse] = useState(null);
+  
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
-    firstName: auth?.user?.firstName || '',
-    lastName: auth?.user?.lastName || '',
-    email: auth?.user?.email || '',
-    phone: '',
+    childFirstName: '',
+    childLastName: '',
+    childAge: '',
+    parentName: auth?.user?.firstName ? `${auth.user.firstName} ${auth.user.lastName}` : '',
+    parentPhone: auth?.user?.phone || '',
+    parentEmail: auth?.user?.email || '',
+    address: '',
+    paymentType: 'complet'
   });
 
-  const [step, setStep] = useState(1);
+  useEffect(() => {
+    if (!auth.user) {
+      navigate('/connexion', { state: { from: '/inscription' } });
+      return;
+    }
+    fetchFormations();
+  }, [auth.user, navigate]);
+
+  useEffect(() => {
+    if (selectedCourseId && formations.length > 0) {
+      setCourse(formations.find(f => f.id === Number(selectedCourseId)) || null);
+    }
+  }, [selectedCourseId, formations]);
+
+  const fetchFormations = async () => {
+    try {
+      const res = await fetch('http://localhost:5001/api/public/formations');
+      const data = await res.json();
+      setFormations(data);
+      if (!selectedCourseId && data.length > 0) setSelectedCourseId(data[0].id);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleCourseChange = (e) => {
-    setSelectedCourseId(e.target.value);
-  };
-
-  const handleSubmit = (e) => {
+  const handleStep1Submit = (e) => {
     e.preventDefault();
-    if (!auth.user) {
-      navigate('/connexion', { state: { from: location.pathname, autoReserve: { formationId: selectedCourseId, formData } } });
-      return;
-    }
+    if (!selectedCourseId) return alert('Veuillez sélectionner une formation');
+    setStep(2);
+  };
 
-    if (formData.firstName && formData.lastName && formData.email && formData.phone) {
-      setStep(2);
+  const processEnrollment = async (paymentMethod = null, transactionId = null) => {
+    setSubmitLoading(true);
+    try {
+      const token = localStorage.getItem('nv_token');
+      const response = await fetch('http://localhost:5001/api/enroll', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...formData,
+          courseId: selectedCourseId,
+          amount: course.price,
+          paymentMethod,
+          transactionId
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Erreur d'inscription");
+
+      if (result.status === 'waitlist') {
+        setWaitlistSuccess(true);
+      } else {
+        navigate('/mon-espace');
+      }
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (!auth.user) {
-      navigate('/connexion', { state: { from: location.pathname, autoReserve: { formationId: selectedCourseId, formData } } });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const handlePaymentComplete = (transactionId) => {
+    // Si paiement via FedaPay réussi
+    processEnrollment('FedaPay', transactionId);
+  };
 
-  if (!auth.user) return null;
+  const handleWaitlistSubmit = () => {
+    // Inscription sans paiement si complet
+    processEnrollment();
+  };
+
+  if (loading) return <div style={{ padding: '5rem', textAlign: 'center' }}>Chargement...</div>;
+
+  if (waitlistSuccess) {
+    return (
+      <div className="inscription-page" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center' }}>
+        <div className="container" style={{ maxWidth: '600px', textAlign: 'center' }}>
+          <div style={{ backgroundColor: 'white', padding: '3rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+            <CheckCircle size={64} color="#10b981" style={{ margin: '0 auto 1rem' }} />
+            <h2 style={{ marginBottom: '1rem' }}>Sur Liste d'Attente</h2>
+            <p style={{ color: '#666', marginBottom: '2rem' }}>
+              La formation sélectionnée est actuellement complète. Vous avez été ajouté(e) avec succès à la liste d'attente. Nous vous contacterons dès qu'une place se libère !
+            </p>
+            <button className="btn btn-primary" onClick={() => navigate('/mon-espace')}>Aller à mon espace</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const isFull = course && course.enrolled >= course.maxParticipants;
 
   return (
-    <div className="checkout-page-wrapper">
-      <div className="checkout-container">
+    <div className="inscription-page page-transition">
+      <div className="container" style={{ padding: '3rem 0' }}>
         
-        <div className="checkout-header fade-in">
-          <h1>Finaliser votre inscription</h1>
-          <p>Dernière étape avant d'accéder à votre espace apprenant et vos ressources.</p>
-        </div>
-
-        <div className="checkout-grid">
+        <div className="inscription-layout">
           
-          {/* LEFT PANEL: Order Summary & Trust */}
-          <div className="checkout-summary-panel fade-in">
-            <h2 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '1rem' }}>
-              Récapitulatif de la commande
-            </h2>
-
-            <div className="checkout-course-card">
-              <img src={course.image} alt={course.title} className="checkout-course-img" />
-              <div className="checkout-course-info">
-                <h3>{course.title}</h3>
-                <div className="checkout-course-price">{course.price.toLocaleString()} FCFA</div>
-              </div>
-            </div>
-
-            <ul className="checkout-benefits-list">
-              <li><CheckCircle size={20} /> Accès immédiat aux ressources</li>
-              <li><CheckCircle size={20} /> Suivi personnalisé par nos experts</li>
-              <li><CheckCircle size={20} /> Certification reconnue en fin de parcours</li>
-              <li><CheckCircle size={20} /> Accès à la communauté Novatech</li>
-            </ul>
-
-            <div className="checkout-trust-badge">
-              <ShieldCheck size={32} color="var(--color-accent)" />
-              <div>
-                <strong style={{ display: 'block', fontSize: '1rem', marginBottom: '0.2rem' }}>Paiement 100% Sécurisé</strong>
-                <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>Vos données sont chiffrées et protégées par FedaPay.</span>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT PANEL: Form & Payment */}
-          <div className="checkout-form-panel fade-in" style={{ animationDelay: '0.1s' }}>
+          {/* MAIN FORM */}
+          <div className="inscription-main">
+            <h1 className="inscription-title">Formulaire d'Inscription</h1>
             
+            <div className="inscription-steps">
+              <div className={`step ${step >= 1 ? 'active' : ''}`}>1. Informations</div>
+              <div className={`step ${step >= 2 ? 'active' : ''}`}>2. Confirmation & Paiement</div>
+            </div>
+
             {step === 1 && (
-              <div className="checkout-step-transition">
-                <h3 className="checkout-section-title">
-                  <span style={{ background: 'var(--color-bg-light)', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>1</span>
-                  Vos informations personnelles
-                </h3>
+              <form onSubmit={handleStep1Submit} className="inscription-form fade-in">
                 
-                <form onSubmit={handleSubmit}>
-                  <div className="checkout-form-group" style={{ backgroundColor: '#f9f9f9', padding: '1.2rem', borderRadius: '8px', border: '1px solid #eee' }}>
-                    <label>Formation choisie *</label>
-                    <select 
-                      className="checkout-form-input" 
-                      value={selectedCourseId} 
-                      onChange={handleCourseChange}
-                      style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}
-                    >
-                      {allCourses.map(c => (
-                        <option key={c.id} value={c.id}>
-                          {c.title} - {c.price.toLocaleString()} FCFA
-                        </option>
+                <div className="form-section">
+                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
+                    <BookOpen size={20} /> Choix de la Formation
+                  </h3>
+                  <div className="form-group">
+                    <label>Sélectionnez une formation *</label>
+                    <select className="form-input" value={selectedCourseId} onChange={e => setSelectedCourseId(e.target.value)} required>
+                      <option value="">-- Choisir --</option>
+                      {formations.map(f => (
+                        <option key={f.id} value={f.id}>{f.title} ({f.price?.toLocaleString()} FCFA)</option>
                       ))}
                     </select>
                   </div>
+                </div>
 
-                  <div className="checkout-form-row">
-                    <div className="checkout-form-group">
+                <div className="form-section">
+                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
+                    <User size={20} /> Informations de l'enfant (Apprenant)
+                  </h3>
+                  <div className="form-row">
+                    <div className="form-group">
                       <label>Prénom *</label>
-                      <input type="text" name="firstName" className="checkout-form-input" value={formData.firstName} onChange={handleChange} required />
+                      <input className="form-input" name="childFirstName" value={formData.childFirstName} onChange={handleChange} required />
                     </div>
-                    <div className="checkout-form-group">
+                    <div className="form-group">
                       <label>Nom *</label>
-                      <input type="text" name="lastName" className="checkout-form-input" value={formData.lastName} onChange={handleChange} required />
+                      <input className="form-input" name="childLastName" value={formData.childLastName} onChange={handleChange} required />
                     </div>
                   </div>
-                  
-                  <div className="checkout-form-group">
-                    <label>Adresse Email *</label>
-                    <input type="email" name="email" className="checkout-form-input" value={formData.email} readOnly style={{ opacity: 0.7, cursor: 'not-allowed' }} />
+                  <div className="form-group">
+                    <label>Âge de l'enfant *</label>
+                    <input type="number" className="form-input" name="childAge" value={formData.childAge} onChange={handleChange} required min="5" max="25" />
                   </div>
-                  
-                  <div className="checkout-form-group">
-                    <label>Numéro de téléphone (WhatsApp) *</label>
-                    <input type="tel" name="phone" className="checkout-form-input" value={formData.phone} onChange={handleChange} placeholder="Ex: +229 01 02 03 04" required />
-                  </div>
-
-                  <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', padding: '1rem', fontSize: '1.1rem' }}>
-                    Continuer vers le paiement <Lock size={18} style={{ marginLeft: '0.5rem' }}/>
-                  </button>
-                </form>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div className="checkout-step-transition">
-                <h3 className="checkout-section-title">
-                  <span style={{ background: 'var(--color-bg-light)', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>2</span>
-                  Paiement Sécurisé
-                </h3>
-
-                <div className="checkout-payment-box">
-                  <CreditCard size={48} color="var(--color-primary)" style={{ marginBottom: '1rem' }} />
-                  <h4>Règlement via Mobile Money ou Carte</h4>
-                  <p>Montant à payer : <strong>{course.price.toLocaleString()} FCFA</strong></p>
-                  
-                  <FedapayWidget 
-                    amount={course.price} 
-                    customerInfo={formData} 
-                  />
                 </div>
 
-                <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-                  <button type="button" className="btn-link" onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: '#888', textDecoration: 'underline', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 auto' }}>
-                    ← Modifier mes informations
-                  </button>
+                <div className="form-section">
+                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
+                    <Users size={20} /> Informations du Parent / Tuteur
+                  </h3>
+                  <div className="form-group">
+                    <label>Nom complet du parent *</label>
+                    <input className="form-input" name="parentName" value={formData.parentName} onChange={handleChange} required />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Téléphone *</label>
+                      <input type="tel" className="form-input" name="parentPhone" value={formData.parentPhone} onChange={handleChange} required />
+                    </div>
+                    <div className="form-group">
+                      <label>Email *</label>
+                      <input type="email" className="form-input" name="parentEmail" value={formData.parentEmail} onChange={handleChange} required />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Adresse physique (Ville, Quartier) *</label>
+                    <input className="form-input" name="address" value={formData.address} onChange={handleChange} required />
+                  </div>
                 </div>
-              </div>
+
+                {!isFull && (
+                  <div className="form-section">
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
+                      <CreditCard size={20} /> Type de Paiement
+                    </h3>
+                    <div className="form-group">
+                      <select className="form-input" name="paymentType" value={formData.paymentType} onChange={handleChange}>
+                        <option value="complet">Paiement complet à l'inscription</option>
+                        <option value="mensuel">Paiement mensuel (Si formation &gt; 1 mois)</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', padding: '1rem' }}>
+                  Étape Suivante <ArrowRight size={18} style={{ marginLeft: '0.5rem' }} />
+                </button>
+              </form>
             )}
 
+            {step === 2 && course && (
+              <div className="inscription-payment fade-in">
+                <button className="btn btn-outline" onClick={() => setStep(1)} style={{ marginBottom: '2rem' }}>
+                  ← Retour
+                </button>
+
+                <h3 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)' }}>Récapitulatif</h3>
+                
+                <div style={{ backgroundColor: '#f9fafb', padding: '1.5rem', borderRadius: '8px', marginBottom: '2rem' }}>
+                  <p style={{ margin: '0 0 0.5rem 0' }}><strong>Formation :</strong> {course.title}</p>
+                  <p style={{ margin: '0 0 0.5rem 0' }}><strong>Apprenant :</strong> {formData.childFirstName} {formData.childLastName} ({formData.childAge} ans)</p>
+                  <p style={{ margin: '0 0 0.5rem 0' }}><strong>Parent :</strong> {formData.parentName} ({formData.parentPhone})</p>
+                  <hr style={{ margin: '1rem 0', borderColor: '#e5e7eb' }} />
+                  <p style={{ margin: '0', fontSize: '1.2rem', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Total à payer :</span>
+                    <strong style={{ color: 'var(--color-primary)' }}>{course.price?.toLocaleString()} FCFA</strong>
+                  </p>
+                </div>
+
+                {isFull ? (
+                  <div style={{ backgroundColor: '#fff7ed', padding: '1.5rem', borderRadius: '8px', border: '1px solid #ffedd5' }}>
+                    <h4 style={{ color: '#c2410c', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      <CheckCircle size={20} /> Formation complète
+                    </h4>
+                    <p style={{ color: '#9a3412', marginBottom: '1.5rem' }}>
+                      Aucun paiement n'est requis pour le moment. Vous allez être placé(e) sur liste d'attente.
+                    </p>
+                    <button className="btn btn-primary" onClick={handleWaitlistSubmit} disabled={submitLoading} style={{ width: '100%' }}>
+                      {submitLoading ? 'Validation...' : 'Confirmer l\'inscription sur liste d\'attente'}
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <h4 style={{ marginBottom: '1rem' }}>Procéder au paiement</h4>
+                    <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
+                      Cliquez sur le bouton ci-dessous pour régler par Mobile Money ou Carte Bancaire via notre partenaire sécurisé.
+                    </p>
+                    <FedapayWidget 
+                      amount={course.price} 
+                      description={`Inscription: ${course.title}`}
+                      customerEmail={formData.parentEmail}
+                      customerFirstname={formData.parentName}
+                      customerLastname=""
+                      onSuccess={handlePaymentComplete}
+                    />
+                    
+                    {/* Fallback Mock Payment for Demo */}
+                    <button 
+                      className="btn btn-outline" 
+                      onClick={() => processEnrollment('Test Mock', 'TRX-MOCK-123')}
+                      style={{ width: '100%', marginTop: '1rem' }}
+                      disabled={submitLoading}
+                    >
+                      {submitLoading ? 'Validation...' : '[Démo] Simuler un paiement réussi'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+
+          {/* SIDEBAR */}
+          <div className="inscription-sidebar">
+            <div className="summary-card sticky">
+              {course ? (
+                <>
+                  <div className="summary-image" style={{ height: '150px', backgroundImage: `url(${course.imageUrl || '/10x.jpg'})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: '8px', marginBottom: '1.5rem' }}></div>
+                  <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>{course.title}</h3>
+                  <ul className="summary-details">
+                    <li><span>Durée:</span> <strong>{course.duration}</strong></li>
+                    <li><span>Public:</span> <strong>{course.ageGroup}</strong></li>
+                    <li><span>Format:</span> <strong>{course.isOnline ? 'En ligne' : 'Présentiel'}</strong></li>
+                    {isFull && <li style={{ color: '#dc2626', fontWeight: 'bold' }}>COMPLET (Liste d'attente)</li>}
+                  </ul>
+                  <div className="summary-total">
+                    <span>Prix total</span>
+                    <strong style={{ fontSize: '1.5rem', color: 'var(--color-primary)' }}>{course.price?.toLocaleString()} FCFA</strong>
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', color: '#888', padding: '2rem 0' }}>
+                  Sélectionnez une formation pour voir le détail
+                </div>
+              )}
+
+              <div className="trust-badges" style={{ marginTop: '2rem' }}>
+                <div className="trust-badge">
+                  <ShieldCheck size={24} color="var(--color-accent)" />
+                  <div>
+                    <strong>Paiement Sécurisé</strong>
+                    <span>Vos données sont chiffrées de bout en bout</span>
+                  </div>
+                </div>
+                <div className="trust-badge">
+                  <Lock size={24} color="var(--color-accent)" />
+                  <div>
+                    <strong>Confidentialité</strong>
+                    <span>Vos informations ne sont jamais partagées</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
         </div>
       </div>
     </div>

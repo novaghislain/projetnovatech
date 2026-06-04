@@ -42,7 +42,8 @@
   display: flex;
   align-items: center;
   gap: 0.2rem;
-  margin-left: 14rem;
+  margin-left: 1rem;
+  margin-right: auto;
 }
 
 .navbar-main-links a {

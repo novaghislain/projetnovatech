@@ -23,6 +23,8 @@ const Recus = () => {
         const data = await response.json();
         setPayments(data);
       } catch (err) {
+
+        
         setError(err.message);
       } finally {
         setLoading(false);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Eye, MousePointerClick, Trash2, Power } from 'lucide-react';
+import { Plus, Eye, MousePointerClick, Trash2, Power, X } from 'lucide-react';
 import axios from 'axios';
 
 const AdminAds = () => {
@@ -119,44 +119,53 @@ const AdminAds = () => {
 
       {showModal && (
         <div className="admin-modal-overlay">
-          <div className="admin-modal fade-in">
-            <h3 className="admin-modal-title">Nouvelle Publicité</h3>
+          <div className="admin-modal" style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="admin-modal-header">
+              <h4>Nouvelle Publicité</h4>
+              <button className="icon-btn" onClick={() => setShowModal(false)}><X size={20} /></button>
+            </div>
             <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: '1rem' }}>
-                <label>Nom de l'annonceur</label>
-                <input type="text" name="advertiserName" className="admin-input" required onChange={handleChange} />
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <label>Emplacement</label>
-                <select name="placement" className="admin-input" onChange={handleChange}>
-                  <option value="Accueil">Accueil</option>
-                  <option value="Sidebar">Sidebar Formations</option>
-                </select>
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <label>URL de l'image (Bannière)</label>
-                <input type="url" name="imageUrl" className="admin-input" required onChange={handleChange} placeholder="https://..." />
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <label>Lien de redirection (Target URL)</label>
-                <input type="url" name="targetUrl" className="admin-input" required onChange={handleChange} placeholder="https://..." />
-              </div>
-              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div style={{ flex: 1 }}>
-                  <label>Date de début</label>
-                  <input type="date" name="startDate" className="admin-input" required onChange={handleChange} />
+              <div className="admin-modal-body">
+                <div className="form-group">
+                  <label>Nom de l'annonceur *</label>
+                  <input type="text" name="advertiserName" className="form-control" required onChange={handleChange} />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label>Date de fin</label>
-                  <input type="date" name="endDate" className="admin-input" required onChange={handleChange} />
+                
+                <div className="form-group">
+                  <label>Emplacement *</label>
+                  <select name="placement" className="form-control" onChange={handleChange}>
+                    <option value="Accueil">Accueil</option>
+                    <option value="Sidebar">Sidebar Formations</option>
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label>URL de l'image (Bannière) *</label>
+                  <input type="url" name="imageUrl" className="form-control" required onChange={handleChange} placeholder="https://..." />
+                </div>
+                
+                <div className="form-group">
+                  <label>Lien de redirection (Target URL) *</label>
+                  <input type="url" name="targetUrl" className="form-control" required onChange={handleChange} placeholder="https://..." />
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>Date de début *</label>
+                    <input type="date" name="startDate" className="form-control" required onChange={handleChange} />
+                  </div>
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>Date de fin *</label>
+                    <input type="date" name="endDate" className="form-control" required onChange={handleChange} />
+                  </div>
                 </div>
               </div>
               
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <div className="admin-modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
                 <button type="button" className="admin-btn admin-btn-outline" onClick={() => setShowModal(false)}>
                   Annuler
                 </button>
-                <button type="submit" className="admin-btn">
+                <button type="submit" className="admin-btn admin-btn-primary">
                   Enregistrer
                 </button>
               </div>

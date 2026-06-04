@@ -258,6 +258,22 @@ app.post('/api/webhooks/kkiapay', async (req, res) => {
 });
 
 /**
+ * ROUTE: Public Messages (Contact Form)
+ */
+app.post('/api/public/messages', (req, res) => {
+  const { name, email, subject, body } = req.body;
+  if (!name || !email || !body) return res.status(400).json({ error: 'Champs requis manquants.' });
+  
+  db.run(`INSERT INTO Messages (name, email, subject, body) VALUES (?, ?, ?, ?)`,
+    [name, email, subject, body],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'Erreur lors de l\'envoi du message.' });
+      res.json({ success: true, message: 'Message envoyé avec succès.' });
+    }
+  );
+});
+
+/**
  * ROUTE: Webhook FedaPay
  */
 app.post('/api/webhooks/fedapay', async (req, res) => {
@@ -270,6 +286,41 @@ app.post('/api/webhooks/fedapay', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+/**
+ * ROUTES: Formations Publiques
+ */
+app.get('/api/public/formations', (req, res) => {
+  db.all("SELECT * FROM Formations WHERE status != 'draft' ORDER BY id DESC", (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.get('/api/public/formations/:id', (req, res) => {
+  db.get("SELECT * FROM Formations WHERE id = ?", [req.params.id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: "Formation introuvable" });
+    res.json(row);
+  });
+});
+
+/**
+ * ROUTES: Contenu Public (Témoignages & Galerie)
+ */
+app.get('/api/public/testimonials', (req, res) => {
+  db.all("SELECT * FROM Testimonials ORDER BY id DESC", (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.get('/api/public/gallery', (req, res) => {
+  db.all("SELECT * FROM Gallery ORDER BY id DESC", (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
 });
 
 /**
@@ -461,6 +512,16 @@ app.delete('/api/lessons/:id', (req, res) => {
     res.json({ success: true });
   });
 });
+
+// --- ADMIN ROUTES ---
+app.use('/api/admin', require('./adminRoutes')(db, authenticateToken));
+
+// Formateur & Annonceur Routes
+app.use('/api/formateur', require('./formateurRoutes')(db, authenticateToken));
+app.use('/api/annonceur', require('./annonceurRoutes')(db, authenticateToken));
+
+// --- ENROLLMENT ROUTES ---
+app.use('/api/enroll', require('./enrollmentRoutes')(db, authenticateToken));
 
 // Démarrage du serveur
 app.listen(PORT, () => {

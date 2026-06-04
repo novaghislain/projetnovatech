@@ -51,6 +51,7 @@ const Navbar = () => {
               <>
                 <Link to="/a-propos" onClick={closeAll}>À propos</Link>
                 <Link to="/galerie" onClick={closeAll}>Galerie</Link>
+                <Link to="/temoignages" onClick={closeAll}>Témoignages</Link>
               </>
             ) : (
               <>

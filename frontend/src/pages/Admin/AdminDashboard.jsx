@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -30,30 +30,82 @@ import AdminCategories from './AdminCategories';
 import AdminFormations from './AdminFormations';
 import AdminSessions from './AdminSessions';
 import AdminAds from './AdminAds';
+import AdminUsers from './AdminUsers';
+import AdminContent from './AdminContent';
+import AdminInscriptions from './AdminInscriptions';
+import AdminMessages from './AdminMessages';
+import AdminFormateurs from './AdminFormateurs';
+import { useAuth } from '../../contexts/AuthContext';
 
-// --- MOCK DATA ---
-const revenueData = [
-  { name: '01 Juin', revenus: 400000, inscriptions: 12 },
-  { name: '05 Juin', revenus: 300000, inscriptions: 8 },
-  { name: '10 Juin', revenus: 550000, inscriptions: 18 },
-  { name: '15 Juin', revenus: 450000, inscriptions: 15 },
-  { name: '20 Juin', revenus: 700000, inscriptions: 25 },
-  { name: '25 Juin', revenus: 600000, inscriptions: 20 },
-];
-
-const mockAds = [
-  { id: 1, advertiser: 'MTN Bénin', placement: 'Accueil (Haut)', views: 15420, clicks: 1240, status: 'active' },
-  { id: 2, advertiser: 'Moov Africa', placement: 'Sidebar Formations', views: 8300, clicks: 415, status: 'inactive' },
-];
-
-const mockTransactions = [
-  { id: 'TRX-1092', user: 'Jean Dupont', amount: '25 000 FCFA', method: 'Kkiapay', date: '25/06/2026', status: 'success' },
-  { id: 'TRX-1093', user: 'Marie Claire', amount: '30 000 FCFA', method: 'FedaPay', date: '26/06/2026', status: 'success' },
-  { id: 'TRX-1094', user: 'Paul Mensah', amount: '20 000 FCFA', method: 'Mobile Money', date: '26/06/2026', status: 'pending' },
-];
 
 const AdminDashboard = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  
+  const [stats, setStats] = useState({ activeFormations: 0, totalUsers: 0, totalRevenue: 0 });
+  const [payments, setPayments] = useState([]);
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        const token = localStorage.getItem('nv_token');
+        const headers = { 'Authorization': `Bearer ${token}` };
+        
+        // Fetch stats
+        const statsRes = await fetch('http://localhost:5001/api/admin/stats', { headers });
+        if (statsRes.ok) setStats(await statsRes.json());
+        
+        // Fetch payments
+        const payRes = await fetch('http://localhost:5001/api/admin/payments', { headers });
+        if (payRes.ok) setPayments(await payRes.json());
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchAdminData();
+  }, []);
+
+  const handleDeletePayment = async (id) => {
+    if (window.confirm('Voulez-vous vraiment supprimer ce paiement ?')) {
+      try {
+        const token = localStorage.getItem('nv_token');
+        await fetch(`http://localhost:5001/api/admin/payments/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        window.location.reload();
+      } catch (err) {
+        alert("Erreur lors de la suppression : " + err.message);
+      }
+    }
+  };
+
+  const getRevenueData = () => {
+    const data = [];
+    const today = new Date();
+    // Génère les 10 derniers jours pour avoir un beau graphique même si c'est vide
+    for (let i = 9; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+      data.push({ name: dateStr, revenus: 0, inscriptions: 0 });
+    }
+
+    payments.forEach(p => {
+      const pDate = new Date(p.createdAt);
+      const dateStr = pDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+      
+      const existing = data.find(item => item.name === dateStr);
+      if (existing) {
+        existing.inscriptions += 1;
+        existing.revenus += p.amount || 0;
+      }
+    });
+
+    return data;
+  };
+
+  const computedRevenueData = getRevenueData();
 
   return (
     <div className="admin-layout">
@@ -79,11 +131,8 @@ const AdminDashboard = () => {
           <div className={`admin-nav-item ${activeTab === 'ads' ? 'active' : ''}`} onClick={() => setActiveTab('ads')}>
             <Megaphone size={20} /> Publicités
           </div>
-          <div className={`admin-nav-item ${activeTab === 'temoignages' ? 'active' : ''}`} onClick={() => setActiveTab('temoignages')}>
-            <CheckCircle size={20} /> Témoignages
-          </div>
-          <div className={`admin-nav-item ${activeTab === 'galerie' ? 'active' : ''}`} onClick={() => setActiveTab('galerie')}>
-            <Edit size={20} /> Galerie
+          <div className={`admin-nav-item ${activeTab === 'contenu' ? 'active' : ''}`} onClick={() => setActiveTab('contenu')}>
+            <Edit size={20} /> Contenu (Galerie & Témoignages)
           </div>
           <div className={`admin-nav-item ${activeTab === 'messages' ? 'active' : ''}`} onClick={() => setActiveTab('messages')}>
             <Edit size={20} /> Messages
@@ -91,7 +140,10 @@ const AdminDashboard = () => {
           <div className={`admin-nav-item ${activeTab === 'utilisateurs' ? 'active' : ''}`} onClick={() => setActiveTab('utilisateurs')}>
             <Users size={20} /> Utilisateurs
           </div>
-          <div className={`admin-nav-item ${activeTab === 'parametres' ? 'active' : ''}`} onClick={() => setActiveTab('parametres')}>
+          <div className={`admin-nav-item ${activeTab === 'formateurs' ? 'active' : ''}`} onClick={() => setActiveTab('formateurs')}>
+            <Users size={20} /> Formateurs
+          </div>
+          <div className={`admin-nav-item ${activeTab === 'parametres' ? 'active' : ''}`} onClick={() => window.location.href = '/parametres'}>
             <Edit size={20} /> Paramètres
           </div>
 
@@ -114,10 +166,19 @@ const AdminDashboard = () => {
             {activeTab === 'sessions' && 'Gestion des Sessions'}
             {activeTab === 'ads' && 'Campagnes Publicitaires'}
             {activeTab === 'finances' && 'Rapports Financiers'}
+            {activeTab === 'inscriptions' && 'Gestion des Inscriptions'}
+            {activeTab === 'contenu' && 'Gestion du Contenu'}
+            {activeTab === 'messages' && 'Messages de Contact'}
           </div>
           <div className="admin-header-user">
-            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#333' }}>Admin Novatech</span>
-            <div className="admin-avatar">AD</div>
+            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#333' }}>{user?.firstName || 'Admin'} {user?.lastName || ''}</span>
+            <div className="admin-avatar" style={{ overflow: 'hidden' }}>
+              {user?.avatar ? (
+                <img src={user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'AD'
+              )}
+            </div>
           </div>
         </header>
 
@@ -131,21 +192,21 @@ const AdminDashboard = () => {
                 <div className="kpi-card">
                   <div className="kpi-icon blue"><BookOpen size={24} /></div>
                   <div className="kpi-info">
-                    <div className="kpi-value">15</div>
+                    <div className="kpi-value">{stats.activeFormations}</div>
                     <div className="kpi-label">Formations Actives</div>
                   </div>
                 </div>
                 <div className="kpi-card">
                   <div className="kpi-icon green"><Users size={24} /></div>
                   <div className="kpi-info">
-                    <div className="kpi-value">524</div>
-                    <div className="kpi-label">Apprenants Inscrits</div>
+                    <div className="kpi-value">{stats.totalUsers}</div>
+                    <div className="kpi-label">Utilisateurs Inscrits</div>
                   </div>
                 </div>
                 <div className="kpi-card">
                   <div className="kpi-icon purple"><TrendingUp size={24} /></div>
                   <div className="kpi-info">
-                    <div className="kpi-value">3.2M</div>
+                    <div className="kpi-value">{(stats.totalRevenue || 0).toLocaleString()}</div>
                     <div className="kpi-label">Revenus (FCFA)</div>
                   </div>
                 </div>
@@ -157,7 +218,7 @@ const AdminDashboard = () => {
                 </div>
                 <div style={{ width: '100%', height: 300 }}>
                   <ResponsiveContainer>
-                    <LineChart data={revenueData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <LineChart data={computedRevenueData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} dy={10} />
                       <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} dx={-10} />
@@ -180,21 +241,36 @@ const AdminDashboard = () => {
           {/* TAB: PUBLICITES */}
           {activeTab === 'ads' && <AdminAds />}
 
+          {/* TAB: UTILISATEURS */}
+          {activeTab === 'utilisateurs' && <AdminUsers />}
+
+          {/* TAB: FORMATEURS */}
+          {activeTab === 'formateurs' && <AdminFormateurs />}
+
+          {/* TAB: CONTENU */}
+          {activeTab === 'contenu' && <AdminContent />}
+
+          {/* TAB: MESSAGES */}
+          {activeTab === 'messages' && <AdminMessages />}
+
+          {/* TAB: INSCRIPTIONS */}
+          {activeTab === 'inscriptions' && <AdminInscriptions />}
+
           {/* TAB: FINANCES */}
-          {activeTab === 'finances' && (
+          {activeTab === 'paiements' && (
             <div className="fade-in">
               <div className="kpi-grid">
                 <div className="kpi-card">
                   <div className="kpi-icon green"><CheckCircle size={24} /></div>
                   <div className="kpi-info">
-                    <div className="kpi-value">28</div>
-                    <div className="kpi-label">Paiements Validés (Juin)</div>
+                    <div className="kpi-value">{payments.length}</div>
+                    <div className="kpi-label">Paiements Validés</div>
                   </div>
                 </div>
                 <div className="kpi-card">
                   <div className="kpi-icon"><CreditCard size={24} /></div>
                   <div className="kpi-info">
-                    <div className="kpi-value">3.2M</div>
+                    <div className="kpi-value">{(stats.totalRevenue || 0).toLocaleString()}</div>
                     <div className="kpi-label">Total Encaissé (FCFA)</div>
                   </div>
                 </div>
@@ -210,26 +286,29 @@ const AdminDashboard = () => {
                       <tr>
                         <th>ID Transaction</th>
                         <th>Apprenant</th>
+                        <th>Formation</th>
                         <th>Montant</th>
                         <th>Méthode</th>
                         <th>Date</th>
                         <th>Statut</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {mockTransactions.map(trx => (
-                        <tr key={trx.id}>
-                          <td style={{ fontFamily: 'monospace', color: '#666' }}>{trx.id}</td>
-                          <td style={{ fontWeight: 600 }}>{trx.user}</td>
-                          <td>{trx.amount}</td>
+                      {payments.map(trx => (
+                        <tr key={trx.transactionId}>
+                          <td style={{ fontFamily: 'monospace', color: '#666' }}>TRX-{trx.transactionId}</td>
+                          <td style={{ fontWeight: 600 }}>{trx.firstName} {trx.lastName}</td>
+                          <td>{trx.courseTitle}</td>
+                          <td>{trx.amount?.toLocaleString()} FCFA</td>
                           <td>
                             <span style={{ background: '#f0f0f0', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>
-                              {trx.method}
+                              {trx.paymentMethod || 'Mobile Money'}
                             </span>
                           </td>
-                          <td>{trx.date}</td>
+                          <td>{new Date(trx.createdAt).toLocaleDateString()}</td>
                           <td>
-                            {trx.status === 'success' ? (
+                            {trx.status === 'active' ? (
                               <span style={{ color: '#28a745', display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 600, fontSize: '0.85rem' }}>
                                 <CheckCircle size={14} /> Succès
                               </span>
@@ -239,8 +318,22 @@ const AdminDashboard = () => {
                               </span>
                             )}
                           </td>
+                          <td>
+                            <button 
+                              onClick={() => handleDeletePayment(trx.transactionId)}
+                              style={{ padding: '0.3rem 0.5rem', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer' }}
+                              title="Supprimer"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </td>
                         </tr>
                       ))}
+                      {payments.length === 0 && (
+                        <tr>
+                          <td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Aucune transaction trouvée.</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>

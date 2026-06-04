@@ -1,17 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Filter, Image as ImageIcon, X, AlertTriangle, BookOpen } from 'lucide-react';
 import AdminCourseBuilder from './AdminCourseBuilder';
-
-const initialFormations = [
-  { id: 1, title: 'Initiation à la Programmation', category: 'Développement', price: 25000, duration: '4 semaines', ageGroup: '10-14 ans', maxPlaces: 20, enrolled: 15, status: 'active', image: '/7x.jpg' },
-  { id: 2, title: 'Découverte de l\'IA', category: 'Intelligence Artificielle', price: 30000, duration: '6 semaines', ageGroup: '14-18 ans', maxPlaces: 20, enrolled: 20, status: 'full', image: '/8x.jpeg' },
-  { id: 3, title: 'Bureautique Avancée', category: 'Bureautique', price: 20000, duration: '3 semaines', ageGroup: 'Tous âges', maxPlaces: 15, enrolled: 8, status: 'active', image: '/10x.jpg' },
-];
 
 const mockCategories = ['Développement', 'Intelligence Artificielle', 'Bureautique', 'Design Graphique'];
 
 const AdminFormations = () => {
-  const [formations, setFormations] = useState(initialFormations);
+  const [formations, setFormations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCat, setFilterCat] = useState('All');
   
@@ -24,11 +19,30 @@ const AdminFormations = () => {
   
   // Form state
   const [formData, setFormData] = useState({
-    id: null, title: '', description: '', category: '', price: '', duration: '', ageGroup: '', maxPlaces: '', image: ''
+    id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '', maxParticipants: '', status: 'draft', imageUrl: ''
   });
   const [errors, setErrors] = useState({});
 
-  // Filters
+  useEffect(() => {
+    fetchFormations();
+  }, []);
+
+  const fetchFormations = async () => {
+    try {
+      const token = localStorage.getItem('nv_token');
+      const response = await fetch('http://localhost:5001/api/admin/formations', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error("Erreur de récupération");
+      const data = await response.json();
+      setFormations(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredFormations = formations.filter(f => {
     const matchesSearch = f.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCat = filterCat === 'All' || f.category === filterCat;
@@ -39,7 +53,7 @@ const AdminFormations = () => {
     if (formation) {
       setFormData(formation);
     } else {
-      setFormData({ id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '', maxPlaces: '', image: '' });
+      setFormData({ id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '', maxParticipants: '', status: 'draft', imageUrl: '', isFull: false });
     }
     setErrors({});
     setIsModalOpen(true);
@@ -49,31 +63,54 @@ const AdminFormations = () => {
     const newErrors = {};
     if (!formData.title || formData.title.length < 5) newErrors.title = 'Le titre doit faire au moins 5 caractères.';
     if (!formData.price || isNaN(formData.price)) newErrors.price = 'Veuillez entrer un prix valide.';
-    if (!formData.maxPlaces || isNaN(formData.maxPlaces)) newErrors.maxPlaces = 'Veuillez entrer un nombre de places valide.';
+    if (!formData.maxParticipants || isNaN(formData.maxParticipants)) newErrors.maxParticipants = 'Veuillez entrer un nombre de places valide.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) return;
 
-    if (formData.id) {
-      setFormations(formations.map(f => f.id === formData.id ? { ...f, ...formData } : f));
-    } else {
-      const newId = Math.max(0, ...formations.map(f => f.id)) + 1;
-      setFormations([...formations, { ...formData, id: newId, enrolled: 0, status: 'active' }]);
+    try {
+      const token = localStorage.getItem('nv_token');
+      const method = formData.id ? 'PUT' : 'POST';
+      const url = formData.id ? `http://localhost:5001/api/admin/formations/${formData.id}` : 'http://localhost:5001/api/admin/formations';
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      if (!response.ok) throw new Error("Erreur lors de l'enregistrement");
+      await fetchFormations();
+      setIsModalOpen(false);
+    } catch (err) {
+      alert(err.message);
     }
-    setIsModalOpen(false);
   };
 
-  const handleDelete = (id) => {
-    setFormations(formations.filter(f => f.id !== id));
-    setDeleteConfirm(null);
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem('nv_token');
+      const response = await fetch(`http://localhost:5001/api/admin/formations/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error("Erreur de suppression");
+      await fetchFormations();
+      setDeleteConfirm(null);
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   const handleImageUpload = (e) => {
-    // Simulation upload image
-    setFormData({...formData, image: '/placeholder.jpg'});
+    // Simulation upload image (à remplacer par un vrai upload)
+    setFormData({...formData, imageUrl: '/placeholder.jpg'});
   };
 
   if (builderFormation) {
@@ -119,12 +156,14 @@ const AdminFormations = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredFormations.map(f => (
+              {loading ? (
+                <tr><td colSpan="6" style={{ textAlign: 'center' }}>Chargement...</td></tr>
+              ) : filteredFormations.map(f => (
                 <tr key={f.id}>
                   <td style={{ fontWeight: 600 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                       <div style={{ width: 40, height: 40, borderRadius: 8, background: '#eee', overflow: 'hidden' }}>
-                        {f.image && <img src={f.image} alt={f.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                        {f.imageUrl && <img src={f.imageUrl} alt={f.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                       </div>
                       <div>
                         <div>{f.title}</div>
@@ -133,11 +172,11 @@ const AdminFormations = () => {
                     </div>
                   </td>
                   <td>{f.category}</td>
-                  <td>{f.price.toLocaleString()} FCFA</td>
-                  <td>{f.enrolled} / {f.maxPlaces}</td>
+                  <td>{f.price?.toLocaleString()} FCFA</td>
+                  <td>{f.enrolled} / {f.maxParticipants}</td>
                   <td>
-                    <span className={`status-badge ${f.status === 'active' ? 'active' : 'pending'}`}>
-                      {f.status === 'active' ? 'Ouverte' : 'Complet'}
+                    <span className={`status-badge ${f.status === 'published' ? 'active' : 'pending'}`}>
+                      {f.status === 'published' ? 'Publié' : (f.status === 'full' ? 'Complet' : 'Brouillon')}
                     </span>
                   </td>
                   <td>
@@ -160,7 +199,7 @@ const AdminFormations = () => {
                   </td>
                 </tr>
               ))}
-              {filteredFormations.length === 0 && (
+              {!loading && filteredFormations.length === 0 && (
                 <tr>
                   <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Aucune formation trouvée.</td>
                 </tr>
@@ -173,7 +212,7 @@ const AdminFormations = () => {
       {/* MODAL FORMULAIRE */}
       {isModalOpen && (
         <div className="admin-modal-overlay">
-          <div className="admin-modal" style={{ maxWidth: '800px' }}>
+          <div className="admin-modal" style={{ maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="admin-modal-header">
               <h4>{formData.id ? 'Modifier la formation' : 'Nouvelle formation'}</h4>
               <button className="icon-btn" onClick={() => setIsModalOpen(false)}><X size={20} /></button>
@@ -206,24 +245,46 @@ const AdminFormations = () => {
                 </div>
                 <div className="form-group">
                   <label>Durée (ex: 4 semaines)</label>
-                  <input type="text" className="form-control" value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} />
+                  <input type="text" className="form-control" value={formData.duration || ''} onChange={e => setFormData({...formData, duration: e.target.value})} />
                 </div>
                 <div className="form-group">
                   <label>Tranche d'âge</label>
-                  <input type="text" className="form-control" value={formData.ageGroup} onChange={e => setFormData({...formData, ageGroup: e.target.value})} />
+                  <input type="text" className="form-control" value={formData.ageGroup || ''} onChange={e => setFormData({...formData, ageGroup: e.target.value})} />
                 </div>
                 <div className="form-group">
                   <label>Places max *</label>
-                  <input type="number" className="form-control" value={formData.maxPlaces} onChange={e => setFormData({...formData, maxPlaces: e.target.value})} />
-                  {errors.maxPlaces && <div style={{ color: '#ff4d4f', fontSize: '0.8rem', marginTop: '4px' }}>{errors.maxPlaces}</div>}
+                  <input type="number" className="form-control" value={formData.maxParticipants} onChange={e => setFormData({...formData, maxParticipants: e.target.value})} />
+                  {errors.maxParticipants && <div style={{ color: '#ff4d4f', fontSize: '0.8rem', marginTop: '4px' }}>{errors.maxParticipants}</div>}
                 </div>
               </div>
 
               <div className="form-group">
-                <label>Image de couverture</label>
-                <div style={{ border: '2px dashed #ddd', borderRadius: '8px', padding: '2rem', textAlign: 'center', cursor: 'pointer' }} onClick={() => document.getElementById('imageUpload').click()}>
-                  <ImageIcon size={32} color="#aaa" style={{ marginBottom: '0.5rem' }} />
-                  <div style={{ fontSize: '0.9rem', color: '#666' }}>Cliquez pour uploader une image</div>
+                <label>Statut de la formation</label>
+                <select className="form-control" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
+                  <option value="draft">Brouillon</option>
+                  <option value="published">Publié (En ligne)</option>
+                  <option value="full">Complet (obsolète, utiliser la case ci-dessous)</option>
+                </select>
+              </div>
+
+              <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input 
+                  type="checkbox" 
+                  id="isFullCheckbox" 
+                  checked={formData.isFull || false} 
+                  onChange={e => setFormData({...formData, isFull: e.target.checked})} 
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <label htmlFor="isFullCheckbox" style={{ margin: 0, cursor: 'pointer', fontWeight: 600, color: '#dc2626' }}>
+                  Marquer manuellement comme "COMPLET"
+                </label>
+              </div>
+
+              <div className="form-group">
+                <label>Image de couverture (URL ou /image.jpg)</label>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <input type="text" className="form-control" placeholder="URL de l'image" value={formData.imageUrl || ''} onChange={e => setFormData({...formData, imageUrl: e.target.value})} />
+                  <button className="admin-btn admin-btn-outline" onClick={() => document.getElementById('imageUpload').click()}><ImageIcon size={16} /> Uploader</button>
                   <input type="file" id="imageUpload" style={{ display: 'none' }} accept="image/*" onChange={handleImageUpload} />
                 </div>
               </div>

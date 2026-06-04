@@ -20,6 +20,7 @@ import TableauInscriptions from './pages/TableauInscriptions';
 import Paiements from './pages/Paiements';
 import Recus from './pages/Recus';
 import Parametres from './pages/Parametres';
+import Testimonials from './pages/Testimonials';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -51,13 +52,13 @@ const AppLayout = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/galerie" element={<Galerie />} />
+          <Route path="/temoignages" element={<Testimonials />} />
           <Route path="/a-propos" element={<Apropos />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/inscription" element={<Inscription />} />
-          
           <Route path="/formations" element={<InscriptionFormation />} />
           <Route path="/formations/:id" element={<FormationDetails />} />
 

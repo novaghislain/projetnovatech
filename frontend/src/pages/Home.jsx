@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import {
   Monitor, Shield, Code2, BrainCircuit, UserCheck,
   GraduationCap, BookOpen, FlaskConical, Award, Clock, ArrowRight,
@@ -8,7 +9,7 @@ import {
 import AdBanner from '../components/AdBanner';
 import './Home.css';
 
-const programs = [
+  const programs = [
   { icon: <Monitor size={26} />, label: 'Bureautique' },
   { icon: <Shield size={26} />, label: 'Internet & Sécurité' },
   { icon: <Code2 size={26} />, label: 'Programmation' },
@@ -36,42 +37,43 @@ const stats = [
   { value: '10', label: 'Formateurs experts' },
 ];
 
-const featuredCourses = [
-  {
-    title: 'Initiation à la Programmation',
-    category: 'Programmation',
-    ageGroup: '10-14 ans',
-    price: '25 000 FCFA',
-    duration: '4 semaines',
-    spots: '5 places restantes',
-    image: '/9x.jpeg',
-    icon: <Code2 size={20} />
-  },
-  {
-    title: 'Découverte de l\'Intelligence Artificielle',
-    category: 'Intelligence Artificielle',
-    ageGroup: '14-18 ans',
-    price: '30 000 FCFA',
-    duration: '6 semaines',
-    spots: 'Complet',
-    image: '/8x.jpeg',
-    icon: <BrainCircuit size={20} />
-  },
-  {
-    title: 'Maîtrise de la Bureautique',
-    category: 'Bureautique',
-    ageGroup: '8-12 ans',
-    price: '20 000 FCFA',
-    duration: '4 semaines',
-    spots: '12 places restantes',
-    image: '/bureautique.jpg',
-    icon: <Monitor size={20} />
-  }
-];
-
-
-
 const Home = () => {
+  const [featuredCourses, setFeaturedCourses] = useState([]);
+  const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', body: '' });
+  const [contactStatus, setContactStatus] = useState('idle');
+
+  useEffect(() => {
+    const fetchFormations = async () => {
+      try {
+        const res = await fetch('http://localhost:5001/api/public/formations');
+        if (res.ok) {
+          const data = await res.json();
+          // Take the top 3 featured or recent ones
+          setFeaturedCourses(data.slice(0, 3));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchFormations();
+  }, []);
+
+  const handleContactChange = (e) => setContactForm({ ...contactForm, [e.target.name]: e.target.value });
+  
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    setContactStatus('sending');
+    try {
+      await axios.post('http://localhost:5001/api/public/messages', contactForm);
+      setContactStatus('sent');
+      setContactForm({ name: '', email: '', subject: '', body: '' });
+      setTimeout(() => setContactStatus('idle'), 3000);
+    } catch (error) {
+      alert("Erreur lors de l'envoi du message.");
+      setContactStatus('idle');
+    }
+  };
+
   return (
     <div className="home-page">
 
@@ -211,7 +213,7 @@ const Home = () => {
             {featuredCourses.map((course, i) => (
               <div className="course-card" key={i} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-light)', transition: 'all 0.3s ease', display: 'flex', flexDirection: 'column' }}>
                 <div className="course-card-img" style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
-                  <img src={course.image} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={course.imageUrl || '/placeholder.jpg'} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', top: '15px', right: '15px', backgroundColor: 'var(--color-white)', padding: '0.4rem 0.8rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', boxShadow: 'var(--shadow-sm)' }}>
                     {course.category}
                   </div>
@@ -224,8 +226,12 @@ const Home = () => {
                   </div>
                   <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1.2rem' }}>
                     <div>
-                      <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{course.spots}</span>
-                      <strong style={{ fontSize: '1.1rem', color: 'var(--color-primary)', fontFamily: 'var(--font-heading)' }}>{course.price}</strong>
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                        {course.isFull || course.status === 'full' ? 'Complet' : `${course.maxParticipants - course.enrolled} places restantes`}
+                      </span>
+                      <strong style={{ fontSize: '1.1rem', color: 'var(--color-primary)', fontFamily: 'var(--font-heading)' }}>
+                        {course.price ? course.price.toLocaleString() + ' FCFA' : 'Gratuit'}
+                      </strong>
                     </div>
                     <Link to="/formations" className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
                       S'inscrire
@@ -256,6 +262,8 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+
 
       {/* Why Choose Us */}
       <section className="why-us-section section-padding" style={{ backgroundColor: 'var(--color-bg-alt)' }}>
@@ -325,18 +333,21 @@ const Home = () => {
 
             <div className="contact-form-block" style={{ backgroundColor: 'var(--color-bg-light)', padding: '2.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
               <h3 style={{ marginBottom: '1.5rem', fontSize: '1.4rem' }}>Formulaire de contact rapide</h3>
-              <form onSubmit={(e) => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
-                  <input type="text" placeholder="Votre nom complet" style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)' }} />
+                  <input type="text" name="name" value={contactForm.name} onChange={handleContactChange} required placeholder="Votre nom complet" style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)' }} />
                 </div>
                 <div>
-                  <input type="email" placeholder="Votre adresse email" style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)' }} />
+                  <input type="email" name="email" value={contactForm.email} onChange={handleContactChange} required placeholder="Votre adresse email" style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)' }} />
                 </div>
                 <div>
-                  <textarea placeholder="Votre message..." rows={4} style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)', resize: 'none' }}></textarea>
+                  <input type="text" name="subject" value={contactForm.subject} onChange={handleContactChange} required placeholder="Sujet" style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)' }} />
                 </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
-                  Envoyer le message <Send size={18} />
+                <div>
+                  <textarea name="body" value={contactForm.body} onChange={handleContactChange} required placeholder="Votre message..." rows={4} style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)', resize: 'none' }}></textarea>
+                </div>
+                <button type="submit" disabled={contactStatus === 'sending'} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem', opacity: contactStatus === 'sending' ? 0.7 : 1 }}>
+                  {contactStatus === 'sending' ? 'Envoi en cours...' : contactStatus === 'sent' ? 'Message envoyé !' : 'Envoyer le message'} <Send size={18} />
                 </button>
               </form>
             </div>

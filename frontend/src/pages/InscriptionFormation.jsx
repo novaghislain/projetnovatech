@@ -1,22 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getFormations, reserveFormation } from '../services/formationService';
 import { useAuth } from '../contexts/AuthContext';
 import { Clock, Users, ArrowRight, ShieldCheck } from 'lucide-react';
 import './Home.css';
 
 const InscriptionFormation = () => {
   const [formations, setFormations] = useState([]);
-  const [loadingId, setLoadingId] = useState(null);
+  const [loading, setLoading] = useState(true);
   const auth = useAuth();
-
-  useEffect(() => { setFormations(getFormations()); }, []);
-
   const navigate = useNavigate();
+
+  useEffect(() => { 
+    const fetchRealFormations = async () => {
+      try {
+        const res = await fetch('http://localhost:5001/api/public/formations');
+        if (res.ok) {
+          const data = await res.json();
+          setFormations(data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRealFormations();
+  }, []);
 
   const handleReserve = (f) => {
     if (!auth.user) {
-      alert('Connectez-vous pour réserver');
       navigate('/connexion', { state: { from: '/inscription', autoReserve: { course: f } } });
       return;
     }
@@ -38,11 +50,11 @@ const InscriptionFormation = () => {
       <div className="container" style={{ padding: '4rem 0' }}>
         <div className="formations-page-list">
           {formations.map(f => {
-            const isFull = typeof f.spots === 'number' && f.spots <= 0;
+            const isFull = f.isFull || f.status === 'full';
             return (
               <div key={f.id} className="formation-card">
                 <div className="formation-card-img">
-                  <img src={f.image} alt={f.title} />
+                  <img src={f.imageUrl || '/placeholder.jpg'} alt={f.title} />
                   <div className="formation-card-tag">{f.category}</div>
                   {isFull && <div className="formation-card-complet">COMPLET</div>}
                 </div>
@@ -56,7 +68,7 @@ const InscriptionFormation = () => {
                   <p>{f.description}</p>
                   
                   <div className="formation-card-foot">
-                    <strong>{f.price}</strong>
+                    <strong>{f.price ? f.price.toLocaleString() + ' FCFA' : 'Gratuit'}</strong>
                     <div className="formation-card-actions">
                       <Link to={`/formations/${f.id}`} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
                         Détails
@@ -64,10 +76,10 @@ const InscriptionFormation = () => {
                       <button 
                         className="btn btn-primary" 
                         style={{ padding: '0.5rem 1rem' }}
-                        disabled={isFull || loadingId === f.id}
+                        disabled={isFull}
                         onClick={() => handleReserve(f)}
                       >
-                        {loadingId === f.id ? '...' : (isFull ? 'Plein' : 'Réserver')}
+                        {isFull ? 'Plein' : 'S\'inscrire'}
                       </button>
                     </div>
                   </div>

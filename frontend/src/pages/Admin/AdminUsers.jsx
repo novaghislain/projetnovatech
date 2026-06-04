@@ -1,0 +1,183 @@
+import React, { useState, useEffect } from 'react';
+import { Search, UserCheck, UserX, Shield, Edit, Trash2 } from 'lucide-react';
+
+const AdminUsers = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem('nv_token');
+      const response = await fetch('http://localhost:5001/api/admin/users', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error("Erreur de récupération des utilisateurs");
+      const data = await response.json();
+      setUsers(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRoleChange = async (userId, newRole) => {
+    try {
+      const token = localStorage.getItem('nv_token');
+      const response = await fetch(`http://localhost:5001/api/admin/users/${userId}/role`, {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ role: newRole })
+      });
+      if (!response.ok) throw new Error("Erreur");
+      fetchUsers(); // Refresh
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleStatusChange = async (userId, newStatus) => {
+    try {
+      const token = localStorage.getItem('nv_token');
+      const response = await fetch(`http://localhost:5001/api/admin/users/${userId}/status`, {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!response.ok) throw new Error("Erreur");
+      if (!response.ok) throw new Error("Erreur");
+      fetchUsers(); // Refresh
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!confirm("Voulez-vous vraiment supprimer cet utilisateur définitivement ?")) return;
+    try {
+      const token = localStorage.getItem('nv_token');
+      const response = await fetch(`http://localhost:5001/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error("Erreur lors de la suppression");
+      fetchUsers();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const filteredUsers = users.filter(u => 
+    (u.firstName + ' ' + u.lastName).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="fade-in">
+      <div className="admin-panel">
+        <div className="admin-panel-header">
+          <h3 className="admin-panel-title">Gestion des Utilisateurs</h3>
+        </div>
+
+        {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
+
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div className="form-control" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '300px' }}>
+            <Search size={18} color="#888" />
+            <input 
+              type="text" 
+              placeholder="Rechercher un utilisateur (nom, email)..." 
+              style={{ border: 'none', outline: 'none', width: '100%' }}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="admin-table-wrapper">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Utilisateur</th>
+                <th>Email / Téléphone</th>
+                <th>Date d'inscription</th>
+                <th>Rôle</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan="6" style={{ textAlign: 'center' }}>Chargement...</td></tr>
+              ) : filteredUsers.map(user => (
+                <tr key={user.id}>
+                  <td style={{ fontWeight: 600 }}>
+                    {user.firstName} {user.lastName}
+                  </td>
+                  <td>
+                    <div>{user.email}</div>
+                    <div style={{ fontSize: '0.85rem', color: '#888' }}>{user.phone || 'Non renseigné'}</div>
+                  </td>
+                  <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <select 
+                      className="form-control" 
+                      style={{ padding: '0.3rem', width: 'auto' }}
+                      value={user.role}
+                      onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                    >
+                      <option value="apprenant">Apprenant</option>
+                      <option value="formateur">Formateur</option>
+                      <option value="annonceur">Annonceur</option>
+                      <option value="admin">Administrateur</option>
+                    </select>
+                  </td>
+                  <td>
+                    {user.status === 'blocked' ? (
+                      <span className="status-badge" style={{ background: '#fee2e2', color: '#dc2626' }}>Bloqué</span>
+                    ) : (
+                      <span className="status-badge active">Actif</span>
+                    )}
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      {user.status === 'blocked' ? (
+                        <button className="admin-btn admin-btn-outline" style={{ color: '#16a34a', borderColor: '#16a34a', padding: '0.3rem 0.5rem' }} onClick={() => handleStatusChange(user.id, 'active')} title="Débloquer">
+                          <UserCheck size={16} />
+                        </button>
+                      ) : (
+                        <button className="admin-btn admin-btn-outline" style={{ color: '#dc2626', borderColor: '#dc2626', padding: '0.3rem 0.5rem' }} onClick={() => handleStatusChange(user.id, 'blocked')} title="Bloquer">
+                          <UserX size={16} />
+                        </button>
+                      )}
+                      <button className="admin-btn admin-btn-outline" style={{ color: '#7f1d1d', borderColor: '#7f1d1d', padding: '0.3rem 0.5rem' }} onClick={() => handleDeleteUser(user.id)} title="Supprimer définitivement">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {!loading && filteredUsers.length === 0 && (
+                <tr><td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Aucun utilisateur trouvé.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminUsers;
