@@ -40,7 +40,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   
   const [stats, setStats] = useState({ activeFormations: 0, totalUsers: 0, totalRevenue: 0 });
@@ -153,8 +153,8 @@ const AdminDashboard = () => {
 
         </nav>
         <div style={{ padding: '1.5rem 1rem' }}>
-          <div className="admin-nav-item" style={{ color: '#ff4d4f' }} onClick={() => window.location.href = '/'}>
-            <LogOut size={20} /> Retour au site
+          <div className="admin-nav-item" style={{ color: '#ff4d4f' }} onClick={logout}>
+            <LogOut size={20} /> Déconnexion
           </div>
         </div>
       </aside>

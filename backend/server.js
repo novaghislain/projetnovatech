@@ -1,5 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const crypto = require('crypto');
@@ -106,18 +108,49 @@ app.post('/api/auth/forgot-password', (req, res) => {
     const resetTokenExpiry = new Date(Date.now() + 3600000).toISOString(); // +1 heure
 
     db.run(`UPDATE Users SET resetToken = ?, resetTokenExpiry = ? WHERE id = ?`, 
-      [resetToken, resetTokenExpiry, user.id], (err) => {
+      [resetToken, resetTokenExpiry, user.id], async (err) => {
       if (err) return res.status(500).json({ error: 'Erreur serveur.' });
 
-      // En mode développement/démo, on renvoie le token directement au frontend
       const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
-      console.log(`[EMAIL SIMULÉ] Lien de réinitialisation pour ${user.email} : ${resetLink}`);
-      
-      res.json({ 
-        success: true, 
-        message: 'Un lien de réinitialisation a été généré.',
-        demoLink: resetLink 
+
+      // Configuration du transporteur Nodemailer
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
       });
+
+      const mailOptions = {
+        from: `"Novatech Vision" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: 'Réinitialisation de votre mot de passe',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+            <h2 style="color: #0b2341; text-align: center;">Novatech Vision</h2>
+            <p>Bonjour,</p>
+            <p>Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe :</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetLink}" style="background-color: #d4a017; color: #0b2341; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Réinitialiser mon mot de passe</a>
+            </div>
+            <p style="color: #666; font-size: 0.9em;">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br><a href="${resetLink}">${resetLink}</a></p>
+            <p style="color: #666; font-size: 0.9em;">Ce lien expirera dans 1 heure.</p>
+            <p>L'équipe Novatech Vision</p>
+          </div>
+        `
+      };
+
+      try {
+        await transporter.sendMail(mailOptions);
+        res.json({ 
+          success: true, 
+          message: 'Un e-mail de réinitialisation vous a été envoyé.'
+        });
+      } catch (mailError) {
+        console.error("Erreur d'envoi d'e-mail:", mailError);
+        res.status(500).json({ error: "Erreur lors de l'envoi de l'e-mail. Veuillez vérifier la configuration de l'expéditeur." });
+      }
     });
   });
 });

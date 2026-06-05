@@ -27,9 +27,6 @@ const ForgotPassword = () => {
 
       if (res.ok) {
         setMessage(data.message);
-        if (data.demoLink) {
-          setDemoLink(data.demoLink);
-        }
       } else {
         setError(data.error || 'Une erreur est survenue.');
       }
@@ -56,13 +53,6 @@ const ForgotPassword = () => {
             </div>
             <h3 style={{ color: 'var(--color-primary)', marginBottom: '1rem' }}>Vérifiez vos e-mails !</h3>
             <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>{message}</p>
-            
-            {demoLink && (
-              <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '8px', border: '1px solid #fde68a', textAlign: 'left', marginBottom: '2rem' }}>
-                <p style={{ margin: '0 0 0.5rem 0', fontWeight: 600, color: '#b45309', fontSize: '0.9rem' }}>⚠️ Mode Démo (Simulation d'email) :</p>
-                <a href={demoLink} style={{ color: '#0ea5e9', wordBreak: 'break-all', fontSize: '0.9rem' }}>{demoLink}</a>
-              </div>
-            )}
             
             <Link to="/connexion" className="btn btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '0.9rem' }}>
               Retour à la connexion

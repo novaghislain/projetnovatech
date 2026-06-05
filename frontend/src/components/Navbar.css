@@ -43,7 +43,7 @@
   align-items: center;
   gap: 1.5rem;
   margin-left: auto; /* Pousse les liens vers la droite */
-  margin-right: 2.5rem; /* Espace avec le bloc profil/auth */
+  margin-right: 0.5rem; /* Espace réduit avec le bloc profil/auth pour les décaler encore plus à droite */
 }
 
 .navbar-main-links a {
