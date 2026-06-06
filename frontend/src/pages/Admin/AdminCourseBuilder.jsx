@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Edit2, Trash2, ChevronDown, ChevronUp, Video, FileText, MoveUp, MoveDown } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, ChevronDown, ChevronUp, Video, FileText, MoveUp, MoveDown, HelpCircle, X } from 'lucide-react';
 
 const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
   const [structure, setStructure] = useState([]);
@@ -11,6 +11,14 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
   const [editingItem, setEditingItem] = useState(null);
   const [parentId, setParentId] = useState(null);
   const [formData, setFormData] = useState({ title: '', type: 'video', contentUrl: '', orderIndex: 0 });
+
+  // Quiz modal state
+  const [quizModalOpen, setQuizModalOpen] = useState(false);
+  const [quizLessonId, setQuizLessonId] = useState(null);
+  const [quizQuestions, setQuizQuestions] = useState([]);
+  const [quizFormOpen, setQuizFormOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState(null);
+  const [questionForm, setQuestionForm] = useState({ question: '', options: ['', ''], correctAnswer: 0 });
 
   useEffect(() => {
     fetchStructure();
@@ -95,6 +103,94 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
     }
   };
 
+  const openQuizModal = async (lessonId) => {
+    setQuizLessonId(lessonId);
+    setQuizModalOpen(true);
+    setQuizFormOpen(false);
+    setEditingQuestion(null);
+    try {
+      const res = await fetch(`http://localhost:5001/api/admin/quiz/${lessonId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setQuizQuestions(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const addQuestion = () => {
+    setEditingQuestion(null);
+    setQuestionForm({ question: '', options: ['', ''], correctAnswer: 0 });
+    setQuizFormOpen(true);
+  };
+
+  const editQuestion = (q) => {
+    setEditingQuestion(q);
+    setQuestionForm({ question: q.question, options: [...q.options], correctAnswer: q.correctAnswer });
+    setQuizFormOpen(true);
+  };
+
+  const deleteQuestion = async (id) => {
+    if (!window.confirm('Supprimer cette question ?')) return;
+    try {
+      const res = await fetch(`http://localhost:5001/api/admin/quiz/question/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setQuizQuestions(prev => prev.filter(q => q.id !== id));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const addOption = () => {
+    setQuestionForm(prev => ({ ...prev, options: [...prev.options, ''] }));
+  };
+
+  const removeOption = (idx) => {
+    setQuestionForm(prev => {
+      const opts = prev.options.filter((_, i) => i !== idx);
+      let correct = prev.correctAnswer;
+      if (correct >= opts.length) correct = opts.length - 1;
+      if (correct === idx && idx < opts.length) correct = idx;
+      return { ...prev, options: opts, correctAnswer: Math.max(0, correct) };
+    });
+  };
+
+  const saveQuestion = async () => {
+    if (!questionForm.question || questionForm.options.length < 2 || questionForm.options.some(o => !o.trim())) {
+      return alert('Question et au moins 2 options requises');
+    }
+    try {
+      const body = {
+        question: questionForm.question,
+        options: questionForm.options.filter(o => o.trim()),
+        correctAnswer: questionForm.correctAnswer,
+        orderIndex: quizQuestions.length
+      };
+      let res;
+      if (editingQuestion) {
+        res = await fetch(`http://localhost:5001/api/admin/quiz/question/${editingQuestion.id}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+        });
+      } else {
+        res = await fetch(`http://localhost:5001/api/admin/quiz/${quizLessonId}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+        });
+      }
+      if (res.ok) {
+        setQuizFormOpen(false);
+        setEditingQuestion(null);
+        const fetchRes = await fetch(`http://localhost:5001/api/admin/quiz/${quizLessonId}`);
+        if (fetchRes.ok) setQuizQuestions(await fetchRes.json());
+      } else {
+        alert('Erreur lors de l\'enregistrement');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Chargement du programme...</div>;
 
   return (
@@ -167,6 +263,7 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
                                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button className="icon-btn" style={{ padding: '0.2rem' }} onClick={() => openModal('lesson', chap.id, lesson)}><Edit2 size={14} /></button>
                                     <button className="icon-btn" style={{ padding: '0.2rem', color: 'var(--color-alert)' }} onClick={() => handleDelete('lesson', lesson.id)}><Trash2 size={14} /></button>
+                                    <button className="icon-btn" style={{ padding: '0.2rem', color: '#8b5cf6' }} onClick={() => openQuizModal(lesson.id)} title="Gérer le quiz"><HelpCircle size={14} /></button>
                                   </div>
                                 </div>
                               ))}
@@ -228,6 +325,95 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
             <div className="admin-modal-footer">
               <button className="admin-btn admin-btn-outline" onClick={() => setModalOpen(false)}>Annuler</button>
               <button className="admin-btn" onClick={handleSave}>Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QUIZ MODAL */}
+      {quizModalOpen && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal" style={{ maxWidth: '600px' }}>
+            <div className="admin-modal-header">
+              <h4>Gestion du Quiz</h4>
+              <button className="icon-btn" onClick={() => setQuizModalOpen(false)}><X size={20} /></button>
+            </div>
+            <div className="admin-modal-body">
+              {quizQuestions.length === 0 && !quizFormOpen && (
+                <p style={{ color: '#888', fontStyle: 'italic', marginBottom: '1rem' }}>
+                  Aucune question pour cette leçon.
+                </p>
+              )}
+
+              {!quizFormOpen && (
+                <>
+                  {quizQuestions.map((q, qi) => (
+                    <div key={q.id} style={{ marginBottom: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <strong style={{ fontSize: '0.9rem', color: '#1A1A2E' }}>Q{qi + 1}: {q.question}</strong>
+                        <div style={{ display: 'flex', gap: '0.3rem' }}>
+                          <button className="icon-btn" onClick={() => editQuestion(q)}><Edit2 size={14} /></button>
+                          <button className="icon-btn" style={{ color: '#ef4444' }} onClick={() => deleteQuestion(q.id)}><Trash2 size={14} /></button>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem', color: '#64748b' }}>
+                        {q.options.map((opt, oi) => (
+                          <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            {oi === q.correctAnswer ? <span style={{ color: '#10b981' }}>✓</span> : <span style={{ color: '#94a3b8' }}>○</span>}
+                            {opt}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  <button className="admin-btn" onClick={addQuestion} style={{ marginTop: '0.5rem' }}>
+                    <Plus size={16} /> Ajouter une question
+                  </button>
+                </>
+              )}
+
+              {quizFormOpen && (
+                <div>
+                  <div className="form-group">
+                    <label>Question *</label>
+                    <input type="text" className="form-control" value={questionForm.question}
+                      onChange={e => setQuestionForm({...questionForm, question: e.target.value})}
+                      placeholder="Ex: Quelle est la capitale de la France ?" />
+                  </div>
+                  <div className="form-group">
+                    <label>Réponses possibles *</label>
+                    {questionForm.options.map((opt, oi) => (
+                      <div key={oi} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
+                        <input type="radio" name="correctAnswer" checked={questionForm.correctAnswer === oi}
+                          onChange={() => setQuestionForm({...questionForm, correctAnswer: oi})} />
+                        <input type="text" className="form-control"
+                          value={opt}
+                          onChange={e => {
+                            const opts = [...questionForm.options];
+                            opts[oi] = e.target.value;
+                            setQuestionForm({...questionForm, options: opts});
+                          }}
+                          placeholder={`Option ${oi + 1}`} style={{ flex: 1 }} />
+                        <span style={{ fontSize: '0.75rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                          {questionForm.correctAnswer === oi ? '✓ Bonne' : 'Radio = bonne'}
+                        </span>
+                        {questionForm.options.length > 2 && (
+                          <button className="icon-btn" style={{ color: '#ef4444' }} onClick={() => removeOption(oi)}><X size={14} /></button>
+                        )}
+                      </div>
+                    ))}
+                    <button className="admin-btn admin-btn-outline" onClick={addOption} style={{ fontSize: '0.85rem', marginTop: '0.3rem' }}>
+                      <Plus size={14} /> Ajouter une option
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                    <button className="admin-btn admin-btn-outline" onClick={() => setQuizFormOpen(false)}>Annuler</button>
+                    <button className="admin-btn" onClick={saveQuestion}>
+                      {editingQuestion ? 'Enregistrer' : 'Ajouter la question'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

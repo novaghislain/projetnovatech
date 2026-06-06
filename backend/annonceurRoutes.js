@@ -37,10 +37,16 @@ module.exports = (db, authenticateToken) => {
         campaigns: ads.map(ad => ({
           id: ad.id,
           title: ad.advertiserName + ' - ' + ad.placement,
+          advertiserName: ad.advertiserName,
+          placement: ad.placement,
+          imageUrl: ad.imageUrl,
+          targetUrl: ad.targetUrl,
+          startDate: ad.startDate,
+          endDate: ad.endDate,
           status: ad.isActive ? 'active' : 'ended',
           views: ad.views || 0,
           clicks: ad.clicks || 0,
-          spent: ((ad.clicks || 0) * 100) + ' FCFA', // Mock spent logic: 100 FCFA per click
+          spent: ((ad.clicks || 0) * 100) + ' FCFA',
           ctr: ((ad.views || 0) > 0 ? (((ad.clicks || 0) / ad.views) * 100).toFixed(1) : 0) + '%'
         }))
       });

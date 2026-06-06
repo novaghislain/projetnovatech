@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aperçu des emplacements pubs</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #f1f5f9; padding: 2rem; color: #1A1A2E; }
+  h1 { text-align: center; margin-bottom: 2rem; font-size: 1.8rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 2rem; max-width: 1400px; margin: 0 auto; }
+  .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .card-header { padding: 1rem 1.5rem; background: #1A1A2E; color: white; font-weight: 700; font-size: 1.1rem; }
+  .card-body { padding: 1.5rem; }
+  .page-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .page-subtitle { color: #64748b; font-size: 0.9rem; margin-bottom: 1rem; }
+
+  /* Ad styles */
+  .ad-label { display: inline-block; background: rgba(0,0,0,0.5); color: white; font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; margin-bottom: 4px; }
+  .ad-header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 1.2rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+  .ad-header .title { font-weight: 700; font-size: 1rem; }
+  .ad-header .sub { font-size: 0.8rem; opacity: 0.9; }
+  .ad-sidebar { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; padding: 2rem 1.2rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .ad-sidebar .title { font-weight: 700; font-size: 0.95rem; }
+  .ad-sidebar .sub { font-size: 0.75rem; opacity: 0.9; }
+  .ad-inline { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; padding: 0.8rem; border-radius: 10px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); font-size: 0.85rem; font-weight: 600; margin: 1rem 0; }
+  .ad-footer { background: #e2e8f0; padding: 1rem; border-radius: 10px; text-align: center; border: 1px dashed #94a3b8; font-size: 0.85rem; color: #64748b; margin-top: 1rem; }
+
+  .layout { display: flex; gap: 1.5rem; }
+  .layout-main { flex: 1; }
+  .layout-sidebar { width: 200px; flex-shrink: 0; }
+  .content-block { background: #f8fafc; border-radius: 8px; padding: 2rem; border: 1px solid #e5e7eb; margin-bottom: 0.8rem; }
+  .content-block.narrow { padding: 1rem; }
+  .content-block.small { padding: 0.8rem; font-size: 0.85rem; }
+
+  .row { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+  .stat-card { flex: 1; min-width: 100px; background: #f8fafc; border-radius: 10px; padding: 1rem; border: 1px solid #e5e7eb; text-align: center; }
+  .stat-card .num { font-size: 1.4rem; font-weight: 700; }
+  .stat-card .lab { font-size: 0.75rem; color: #64748b; }
+
+  .tag { display: inline-block; background: #e2e8f0; border-radius: 4px; padding: 2px 8px; font-size: 0.7rem; color: #1A1A2E; margin-left: 0.5rem; }
+</style>
+</head>
+<body>
+
+<h1>📱 Aperçu des emplacements publicitaires</h1>
+
+<div class="grid">
+
+  <!-- ACCUEIL -->
+  <div class="card">
+    <div class="card-header">🏠 Page d'accueil</div>
+    <div class="card-body">
+      <div class="page-title">Novatech Vision</div>
+      <div class="ad-label">Publicité</div>
+      <div class="ad-header">
+        <div class="title">📢 Cours en ligne -50%</div>
+        <div class="sub">Inscrivez-vous maintenant</div>
+      </div>
+      <div class="content-block">Section hero / bannière principale</div>
+      <div class="content-block narrow">Section features</div>
+      <div class="content-block small">Section formations vedettes</div>
+      <div style="text-align:right;font-size:0.75rem;color:#94a3b8;margin-top:0.5rem;">← placement <strong>header</strong></div>
+    </div>
+  </div>
+
+  <!-- CATALOGUE -->
+  <div class="card">
+    <div class="card-header">📚 Catalogue formations</div>
+    <div class="card-body">
+      <div class="page-title">Catalogue</div>
+      <div class="ad-label">Publicité</div>
+      <div class="ad-header">
+        <div class="title">🚀 Devenez développeur web</div>
+        <div class="sub">Formation accélérée - places limitées</div>
+      </div>
+      <div style="text-align:right;font-size:0.75rem;color:#94a3b8;margin-top:0.3rem;">← <strong>header</strong></div>
+      <div class="ad-label" style="margin-top:0.5rem;">Sponsorisé</div>
+      <div class="ad-inline">📢 Cours de robotique pour enfants - À partir de 25 000 FCFA</div>
+      <div style="text-align:right;font-size:0.75rem;color:#94a3b8;margin-bottom:0.5rem;">← <strong>inline</strong></div>
+      <div class="content-block narrow">Grille des formations</div>
+    </div>
+  </div>
+
+  <!-- DÉTAIL FORMATION -->
+  <div class="card">
+    <div class="card-header">🔍 Détail formation</div>
+    <div class="card-body">
+      <div class="page-title">Formation IA pour enfants</div>
+      <div class="layout">
+        <div class="layout-main">
+          <div class="ad-label">Publicité</div>
+          <div class="ad-header" style="margin-bottom:0.8rem;">
+            <div class="title">🎯 Devenez expert en data</div>
+            <div class="sub">Formation certifiante</div>
+          </div>
+          <div class="content-block narrow">À propos - Détails - Programme</div>
+        </div>
+        <div class="layout-sidebar">
+          <div class="content-block small">Prix 150 000 FCFA</div>
+          <div class="ad-label" style="margin-top:0.5rem;">Publicité</div>
+          <div class="ad-sidebar">
+            <div class="title">📘 Stages vacances</div>
+            <div class="sub">Dès 10 ans</div>
+          </div>
+          <div style="text-align:right;font-size:0.7rem;color:#94a3b8;margin-top:0.2rem;">← <strong>sidebar</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MON ESPACE -->
+  <div class="card">
+    <div class="card-header">👤 Mon espace étudiant</div>
+    <div class="card-body">
+      <div class="page-title">Bonjour, Anne 👋</div>
+      <div class="ad-label">Publicité</div>
+      <div class="ad-header" style="margin-bottom:0.8rem;">
+        <div class="title">💻 Offre spéciale étudiants</div>
+        <div class="sub">-30% sur tous les cours</div>
+      </div>
+      <div style="text-align:right;font-size:0.75rem;color:#94a3b8;margin-top:-0.3rem;margin-bottom:0.8rem;">← <strong>header</strong></div>
+      <div class="row">
+        <div class="stat-card"><div class="num">3</div><div class="lab">Cours</div></div>
+        <div class="stat-card"><div class="num">12</div><div class="lab">Leçons</div></div>
+        <div class="stat-card"><div class="num">2</div><div class="lab">Certificats</div></div>
+      </div>
+      <div class="ad-label" style="margin-top:0.8rem;">Sponsorisé</div>
+      <div class="ad-inline">📢 Devenez annonceur - Visibilité auprès de 500+ étudiants</div>
+      <div style="text-align:right;font-size:0.75rem;color:#94a3b8;margin-bottom:0.3rem;">← <strong>inline</strong></div>
+      <div class="content-block narrow">Mes formations en cours...</div>
+    </div>
+  </div>
+
+  <!-- LECTEUR DE LEÇONS -->
+  <div class="card">
+    <div class="card-header">🎬 Lecteur de leçons</div>
+    <div class="card-body">
+      <div class="layout">
+        <div class="layout-sidebar" style="width:180px;">
+          <div class="content-block small" style="padding:0.6rem;font-size:0.75rem;">📖 Introduction à l'IA</div>
+          <div class="content-block small" style="padding:0.5rem;font-size:0.7rem;background:#f1f5f9;">Module 1</div>
+          <div class="content-block small" style="padding:0.5rem;font-size:0.7rem;background:#f1f5f9;">Module 2</div>
+          <div class="ad-label" style="margin-top:0.5rem;">Publicité</div>
+          <div class="ad-sidebar" style="padding:1rem;">
+            <div class="title">📚 Cours Excel</div>
+            <div class="sub">Débutant accepté</div>
+          </div>
+          <div style="text-align:right;font-size:0.7rem;color:#94a3b8;">← <strong>sidebar</strong></div>
+        </div>
+        <div class="layout-main">
+          <div class="ad-label">Publicité</div>
+          <div class="ad-header" style="margin-bottom:0.8rem;padding:0.8rem;">
+            <div class="title">🎓 Certification Google</div>
+            <div class="sub">Inscrivez-vous</div>
+          </div>
+          <div style="text-align:right;font-size:0.75rem;color:#94a3b8;margin-top:-0.3rem;margin-bottom:0.5rem;">← <strong>header</strong></div>
+          <div class="content-block" style="padding:3rem 1rem;">🎬 Vidéo de la leçon</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;margin-top:2rem;color:#64748b;font-size:0.85rem;">
+  Les pubs apparaissent uniquement si une campagne active existe avec le bon placement.
+  <br>Ouvre ce fichier dans le navigateur pour voir le rendu.
+</p>
+
+</body>
+</html>

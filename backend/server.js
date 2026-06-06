@@ -11,6 +11,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { sendEmail } = require('./emailService');
+const { paymentReceipt, welcomeEmail, certificateEmail } = require('./emailTemplates');
 const { generateCertificate } = require('./certificateService');
 
 const app = express();
@@ -24,7 +25,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Configuration Multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    const dir = path.join(__dirname, 'uploads');
+    cb(null, dir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -89,7 +91,7 @@ app.post('/api/auth/login', (req, res) => {
 
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({
-      user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, avatar: user.avatar },
+      user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, avatar: user.avatar, bio: user.bio || '' },
       token
     });
   });
@@ -206,14 +208,14 @@ app.get('/api/user/payments', authenticateToken, (req, res) => {
 });
 
 app.put('/api/user/profile', authenticateToken, (req, res) => {
-  const { firstName, lastName } = req.body;
+  const { firstName, lastName, bio } = req.body;
   if (!firstName || !lastName) {
     return res.status(400).json({ error: "Le prénom et le nom sont requis." });
   }
 
-  db.run(`UPDATE Users SET firstName = ?, lastName = ? WHERE id = ?`, [firstName, lastName, req.user.id], function(err) {
+  db.run(`UPDATE Users SET firstName = ?, lastName = ?, bio = ? WHERE id = ?`, [firstName, lastName, bio || '', req.user.id], function(err) {
     if (err) return res.status(500).json({ error: "Erreur lors de la mise à jour du profil" });
-    res.json({ success: true, firstName, lastName });
+    res.json({ success: true, firstName, lastName, bio: bio || '' });
   });
 });
 
@@ -249,7 +251,7 @@ app.put('/api/user/password', authenticateToken, (req, res) => {
 const unlockCourseForUser = (customerInfo, courseId, amount, transactionId, paymentMethod) => {
   return new Promise((resolve, reject) => {
     // 1. Chercher ou créer l'utilisateur
-    db.get(`SELECT id FROM Users WHERE email = ?`, [customerInfo.email], (err, user) => {
+    db.get(`SELECT id, firstName FROM Users WHERE email = ?`, [customerInfo.email], (err, user) => {
       if (err) return reject(err);
       
       let userId = user ? user.id : null;
@@ -261,6 +263,13 @@ const unlockCourseForUser = (customerInfo, courseId, amount, transactionId, paym
           function(err) {
             if (err) return reject(err);
             userId = this.lastID;
+            // Email de bienvenue
+            const welcomeData = welcomeEmail({
+              firstName: customerInfo.firstName || 'Apprenant',
+              email: customerInfo.email,
+              password: '123456'
+            });
+            sendEmail({ to: customerInfo.email, ...welcomeData }).catch(e => console.error('Erreur email bienvenue:', e.message));
             insertEnrollment(userId);
           }
         );
@@ -277,6 +286,19 @@ const unlockCourseForUser = (customerInfo, courseId, amount, transactionId, paym
             resolve();
           }
         );
+
+        // Email de reçu de paiement
+        db.get(`SELECT title FROM Formations WHERE id = ?`, [courseId], (err, course) => {
+          const firstName = user?.firstName || customerInfo.firstName || 'Apprenant';
+          const receiptData = paymentReceipt({
+            firstName,
+            courseTitle: course?.title || 'Formation',
+            amount,
+            transactionId,
+            paymentMethod
+          });
+          sendEmail({ to: customerInfo.email, ...receiptData }).catch(e => console.error('Erreur email reçu:', e.message));
+        });
       }
     });
   });
@@ -362,9 +384,42 @@ app.post('/api/webhooks/fedapay', async (req, res) => {
  * ROUTES: Formations Publiques
  */
 app.get('/api/public/formations', (req, res) => {
-  db.all("SELECT * FROM Formations WHERE status != 'draft' ORDER BY id DESC", (err, rows) => {
+  const { search, category, minPrice, maxPrice, sort } = req.query;
+  let sql = "SELECT * FROM Formations WHERE status != 'draft'";
+  const params = [];
+
+  if (search) {
+    sql += " AND (title LIKE ? OR description LIKE ?)";
+    params.push(`%${search}%`, `%${search}%`);
+  }
+  if (category) {
+    sql += " AND category = ?";
+    params.push(category);
+  }
+  if (minPrice !== undefined && minPrice !== '') {
+    sql += " AND price >= ?";
+    params.push(Number(minPrice));
+  }
+  if (maxPrice !== undefined && maxPrice !== '') {
+    sql += " AND price <= ?";
+    params.push(Number(maxPrice));
+  }
+
+  if (sort === 'price_asc') sql += " ORDER BY price ASC";
+  else if (sort === 'price_desc') sql += " ORDER BY price DESC";
+  else if (sort === 'title') sql += " ORDER BY title ASC";
+  else sql += " ORDER BY id DESC";
+
+  db.all(sql, params, (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
+  });
+});
+
+app.get('/api/public/categories', (req, res) => {
+  db.all("SELECT DISTINCT category FROM Formations WHERE status != 'draft' AND category IS NOT NULL AND category != '' ORDER BY category ASC", [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows.map(r => r.category));
   });
 });
 
@@ -399,16 +454,28 @@ app.get('/api/public/gallery', (req, res) => {
 
 // 1. Récupérer toutes les pubs (Admin) ou actives (Public)
 app.get('/api/ads', (req, res) => {
-  const { admin } = req.query;
+  const { admin, placement } = req.query;
   const currentDate = new Date().toISOString().split('T')[0];
 
   let query = `SELECT * FROM Advertisements`;
+  let conditions = [];
   let params = [];
 
   // Si appel public (pas admin), on filtre les inactives/expirées
   if (!admin) {
-    query += ` WHERE isActive = 1 AND endDate >= ?`;
+    conditions.push(`isActive = 1`);
+    conditions.push(`endDate >= ?`);
     params.push(currentDate);
+  }
+
+  // Filtrer par emplacement si demandé
+  if (placement) {
+    conditions.push(`placement = ?`);
+    params.push(placement);
+  }
+
+  if (conditions.length > 0) {
+    query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
   db.all(query, params, (err, rows) => {
@@ -442,16 +509,21 @@ app.get('/api/ads/:id/click', (req, res) => {
   });
 });
 
-// 4. Créer une nouvelle pub (Admin)
-app.post('/api/ads', (req, res) => {
+// 4. Créer une nouvelle pub (Admin ou Annonceur)
+app.post('/api/ads', authenticateToken, (req, res) => {
   const { advertiserName, placement, imageUrl, targetUrl, startDate, endDate } = req.body;
+  const userId = req.user.id;
+  
+  if (!advertiserName || !placement || !imageUrl || !targetUrl) {
+    return res.status(400).json({ error: 'Champs requis : advertiserName, placement, imageUrl, targetUrl' });
+  }
   
   const query = `
-    INSERT INTO Advertisements (advertiserName, placement, imageUrl, targetUrl, startDate, endDate)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO Advertisements (advertiserName, placement, imageUrl, targetUrl, startDate, endDate, userId)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
   
-  db.run(query, [advertiserName, placement, imageUrl, targetUrl, startDate, endDate], function(err) {
+  db.run(query, [advertiserName, placement, imageUrl, targetUrl, startDate, endDate, userId], function(err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ success: true, id: this.lastID });
   });
@@ -464,6 +536,55 @@ app.put('/api/ads/:id/toggle', (req, res) => {
   
   db.run(`UPDATE Advertisements SET isActive = ? WHERE id = ?`, [isActive ? 1 : 0, id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// 6. Modifier une pub (Admin ou propriétaire)
+app.put('/api/ads/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+  const isAdmin = req.user.role === 'admin';
+  const { advertiserName, placement, imageUrl, targetUrl, startDate, endDate } = req.body;
+
+  if (!advertiserName || !placement || !imageUrl || !targetUrl) {
+    return res.status(400).json({ error: 'Champs requis : advertiserName, placement, imageUrl, targetUrl' });
+  }
+
+  let query, params;
+  if (isAdmin) {
+    query = `UPDATE Advertisements SET advertiserName = ?, placement = ?, imageUrl = ?, targetUrl = ?, startDate = ?, endDate = ? WHERE id = ?`;
+    params = [advertiserName, placement, imageUrl, targetUrl, startDate, endDate, id];
+  } else {
+    query = `UPDATE Advertisements SET advertiserName = ?, placement = ?, imageUrl = ?, targetUrl = ?, startDate = ?, endDate = ? WHERE id = ? AND userId = ?`;
+    params = [advertiserName, placement, imageUrl, targetUrl, startDate, endDate, id, userId];
+  }
+
+  db.run(query, params, function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Pub introuvable ou accès refusé' });
+    res.json({ success: true });
+  });
+});
+
+// 7. Supprimer une pub (Admin ou propriétaire)
+app.delete('/api/ads/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+  const isAdmin = req.user.role === 'admin';
+
+  let query, params;
+  if (isAdmin) {
+    query = `DELETE FROM Advertisements WHERE id = ?`;
+    params = [id];
+  } else {
+    query = `DELETE FROM Advertisements WHERE id = ? AND userId = ?`;
+    params = [id, userId];
+  }
+
+  db.run(query, params, function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Pub introuvable ou accès refusé' });
     res.json({ success: true });
   });
 });
@@ -582,6 +703,96 @@ app.delete('/api/lessons/:id', (req, res) => {
     res.json({ success: true });
   });
 });
+
+/**
+ * ROUTES: Quiz
+ */
+
+// Admin: Récupérer les questions d'une leçon
+app.get('/api/admin/quiz/:lessonId', (req, res) => {
+  db.all(`SELECT * FROM QuizQuestions WHERE lessonId = ? ORDER BY orderIndex ASC`, [req.params.lessonId], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows.map(q => ({ ...q, options: JSON.parse(q.options) })));
+  });
+});
+
+// Admin: Ajouter une question
+app.post('/api/admin/quiz/:lessonId', (req, res) => {
+  const { question, options, correctAnswer, orderIndex } = req.body;
+  if (!question || !options || correctAnswer === undefined) {
+    return res.status(400).json({ error: 'question, options, correctAnswer requis' });
+  }
+  db.run(`INSERT INTO QuizQuestions (lessonId, question, options, correctAnswer, orderIndex) VALUES (?, ?, ?, ?, ?)`,
+    [req.params.lessonId, question, JSON.stringify(options), correctAnswer, orderIndex || 0],
+    function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ id: this.lastID, lessonId: parseInt(req.params.lessonId), question, options, correctAnswer, orderIndex: orderIndex || 0 });
+    }
+  );
+});
+
+// Admin: Modifier une question
+app.put('/api/admin/quiz/question/:id', (req, res) => {
+  const { question, options, correctAnswer, orderIndex } = req.body;
+  db.run(`UPDATE QuizQuestions SET question = ?, options = ?, correctAnswer = ?, orderIndex = ? WHERE id = ?`,
+    [question, JSON.stringify(options), correctAnswer, orderIndex, req.params.id],
+    function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      if (this.changes === 0) return res.status(404).json({ error: 'Question introuvable' });
+      res.json({ success: true });
+    }
+  );
+});
+
+// Admin: Supprimer une question
+app.delete('/api/admin/quiz/question/:id', (req, res) => {
+  db.run(`DELETE FROM QuizQuestions WHERE id = ?`, [req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// Utilisateur: Récupérer les questions d'une leçon (sans les réponses)
+app.get('/api/quiz/:lessonId', (req, res) => {
+  db.all(`SELECT id, lessonId, question, options, orderIndex FROM QuizQuestions WHERE lessonId = ? ORDER BY orderIndex ASC`, [req.params.lessonId], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows.map(q => ({ ...q, options: JSON.parse(q.options) })));
+  });
+});
+
+// Utilisateur: Soumettre les réponses
+app.post('/api/quiz/:lessonId/submit', authenticateToken, (req, res) => {
+  const { answers } = req.body; // array of { questionId, answer }
+  const { lessonId } = req.params;
+
+  if (!answers || !Array.isArray(answers)) {
+    return res.status(400).json({ error: 'answers requis (tableau)' });
+  }
+
+  db.all(`SELECT * FROM QuizQuestions WHERE lessonId = ? ORDER BY orderIndex ASC`, [lessonId], (err, questions) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    let correctCount = 0;
+    const details = questions.map(q => {
+      const userAnswer = answers.find(a => a.questionId === q.id);
+      const isCorrect = userAnswer && userAnswer.answer === q.correctAnswer;
+      if (isCorrect) correctCount++;
+      return {
+        questionId: q.id,
+        question: q.question,
+        correct: isCorrect || false,
+        correctAnswer: q.correctAnswer,
+        userAnswer: userAnswer?.answer ?? null
+      };
+    });
+
+    const total = questions.length;
+    const score = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+    const passed = score >= 70;
+
+    res.json({ score, total, correctCount, passed, details });
+  });
+});
 // --- APPLICATIONS FORMATEUR ---
 app.post('/api/user/apply-formateur', authenticateToken, (req, res) => {
   const { specialite, bio, photo } = req.body;
@@ -638,7 +849,7 @@ app.get('/api/progress/courses/:courseId', authenticateToken, (req, res) => {
 
       const total = totalRow?.total || 0;
 
-      db.all(`SELECT lessonId FROM LessonProgress WHERE userId = ? AND courseId = ?`,
+      db.all(`SELECT lessonId, MAX(completedAt) as lastActivity FROM LessonProgress WHERE userId = ? AND courseId = ? GROUP BY lessonId`,
         [req.user.id, courseId],
         (err, rows) => {
           if (err) return res.status(500).json({ error: err.message });
@@ -659,7 +870,100 @@ app.get('/api/progress/courses/:courseId', authenticateToken, (req, res) => {
   );
 });
 
-// --- CERTIFICATE ROUTE ---
+// Détail complet de la progression par module
+app.get('/api/progress/courses/:courseId/detailed', authenticateToken, (req, res) => {
+  const { courseId } = req.params;
+  const userId = req.user.id;
+
+  db.get(`SELECT COUNT(*) as total FROM Lessons WHERE chapterId IN (SELECT id FROM Chapters WHERE moduleId IN (SELECT id FROM Modules WHERE formationId = ?))`,
+    [courseId], (err, totalRow) => {
+      if (err) return res.status(500).json({ error: err.message });
+      const total = totalRow?.total || 0;
+
+      db.all(`SELECT lessonId, MAX(completedAt) as lastActivity FROM LessonProgress WHERE userId = ? AND courseId = ? GROUP BY lessonId`,
+        [userId, courseId], (err, progressRows) => {
+          if (err) return res.status(500).json({ error: err.message });
+
+          const completedIds = progressRows.map(r => r.lessonId);
+          const lastActivity = progressRows.reduce((latest, r) => {
+            return r.lastActivity > latest ? r.lastActivity : latest;
+          }, '');
+
+          // Récupérer la structure complète
+          db.all(`SELECT * FROM Modules WHERE formationId = ? ORDER BY orderIndex ASC`, [courseId], (err, modules) => {
+            if (err) return res.status(500).json({ error: err.message });
+
+            if (modules.length === 0) {
+              return res.json({
+                total, completed: completedIds.length,
+                progress: total > 0 ? Math.round((completedIds.length / total) * 100) : 0,
+                completedIds, lastActivity, modules: []
+              });
+            }
+
+            const moduleIds = modules.map(m => m.id);
+            const placeholders = moduleIds.map(() => '?').join(',');
+            db.all(`SELECT * FROM Chapters WHERE moduleId IN (${placeholders}) ORDER BY orderIndex ASC`, moduleIds, (err, chapters) => {
+              if (err) return res.status(500).json({ error: err.message });
+
+              let chapterIds = chapters.map(c => c.id);
+              if (chapterIds.length === 0) chapterIds = [-1];
+              const chPlaceholders = chapterIds.map(() => '?').join(',');
+
+              db.all(`SELECT * FROM Lessons WHERE chapterId IN (${chPlaceholders}) ORDER BY orderIndex ASC`, chapterIds, (err, lessons) => {
+                if (err) return res.status(500).json({ error: err.message });
+
+                // Trouver la première leçon non complétée
+                let nextLesson = null;
+
+                const tree = modules.map(m => {
+                  const modChapters = chapters.filter(c => c.moduleId === m.id);
+                  let modCompleted = 0;
+                  let modTotal = 0;
+
+                  const chaptersData = modChapters.map(c => {
+                    const chLessons = lessons.filter(l => l.chapterId === c.id);
+                    let chCompleted = 0;
+
+                    const lessonsData = chLessons.map(l => {
+                      const isCompleted = completedIds.includes(l.id);
+                      if (isCompleted) {
+                        chCompleted++;
+                        modCompleted++;
+                      } else if (!nextLesson) {
+                        nextLesson = { id: l.id, title: l.title, moduleId: m.id, chapterId: c.id };
+                      }
+                      modTotal++;
+                      return { ...l, completed: isCompleted };
+                    });
+
+                    return { ...c, total: chLessons.length, completed: chCompleted, lessons: lessonsData };
+                  });
+
+                  return { ...m, total: modTotal, completed: modCompleted, chapters: chaptersData };
+                });
+
+                const completed = completedIds.length;
+                const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                res.json({
+                  total, completed, progress, completedIds,
+                  lastActivity,
+                  nextLesson,
+                  modules: tree,
+                });
+              });
+            });
+          });
+        }
+      );
+    }
+  );
+});
+
+// --- CERTIFICATE ROUTES ---
+
+// Générer et télécharger un certificat
 app.get('/api/certificates/generate/:courseId', authenticateToken, (req, res) => {
   const { courseId } = req.params;
 
@@ -685,8 +989,23 @@ app.get('/api/certificates/generate/:courseId', authenticateToken, (req, res) =>
               const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
               const certId = `NOV-${Date.now().toString(36).toUpperCase()}`;
 
-              // Récupérer les modules de la formation
               db.all(`SELECT title FROM Modules WHERE formationId = ?`, [courseId], (err, modules) => {
+                // Sauvegarder le certificat en base
+                db.run(`INSERT INTO Certificates (certId, userId, courseId, firstName, lastName, email, courseTitle) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                  [certId, req.user.id, courseId, user.firstName, user.lastName, user.email, formation.title],
+                  (err) => {
+                    if (err) console.error('Erreur sauvegarde certificat:', err.message);
+                  }
+                );
+
+                // Email de certificat
+                const certEmailData = certificateEmail({
+                  firstName: user.firstName,
+                  courseTitle: formation.title,
+                  certId
+                });
+                sendEmail({ to: user.email, ...certEmailData }).catch(e => console.error('Erreur email certificat:', e.message));
+
                 const doc = generateCertificate({
                   firstName: user.firstName,
                   lastName: user.lastName,
@@ -708,6 +1027,28 @@ app.get('/api/certificates/generate/:courseId', authenticateToken, (req, res) =>
       );
     }
   );
+});
+
+// Vérifier un certificat (public)
+app.get('/api/certificates/verify/:certId', (req, res) => {
+  const { certId } = req.params;
+
+  db.get(`SELECT certId, firstName, lastName, courseTitle, issuedAt FROM Certificates WHERE certId = ?`, [certId], (err, cert) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!cert) return res.status(404).json({ valid: false, error: 'Certificat introuvable' });
+
+    const issuedDate = new Date(cert.issuedAt).toLocaleDateString('fr-FR', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    });
+
+    res.json({
+      valid: true,
+      certId: cert.certId,
+      nom: `${cert.firstName} ${cert.lastName}`,
+      formation: cert.courseTitle,
+      dateEmission: issuedDate,
+    });
+  });
 });
 
 // Démarrage du serveur

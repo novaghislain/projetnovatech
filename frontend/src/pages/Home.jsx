@@ -197,7 +197,7 @@ const Home = () => {
 
       {/* Ad Banner */}
       <section className="container">
-        <AdBanner placement="Accueil" />
+        <AdBanner placement="header" />
       </section>
 
       {/* Featured Courses */}

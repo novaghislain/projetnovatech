@@ -348,8 +348,39 @@ db.serialize(() => {
       FOREIGN KEY(courseId) REFERENCES Formations(id)
     )
   `);
+  
+  // Table QuizQuestions
+  db.run(`
+    CREATE TABLE IF NOT EXISTS QuizQuestions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      lessonId INTEGER NOT NULL,
+      question TEXT NOT NULL,
+      options TEXT NOT NULL,
+      correctAnswer INTEGER NOT NULL,
+      orderIndex INTEGER DEFAULT 0,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(lessonId) REFERENCES Lessons(id) ON DELETE CASCADE
+    )
+  `);
 
-  console.log('Tables initialisées (Users, Enrollments, Advertisements, Modules, Chapters, Lessons).');
+  // Table Certificates (pour validation publique)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS Certificates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      certId TEXT UNIQUE NOT NULL,
+      userId INTEGER NOT NULL,
+      courseId INTEGER NOT NULL,
+      firstName TEXT NOT NULL,
+      lastName TEXT NOT NULL,
+      email TEXT NOT NULL,
+      courseTitle TEXT NOT NULL,
+      issuedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(userId) REFERENCES Users(id),
+      FOREIGN KEY(courseId) REFERENCES Formations(id)
+    )
+  `);
+
+  console.log('Tables initialisées (Users, Enrollments, Advertisements, Modules, Chapters, Lessons, QuizQuestions, Certificates).');
 });
 
 module.exports = db;

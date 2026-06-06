@@ -10,94 +10,128 @@ function generateCertificate({ firstName, lastName, email, courseTitle, completi
   const w = doc.page.width;
   const h = doc.page.height;
 
-  doc.rect(0, 0, w, h).fill('#fefdfb');
+  // --- Background ---
+  doc.rect(0, 0, w, h).fill('#ffffff');
 
-  // Cadre
-  doc.rect(20, 20, w - 40, h - 40).lineWidth(1.5).stroke('#0F3460');
-  doc.rect(26, 26, w - 52, h - 52).lineWidth(0.5).stroke('#b8860b');
-  doc.rect(30, 30, w - 60, h - 60).lineWidth(0.3).stroke('#cbd5e1');
+  // --- Top navy band ---
+  doc.rect(0, 0, w, 14).fill('#1A1A2E');
+  doc.rect(0, 14, w, 2).fill('#d4a017');
 
-  // Bandes haute et basse
-  doc.rect(0, 0, w, 6).fill('#0F3460');
-  doc.rect(0, 6, w, 2).fill('#b8860b');
-  doc.rect(0, h - 8, w, 6).fill('#0F3460');
-  doc.rect(0, h - 8, w, 2).fill('#b8860b');
+  // --- Bottom navy band ---
+  doc.rect(0, h - 14, w, 14).fill('#1A1A2E');
+  doc.rect(0, h - 16, w, 2).fill('#d4a017');
 
-  // Traits verticaux latéraux
-  doc.rect(50, 45, 0.5, h - 90).lineWidth(0.2).stroke('#e2e8f0');
-  doc.rect(w - 50, 45, 0.5, h - 90).lineWidth(0.2).stroke('#e2e8f0');
+  // --- Outer border ---
+  doc.rect(16, 16, w - 32, h - 32).lineWidth(1).stroke('#1A1A2E');
+  doc.rect(20, 20, w - 40, h - 40).lineWidth(0.3).stroke('#d4a017');
 
-  // --- 1. Organisation ---
-  doc.fontSize(26).fillColor('#1A1A2E').font('Helvetica-Bold');
-  doc.text('NOVATECH VISION', w / 2, 60, { align: 'center' });
+  // --- Left gold accent line ---
+  doc.rect(50, 50, 2, h - 100).fill('#d4a017');
 
-  doc.fontSize(10).fillColor('#0F3460').font('Helvetica');
-  doc.text('CENTRE DE FORMATION EN INFORMATIQUE', w / 2, 90, { align: 'center' });
-  doc.text('Cotonou, Bénin', w / 2, 105, { align: 'center' });
+  // ──────────────────────────────────────────────
+  // HEADER
+  // ──────────────────────────────────────────────
 
-  // --- 2. Titre du certificat ---
-  doc.moveTo(w / 2 - 120, 125).lineTo(w / 2 + 120, 125).lineWidth(0.5).stroke('#b8860b');
+  doc.fontSize(24).fillColor('#1A1A2E').font('Helvetica-Bold');
+  doc.text('NOVATECH VISION', 75, 55);
 
-  doc.fontSize(22).fillColor('#0F3460').font('Helvetica-Bold');
-  doc.text('CERTIFICAT DE RÉUSSITE', w / 2, 148, { align: 'center' });
+  doc.fontSize(9).fillColor('#64748b').font('Helvetica');
+  doc.text('CENTRE DE FORMATION EN INFORMATIQUE', 75, 82);
+  doc.text('Cotonou, Bénin', 75, 94);
 
-  // --- 3. Destinataire ---
-  doc.fontSize(11).fillColor('#4b5563').font('Helvetica');
-  doc.text('Ce certificat est décerné à', w / 2, 183, { align: 'center' });
+  // Separator line
+  doc.moveTo(75, 112).lineTo(w - 50, 112).lineWidth(0.3).stroke('#e2e8f0');
 
-  const nameY = 208;
-  doc.fontSize(11).fillColor('#0F3460').font('Helvetica-Bold');
-  doc.text('M./Mme', w / 2, nameY, { align: 'center' });
-  doc.fontSize(34).fillColor('#1A1A2E').font('Helvetica-Bold');
-  doc.text(`${firstName} ${lastName}`, w / 2, nameY + 16, { align: 'center' });
+  // ──────────────────────────────────────────────
+  // CERTIFICATE TITLE
+  // ──────────────────────────────────────────────
 
-  // --- 4. Formation complétée ---
-  doc.fontSize(11).fillColor('#4b5563').font('Helvetica');
-  doc.text('pour avoir complété avec succès la formation', w / 2, 275, { align: 'center' });
+  doc.fontSize(11).fillColor('#64748b').font('Helvetica');
+  doc.text('Ce certificat est décerné à', 75, 148);
 
-  doc.fontSize(22).fillColor('#0F3460').font('Helvetica-Bold');
-  doc.text(courseTitle, w / 2, 300, { align: 'center' });
+  doc.fontSize(36).fillColor('#1A1A2E').font('Helvetica-Bold');
+  doc.text(`${firstName} ${lastName}`, 75, 172);
 
-  // --- 5. Modules (facultatif) ---
+  doc.fontSize(11).fillColor('#475569').font('Helvetica');
+  doc.text('pour avoir complété avec succès la formation', 75, 228);
+
+  doc.fontSize(20).fillColor('#0F3460').font('Helvetica-Bold');
+  doc.text(courseTitle, 75, 255);
+
+  doc.fontSize(8).fillColor('#94a3b8').font('Helvetica');
+  doc.text('une formation en ligne non créditée', 75, 285);
+  doc.text('autorisée par Novatech Vision', 75, 297);
+
+  // ──────────────────────────────────────────────
+  // MODULES
+  // ──────────────────────────────────────────────
+
   if (modules && modules.length > 0) {
-    doc.fontSize(9).fillColor('#6b7280').font('Helvetica-Bold');
-    doc.text('Modules complétés', w / 2, 345, { align: 'center' });
-    doc.fontSize(8.5).fillColor('#1A1A2E').font('Helvetica');
-    const mods = modules.map(m => '  ' + m.title).join('  |');
-    doc.text(mods, w / 2, 362, {
-      align: 'center',
-      width: w - 220,
-      lineBreak: true,
-    });
+    const modY = 335;
+    doc.fontSize(8).fillColor('#0F3460').font('Helvetica-Bold');
+    doc.text('Modules complétés', 75, modY);
+
+    doc.fontSize(7.5).fillColor('#334155').font('Helvetica');
+    let lineY = modY + 14;
+    let line = '';
+    for (const m of modules) {
+      const test = line ? line + '  ·  ' + m.title : m.title;
+      if (doc.widthOfString(test) < w - 130) {
+        line = test;
+      } else {
+        doc.text(line, 75, lineY, { width: w - 130, align: 'left' });
+        lineY += 11;
+        line = m.title;
+      }
+    }
+    if (line) doc.text(line, 75, lineY, { width: w - 130, align: 'left' });
   }
 
-  // --- 6. Date de délivrance ---
-  const dateY = modules && modules.length > 0 ? 410 : 385;
-  doc.fontSize(9).fillColor('#6b7280').font('Helvetica');
-  doc.text(`Délivré le ${completionDate}`, w / 2, dateY, { align: 'center' });
-  doc.fontSize(7.5).fillColor('#9ca3af').font('Helvetica');
-  doc.text(email, w / 2, dateY + 14, { align: 'center' });
+  // ──────────────────────────────────────────────
+  // SIGNATURES
+  // ──────────────────────────────────────────────
 
-  // --- 7. Numéro de certificat ---
-  doc.fontSize(7).fillColor('#cbd5e1').font('Helvetica');
-  doc.text(`Certificat n° ${certId} · Vérifier : www.novatech-vision.bj/verifier/${certId}`, w / 2, dateY + 30, { align: 'center' });
+  const sigY = h - 105;
 
-  // --- 8. Signatures ---
-  const sigY = h - 95;
-  doc.moveTo(w / 2 - 180, sigY).lineTo(w / 2 - 40, sigY).lineWidth(0.5).stroke('#0F3460');
-  doc.moveTo(w / 2 + 40, sigY).lineTo(w / 2 + 180, sigY).lineWidth(0.5).stroke('#0F3460');
+  const sigLeftX = 75;
+  const sigRightX = w / 2 + 40;
+
+  doc.moveTo(sigLeftX, sigY).lineTo(sigLeftX + 180, sigY).lineWidth(0.5).stroke('#1A1A2E');
+  doc.moveTo(sigRightX, sigY).lineTo(sigRightX + 180, sigY).lineWidth(0.5).stroke('#1A1A2E');
 
   doc.fontSize(9).fillColor('#1A1A2E').font('Helvetica-Bold');
-  doc.text('Directeur Pédagogique', w / 2 - 180, sigY + 8, { width: 140, align: 'center' });
-  doc.text('Coordonnateur', w / 2 + 40, sigY + 8, { width: 140, align: 'center' });
+  doc.text('Directeur Pédagogique', sigLeftX, sigY + 8, { width: 180, align: 'left' });
+  doc.text('Coordonnateur', sigRightX, sigY + 8, { width: 180, align: 'left' });
 
-  doc.fontSize(7).fillColor('#9ca3af').font('Helvetica');
-  doc.text('Novatech Vision', w / 2 - 180, sigY + 24, { width: 140, align: 'center' });
-  doc.text('Novatech Vision', w / 2 + 40, sigY + 24, { width: 140, align: 'center' });
+  doc.fontSize(7).fillColor('#64748b').font('Helvetica');
+  doc.text('Novatech Vision', sigLeftX, sigY + 22, { width: 180, align: 'left' });
+  doc.text('Novatech Vision', sigRightX, sigY + 22, { width: 180, align: 'left' });
 
-  // --- Pied ---
-  doc.fontSize(7.5).fillColor('#9ca3af').font('Helvetica');
-  doc.text('Novatech Vision · Cotonou, Bénin', w / 2, h - 45, { align: 'center' });
+  // ──────────────────────────────────────────────
+  // METADATA (right side, aligned with signatures)
+  // ──────────────────────────────────────────────
+
+  const metaX = w - 220;
+  doc.fontSize(7).fillColor('#64748b').font('Helvetica');
+  doc.text(`Date d'émission : ${completionDate}`, metaX, sigY, { align: 'right' });
+  doc.text(`Email : ${email}`, metaX, sigY + 12, { align: 'right' });
+  doc.text(`N° certificat : ${certId}`, metaX, sigY + 24, { align: 'right' });
+
+  // ──────────────────────────────────────────────
+  // VERIFICATION FOOTER
+  // ──────────────────────────────────────────────
+
+  doc.fontSize(6.5).fillColor('#94a3b8').font('Helvetica');
+  doc.text(
+    `Vérifier : www.novatech-vision.bj/verifier/${certId}`,
+    w / 2, h - 45, { align: 'center' }
+  );
+
+  doc.fontSize(6.5).fillColor('#94a3b8').font('Helvetica');
+  doc.text(
+    'Novatech Vision · Cotonou, Bénin',
+    w / 2, h - 35, { align: 'center' }
+  );
 
   return doc;
 }

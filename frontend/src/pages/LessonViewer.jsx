@@ -4,6 +4,7 @@ import {
   ChevronDown, ChevronRight, ChevronLeft, ChevronLast, BookOpen,
   Play, FileText, CheckCircle, Circle, Menu, X, ArrowLeft
 } from 'lucide-react';
+import AdBanner from '../components/AdBanner';
 
 const LessonViewer = () => {
   const { courseId } = useParams();
@@ -17,6 +18,11 @@ const LessonViewer = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [completedIds, setCompletedIds] = useState(new Set());
   const [progress, setProgress] = useState({ total: 0, completed: 0, percent: 0 });
+  const [quizQuestions, setQuizQuestions] = useState([]);
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [quizResult, setQuizResult] = useState(null);
+  const [quizSubmitting, setQuizSubmitting] = useState(false);
+  const [quizLoading, setQuizLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,6 +59,28 @@ const LessonViewer = () => {
     };
     fetchData();
   }, [courseId]);
+
+  useEffect(() => {
+    if (!currentLesson) return;
+    setQuizQuestions([]);
+    setQuizAnswers({});
+    setQuizResult(null);
+    const fetchQuiz = async () => {
+      setQuizLoading(true);
+      try {
+        const res = await fetch(`http://localhost:5001/api/quiz/${currentLesson.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setQuizQuestions(data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setQuizLoading(false);
+      }
+    };
+    fetchQuiz();
+  }, [currentLesson]);
 
   const findFirstLesson = (modules) => {
     for (const m of modules)
@@ -112,6 +140,39 @@ const LessonViewer = () => {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const submitQuiz = async () => {
+    if (!currentLesson || quizQuestions.length === 0) return;
+    setQuizSubmitting(true);
+    const token = localStorage.getItem('nv_token');
+    try {
+      const answers = quizQuestions.map(q => ({
+        questionId: q.id,
+        answer: quizAnswers[q.id] ?? -1
+      }));
+      const res = await fetch(`http://localhost:5001/api/quiz/${currentLesson.id}/submit`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers }),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        setQuizResult(result);
+        if (result.passed && !completedIds.has(currentLesson.id)) {
+          await fetch(`http://localhost:5001/api/progress/lessons/${currentLesson.id}/complete`, {
+            method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ courseId: parseInt(courseId) }),
+          });
+          setCompletedIds(prev => new Set([...prev, currentLesson.id]));
+          setProgress(p => ({ ...p, completed: p.completed + 1, percent: p.total > 0 ? Math.round(((p.completed + 1) / p.total) * 100) : 0 }));
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setQuizSubmitting(false);
     }
   };
 
@@ -254,10 +315,15 @@ const LessonViewer = () => {
             </div>
           ))}
         </div>
+
+        <div style={{ padding: '1rem', borderTop: '1px solid #e5e7eb' }}>
+          <AdBanner placement="sidebar" />
+        </div>
       </div>
 
       {/* MAIN CONTENT */}
       <div style={{ flex: 1, padding: '2rem', overflowY: 'auto', minWidth: 0 }}>
+        <AdBanner placement="header" />
         <Link to="/mon-espace" style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
           color: 'var(--color-text-muted)', textDecoration: 'none',
@@ -326,6 +392,84 @@ const LessonViewer = () => {
                 </div>
               )}
             </div>
+
+            {/* QUIZ */}
+            {quizQuestions.length > 0 && (
+              <div style={{
+                backgroundColor: 'white', borderRadius: 'var(--radius-lg)',
+                boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)',
+                padding: '2rem', marginBottom: '1.5rem',
+              }}>
+                <h3 style={{ fontSize: '1.2rem', color: 'var(--color-primary)', margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <BookOpen size={20} /> Quiz d'évaluation
+                </h3>
+
+                {quizResult ? (
+                  <div style={{ textAlign: 'center', padding: '1.5rem' }}>
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      width: '80px', height: '80px', borderRadius: '50%',
+                      background: quizResult.passed ? '#dcfce7' : '#fef2f2',
+                      marginBottom: '1rem',
+                    }}>
+                      <span style={{ fontSize: '2rem', fontWeight: 800, color: quizResult.passed ? '#15803d' : '#dc2626' }}>
+                        {quizResult.score}%
+                      </span>
+                    </div>
+                    <h4 style={{ color: quizResult.passed ? '#15803d' : '#dc2626', margin: '0 0 0.5rem 0' }}>
+                      {quizResult.passed ? '✅ Quiz réussi !' : '❌ Quiz échoué'}
+                    </h4>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', margin: 0 }}>
+                      {quizResult.correctCount}/{quizResult.total} bonnes réponses
+                      {quizResult.passed ? ' — Leçon marquée comme terminée.' : ' — Minimum 70% requis, réessaye.'}
+                    </p>
+                    {!quizResult.passed && (
+                      <button onClick={() => { setQuizResult(null); setQuizAnswers({}); }} className="btn btn-outline" style={{ marginTop: '1rem' }}>
+                        Réessayer le quiz
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    {quizQuestions.map((q, qi) => (
+                      <div key={q.id} style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: qi < quizQuestions.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                        <p style={{ fontWeight: 700, color: '#1A1A2E', marginBottom: '0.8rem', fontSize: '0.95rem' }}>
+                          {qi + 1}. {q.question}
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {q.options.map((opt, oi) => (
+                            <label key={oi} style={{
+                              display: 'flex', alignItems: 'center', gap: '0.7rem',
+                              padding: '0.7rem 1rem', borderRadius: '8px',
+                              background: quizAnswers[q.id] === oi ? '#eff6ff' : '#f8fafc',
+                              border: quizAnswers[q.id] === oi ? '2px solid #3b82f6' : '2px solid transparent',
+                              cursor: 'pointer', transition: 'all 0.15s', fontSize: '0.9rem', fontWeight: 500,
+                            }}>
+                              <input
+                                type="radio"
+                                name={`q-${q.id}`}
+                                checked={quizAnswers[q.id] === oi}
+                                onChange={() => setQuizAnswers(prev => ({ ...prev, [q.id]: oi }))}
+                                style={{ accentColor: '#3b82f6' }}
+                              />
+                              {opt}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      onClick={submitQuiz}
+                      disabled={quizSubmitting || Object.keys(quizAnswers).length < quizQuestions.length}
+                      className="btn btn-primary"
+                      style={{ padding: '0.8rem 2rem', fontSize: '1rem' }}
+                    >
+                      {quizSubmitting ? 'Correction...' : 'Soumettre mes réponses'}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <button
