@@ -183,8 +183,6 @@ const MonEspace = () => {
     { icon: Award, label: 'Certificats obtenus', value: completedCerts.length, color: '#d4a017', bg: '#fffbeb' },
     { icon: TrendingUp, label: 'Progression moyenne', value: `${enrollments.length > 0 ? Math.round(enrollments.reduce((s, e) => s + (e.progress || 0), 0) / enrollments.length) : 0}%`, color: '#8b5cf6', bg: '#f5f3ff' },
   ];
-
->>>>>>> c9f89b81117c8fc9b1fdabed3411acb256a8eb1e
   try {
     return (
       <div className="page-transition" style={{ backgroundColor: '#f8fafc', minHeight: '80vh', padding: '3rem 0' }}>
