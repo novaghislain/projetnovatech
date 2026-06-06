@@ -1,4 +1,5 @@
 const express = require('express');
+const { sendEmail } = require('./emailService');
 
 module.exports = function(db, authenticateToken) {
   const router = express.Router();
@@ -189,14 +190,39 @@ module.exports = function(db, authenticateToken) {
   });
 
   router.post('/messages/:id/reply', (req, res) => {
-    // Dans un vrai projet, ici on enverrait un email via nodemailer (ex: transport.sendMail(...))
-    // On va simuler l'envoi en mettant à jour le message pour indiquer qu'il a été répondu
-    console.log(`[Simulation Email] Réponse envoyée à l'auteur du message ${req.params.id} avec le texte : ${req.body.replyBody}`);
-    
-    // On le marque aussi comme lu au passage
-    db.run("UPDATE Messages SET isRead = 1 WHERE id = ?", [req.params.id], function(err) {
+    const { replyBody } = req.body;
+
+    db.get("SELECT name, email, subject, body FROM Messages WHERE id = ?", [req.params.id], (err, message) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ success: true, message: 'Email envoyé et message marqué comme lu.' });
+      if (!message) return res.status(404).json({ error: 'Message introuvable.' });
+
+      sendEmail({
+        to: message.email,
+        subject: `Re: ${message.subject || 'Votre message - Novatech Vision'}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">Novatech Vision</h2>
+            <p>Bonjour ${message.name},</p>
+            <div style="background: #f3f4f6; padding: 16px; border-radius: 6px; margin: 16px 0;">
+              <p style="margin: 0; color: #6b7280; font-size: 14px;"><strong>Votre message :</strong></p>
+              <p style="margin: 8px 0 0; color: #374151;">${message.body}</p>
+            </div>
+            <div style="background: #eff6ff; padding: 16px; border-radius: 6px; margin: 16px 0;">
+              <p style="margin: 0; color: #2563eb; font-size: 14px;"><strong>Notre réponse :</strong></p>
+              <p style="margin: 8px 0 0; color: #374151;">${replyBody}</p>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">N'hésitez pas à nous recontacter si vous avez d'autres questions.</p>
+            <hr style="border: none; border-top: 1px solid #e5e7eb;" />
+            <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
+          </div>
+        `,
+      }).then(() => console.log('[EMAIL] Réponse envoyée à', message.email))
+        .catch(err => console.error('[EMAIL ERREUR]', err.message));
+
+      db.run("UPDATE Messages SET isRead = 1 WHERE id = ?", [req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, message: 'Email envoyé et message marqué comme lu.' });
+      });
     });
   });
 

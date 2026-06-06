@@ -1,7 +1,5 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const crypto = require('crypto');
@@ -12,6 +10,8 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { sendEmail } = require('./emailService');
+const { generateCertificate } = require('./certificateService');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -108,49 +108,35 @@ app.post('/api/auth/forgot-password', (req, res) => {
     const resetTokenExpiry = new Date(Date.now() + 3600000).toISOString(); // +1 heure
 
     db.run(`UPDATE Users SET resetToken = ?, resetTokenExpiry = ? WHERE id = ?`, 
-      [resetToken, resetTokenExpiry, user.id], async (err) => {
+      [resetToken, resetTokenExpiry, user.id], (err) => {
       if (err) return res.status(500).json({ error: 'Erreur serveur.' });
 
       const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
 
-      // Configuration du transporteur Nodemailer
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
-        }
-      });
-
-      const mailOptions = {
-        from: `"Novatech Vision" <${process.env.EMAIL_USER}>`,
+      sendEmail({
         to: user.email,
-        subject: 'Réinitialisation de votre mot de passe',
+        subject: 'Réinitialisation de votre mot de passe - Novatech Vision',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
-            <h2 style="color: #0b2341; text-align: center;">Novatech Vision</h2>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">Réinitialisation de mot de passe</h2>
             <p>Bonjour,</p>
-            <p>Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe :</p>
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetLink}" style="background-color: #d4a017; color: #0b2341; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Réinitialiser mon mot de passe</a>
-            </div>
-            <p style="color: #666; font-size: 0.9em;">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br><a href="${resetLink}">${resetLink}</a></p>
-            <p style="color: #666; font-size: 0.9em;">Ce lien expirera dans 1 heure.</p>
-            <p>L'équipe Novatech Vision</p>
+            <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
+            <p>Cliquez sur le lien ci-dessous pour définir un nouveau mot de passe :</p>
+            <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0;">Réinitialiser mon mot de passe</a>
+            <p style="color: #6b7280; font-size: 14px;">Ce lien expire dans 1 heure.</p>
+            <p style="color: #6b7280; font-size: 14px;">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
+            <hr style="border: none; border-top: 1px solid #e5e7eb;" />
+            <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
           </div>
-        `
-      };
+        `,
+      }).then(() => console.log('[EMAIL] Lien de réinitialisation envoyé à', user.email))
+        .catch(err => console.error('[EMAIL ERREUR]', err.message));
 
-      try {
-        await transporter.sendMail(mailOptions);
-        res.json({ 
-          success: true, 
-          message: 'Un e-mail de réinitialisation vous a été envoyé.'
-        });
-      } catch (mailError) {
-        console.error("Erreur d'envoi d'e-mail:", mailError);
-        res.status(500).json({ error: "Erreur lors de l'envoi de l'e-mail. Veuillez vérifier la configuration de l'expéditeur." });
-      }
+      res.json({ 
+        success: true, 
+        message: 'Un lien de réinitialisation a été envoyé à votre adresse email.',
+        demoLink: resetLink 
+      });
     });
   });
 });
@@ -625,6 +611,104 @@ app.use('/api/annonceur', require('./annonceurRoutes')(db, authenticateToken));
 
 // --- ENROLLMENT ROUTES ---
 app.use('/api/enroll', require('./enrollmentRoutes')(db, authenticateToken));
+
+// --- PROGRESS ROUTES ---
+app.post('/api/progress/lessons/:lessonId/complete', authenticateToken, (req, res) => {
+  const { lessonId } = req.params;
+  const { courseId } = req.body;
+
+  if (!courseId) return res.status(400).json({ error: 'courseId requis.' });
+
+  db.run(`INSERT OR IGNORE INTO LessonProgress (userId, lessonId, courseId) VALUES (?, ?, ?)`,
+    [req.user.id, lessonId, courseId],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true });
+    }
+  );
+});
+
+app.get('/api/progress/courses/:courseId', authenticateToken, (req, res) => {
+  const { courseId } = req.params;
+
+  db.get(`SELECT COUNT(*) as total FROM Lessons WHERE chapterId IN (SELECT id FROM Chapters WHERE moduleId IN (SELECT id FROM Modules WHERE formationId = ?))`,
+    [courseId],
+    (err, totalRow) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const total = totalRow?.total || 0;
+
+      db.all(`SELECT lessonId FROM LessonProgress WHERE userId = ? AND courseId = ?`,
+        [req.user.id, courseId],
+        (err, rows) => {
+          if (err) return res.status(500).json({ error: err.message });
+
+          const completedIds = rows.map(r => r.lessonId);
+          const completed = completedIds.length;
+          const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+          res.json({
+            total,
+            completed,
+            progress,
+            completedIds,
+          });
+        }
+      );
+    }
+  );
+});
+
+// --- CERTIFICATE ROUTE ---
+app.get('/api/certificates/generate/:courseId', authenticateToken, (req, res) => {
+  const { courseId } = req.params;
+
+  db.get(`SELECT COUNT(*) as total FROM Lessons WHERE chapterId IN (SELECT id FROM Chapters WHERE moduleId IN (SELECT id FROM Modules WHERE formationId = ?))`,
+    [courseId], (err, totalRow) => {
+      if (err) return res.status(500).json({ error: err.message });
+      const total = totalRow?.total || 0;
+
+      db.get(`SELECT COUNT(*) as completed FROM LessonProgress WHERE userId = ? AND courseId = ?`,
+        [req.user.id, courseId], (err, compRow) => {
+          if (err) return res.status(500).json({ error: err.message });
+
+          if (total > 0 && compRow.completed < total) {
+            return res.status(400).json({ error: 'Vous devez compléter toutes les leçons pour obtenir le certificat.' });
+          }
+
+          db.get(`SELECT firstName, lastName, email FROM Users WHERE id = ?`, [req.user.id], (err, user) => {
+            if (err || !user) return res.status(500).json({ error: 'Utilisateur introuvable' });
+
+            db.get(`SELECT title FROM Formations WHERE id = ?`, [courseId], (err, formation) => {
+              if (err || !formation) return res.status(404).json({ error: 'Formation introuvable' });
+
+              const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+              const certId = `NOV-${Date.now().toString(36).toUpperCase()}`;
+
+              // Récupérer les modules de la formation
+              db.all(`SELECT title FROM Modules WHERE formationId = ?`, [courseId], (err, modules) => {
+                const doc = generateCertificate({
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  email: user.email,
+                  courseTitle: formation.title,
+                  completionDate: date,
+                  modules: modules || [],
+                  certId,
+                });
+
+                res.setHeader('Content-Type', 'application/pdf');
+                res.setHeader('Content-Disposition', `attachment; filename="certificat-${formation.title.toLowerCase().replace(/\s+/g, '-')}.pdf"`);
+                doc.pipe(res);
+                doc.end();
+              });
+            });
+          });
+        }
+      );
+    }
+  );
+});
 
 // Démarrage du serveur
 app.listen(PORT, () => {

@@ -334,6 +334,21 @@ db.serialize(() => {
     )
   `);
   
+  // Table LessonProgress (suivi de progression)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS LessonProgress (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER NOT NULL,
+      lessonId INTEGER NOT NULL,
+      courseId INTEGER NOT NULL,
+      completedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(userId, lessonId),
+      FOREIGN KEY(userId) REFERENCES Users(id),
+      FOREIGN KEY(lessonId) REFERENCES Lessons(id),
+      FOREIGN KEY(courseId) REFERENCES Formations(id)
+    )
+  `);
+
   console.log('Tables initialisées (Users, Enrollments, Advertisements, Modules, Chapters, Lessons).');
 });
 
