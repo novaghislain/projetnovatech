@@ -1,0 +1,126 @@
+.formateur-layout {
+  display: flex;
+  background-color: #f4f7fe;
+  min-height: 100vh;
+}
+
+.formateur-sidebar {
+  width: 280px;
+  background-color: #fff;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.formateur-main {
+  flex: 1;
+  padding: 3rem 4rem;
+  overflow-y: auto;
+  max-width: 100vw;
+}
+
+/* Grids inside FormateurDashboard */
+.formateur-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.formateur-content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+.formateur-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
+/* ── Mobile Responsive Sidebar (Hamburger Menu) ── */
+.formateur-mobile-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background-color: #1a1a2e; /* Dark header like Admin */
+  color: white;
+  z-index: 20;
+}
+
+.formateur-mobile-menu-btn, .formateur-mobile-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.formateur-sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 40;
+}
+
+@media (max-width: 1024px) {
+  .formateur-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .formateur-layout {
+    flex-direction: column;
+  }
+
+  .formateur-mobile-header {
+    display: flex;
+  }
+
+  .formateur-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    z-index: 50;
+    width: 280px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  }
+
+  .formateur-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .formateur-sidebar-overlay {
+    display: block;
+  }
+
+  .formateur-main {
+    padding: 1.5rem;
+    overflow-y: auto;
+  }
+
+  .formateur-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .formateur-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}

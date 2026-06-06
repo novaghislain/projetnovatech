@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Megaphone, MousePointerClick, Eye, LogOut, BarChart2, PlusCircle, TrendingUp, Calendar, CreditCard } from 'lucide-react';
 import './Home.css';
+import { API_URL } from '../config';
 
 const AnnonceurDashboard = () => {
   const { user, logout } = useAuth();
@@ -14,7 +15,7 @@ const AnnonceurDashboard = () => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('nv_token');
-        const res = await fetch('http://localhost:5001/api/annonceur/dashboard', {
+        const res = await fetch(`${API_URL}/api/annonceur/dashboard`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

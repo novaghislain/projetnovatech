@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Eye, MousePointerClick, Trash2, Power, X } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../../config';
 
 const AdminAds = () => {
   const [ads, setAds] = useState([]);
@@ -17,7 +18,7 @@ const AdminAds = () => {
   const fetchAds = async () => {
     try {
       // ?admin=true permet de récupérer même les inactives
-      const res = await axios.get('http://localhost:5001/api/ads?admin=true');
+      const res = await axios.get(`${API_URL}/api/ads?admin=true`);
       setAds(res.data);
     } catch (err) {
       console.error(err);
@@ -33,7 +34,7 @@ const AdminAds = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5001/api/ads', formData);
+      await axios.post(`${API_URL}/api/ads`, formData);
       setShowModal(false);
       fetchAds();
     } catch (err) {
@@ -43,7 +44,7 @@ const AdminAds = () => {
 
   const toggleStatus = async (id, currentStatus) => {
     try {
-      await axios.put(`http://localhost:5001/api/ads/${id}/toggle`, { isActive: !currentStatus });
+      await axios.put(`${API_URL}/api/ads/${id}/toggle`, { isActive: !currentStatus });
       fetchAds();
     } catch (err) {
       console.error(err);

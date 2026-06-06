@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, Award, Clock, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './Home.css';
+import { API_URL } from '../config';
 
 const MonEspace = () => {
   const { user } = useAuth();
@@ -29,9 +30,9 @@ const MonEspace = () => {
         const headers = { 'Authorization': `Bearer ${token}` };
         
         const [enrollRes, questionsRes, appRes] = await Promise.all([
-          fetch('http://localhost:5001/api/enroll/my-enrollments', { headers }),
-          fetch('http://localhost:5001/api/enroll/my-questions', { headers }),
-          fetch('http://localhost:5001/api/user/application-status', { headers })
+          fetch(`${API_URL}/api/enroll/my-enrollments`, { headers }),
+          fetch(`${API_URL}/api/enroll/my-questions`, { headers }),
+          fetch(`${API_URL}/api/user/application-status`, { headers })
         ]);
 
         if (enrollRes.ok) {
@@ -60,7 +61,7 @@ const MonEspace = () => {
     if (!trainerBio || !trainerSpecialite) return;
     try {
       const token = localStorage.getItem('nv_token');
-      const res = await fetch('http://localhost:5001/api/user/apply-formateur', {
+      const res = await fetch(`${API_URL}/api/user/apply-formateur`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -89,7 +90,7 @@ const MonEspace = () => {
     
     try {
       const token = localStorage.getItem('nv_token');
-      const res = await fetch('http://localhost:5001/api/enroll/questions', {
+      const res = await fetch(`${API_URL}/api/enroll/questions`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -103,7 +104,7 @@ const MonEspace = () => {
         setTimeout(() => setQuestionStatus(''), 3000);
         
         // Refresh questions
-        const newQuestionsRes = await fetch('http://localhost:5001/api/enroll/my-questions', {
+        const newQuestionsRes = await fetch(`${API_URL}/api/enroll/my-questions`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (newQuestionsRes.ok) {
@@ -121,7 +122,7 @@ const MonEspace = () => {
     if (!replyText.trim()) return;
     try {
       const token = localStorage.getItem('nv_token');
-      const res = await fetch(`http://localhost:5001/api/enroll/questions/${questionId}/reply`, {
+      const res = await fetch(`${API_URL}/api/enroll/questions/${questionId}/reply`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -134,7 +135,7 @@ const MonEspace = () => {
         setReplyText('');
         setReplyingTo(null);
         // Refresh questions
-        const newQuestionsRes = await fetch('http://localhost:5001/api/enroll/my-questions', {
+        const newQuestionsRes = await fetch(`${API_URL}/api/enroll/my-questions`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (newQuestionsRes.ok) {

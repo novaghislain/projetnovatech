@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, UserCheck, UserX, Shield, Edit, Trash2 } from 'lucide-react';
+import { API_URL } from '../../config';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -14,7 +15,7 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('nv_token');
-      const response = await fetch('http://localhost:5001/api/admin/users', {
+      const response = await fetch(`${API_URL}/api/admin/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error("Erreur de récupération des utilisateurs");
@@ -30,7 +31,7 @@ const AdminUsers = () => {
   const handleRoleChange = async (userId, newRole) => {
     try {
       const token = localStorage.getItem('nv_token');
-      const response = await fetch(`http://localhost:5001/api/admin/users/${userId}/role`, {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}/role`, {
         method: 'PUT',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -48,7 +49,7 @@ const AdminUsers = () => {
   const handleStatusChange = async (userId, newStatus) => {
     try {
       const token = localStorage.getItem('nv_token');
-      const response = await fetch(`http://localhost:5001/api/admin/users/${userId}/status`, {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}/status`, {
         method: 'PUT',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -68,7 +69,7 @@ const AdminUsers = () => {
     if (!confirm("Voulez-vous vraiment supprimer cet utilisateur définitivement ?")) return;
     try {
       const token = localStorage.getItem('nv_token');
-      const response = await fetch(`http://localhost:5001/api/admin/users/${userId}`, {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

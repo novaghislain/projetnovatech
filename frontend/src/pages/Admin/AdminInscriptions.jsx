@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, UserCheck, Clock, CheckCircle, XCircle } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../../config';
 
 const AdminInscriptions = () => {
   const [inscriptions, setInscriptions] = useState([]);
@@ -15,7 +16,7 @@ const AdminInscriptions = () => {
     try {
       const token = localStorage.getItem('nv_token');
       // For now, reuse the /api/admin/payments route since it contains enrollment details
-      const response = await axios.get('http://localhost:5001/api/admin/payments', {
+      const response = await axios.get(`${API_URL}/api/admin/payments`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setInscriptions(response.data);
@@ -29,7 +30,7 @@ const AdminInscriptions = () => {
   const handleStatusChange = async (id, newStatus) => {
     try {
       const token = localStorage.getItem('nv_token');
-      await axios.put(`http://localhost:5001/api/admin/payments/${id}/status`, { status: newStatus }, {
+      await axios.put(`${API_URL}/api/admin/payments/${id}/status`, { status: newStatus }, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       fetchInscriptions();
@@ -42,7 +43,7 @@ const AdminInscriptions = () => {
     if(window.confirm('Voulez-vous vraiment supprimer cet apprenant ?')) {
       try {
         const token = localStorage.getItem('nv_token');
-        await axios.delete(`http://localhost:5001/api/admin/payments/${id}`, {
+        await axios.delete(`${API_URL}/api/admin/payments/${id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         fetchInscriptions();

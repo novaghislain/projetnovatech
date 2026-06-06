@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import AdBanner from '../components/AdBanner';
 import './Home.css';
+import { API_URL } from '../config';
 
   const programs = [
   { icon: <Monitor size={26} />, label: 'Bureautique' },
@@ -45,7 +46,7 @@ const Home = () => {
   useEffect(() => {
     const fetchFormations = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/public/formations');
+        const res = await fetch(`${API_URL}/api/public/formations`);
         if (res.ok) {
           const data = await res.json();
           // Take the top 3 featured or recent ones
@@ -64,7 +65,7 @@ const Home = () => {
     e.preventDefault();
     setContactStatus('sending');
     try {
-      await axios.post('http://localhost:5001/api/public/messages', contactForm);
+      await axios.post(`${API_URL}/api/public/messages`, contactForm);
       setContactStatus('sent');
       setContactForm({ name: '', email: '', subject: '', body: '' });
       setTimeout(() => setContactStatus('idle'), 3000);

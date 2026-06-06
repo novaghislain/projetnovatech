@@ -28,19 +28,31 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 const AppLayout = () => {
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith('/admin');
+  const isDashboard = location.pathname.startsWith('/admin') || 
+                      location.pathname.startsWith('/formateur') || 
+                      location.pathname.startsWith('/annonceur');
 
   // Remonter en haut de la page à chaque changement de route
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  if (isAdmin) {
+  if (isDashboard) {
     return (
       <Routes>
         <Route path="/admin/*" element={
           <ProtectedRoute allowedRoles={['admin']}>
             <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/formateur/*" element={
+          <ProtectedRoute allowedRoles={['formateur', 'admin']}>
+            <FormateurDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/annonceur/*" element={
+          <ProtectedRoute allowedRoles={['annonceur', 'admin']}>
+            <AnnonceurDashboard />
           </ProtectedRoute>
         } />
       </Routes>
@@ -73,12 +85,6 @@ const AppLayout = () => {
           <Route path="/mon-espace/recus" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><Recus /></ProtectedRoute>} />
           
           <Route path="/parametres" element={<ProtectedRoute><Parametres /></ProtectedRoute>} />
-          
-          {/* Espace Formateur */}
-          <Route path="/formateur" element={<ProtectedRoute allowedRoles={['formateur', 'admin']}><FormateurDashboard /></ProtectedRoute>} />
-
-          {/* Espace Annonceur */}
-          <Route path="/annonceur" element={<ProtectedRoute allowedRoles={['annonceur', 'admin']}><AnnonceurDashboard /></ProtectedRoute>} />
           
           {/* Fallback backward compatibility */}
           <Route path="/inscriptions" element={<Navigate to="/mon-espace/inscriptions" replace />} />

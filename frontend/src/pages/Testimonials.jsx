@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Testimonials.css';
+import { API_URL } from '../config';
 
 const Testimonials = () => {
   const [testimonials, setTestimonials] = useState([]);
@@ -12,7 +13,7 @@ const Testimonials = () => {
 
   const fetchTestimonials = async () => {
     try {
-      const res = await axios.get('http://localhost:5001/api/public/testimonials');
+      const res = await axios.get(`${API_URL}/api/public/testimonials`);
       setTestimonials(res.data);
     } catch (err) {
       console.error(err);

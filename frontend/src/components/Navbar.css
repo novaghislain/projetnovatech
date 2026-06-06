@@ -42,8 +42,10 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  margin-left: auto; /* Pousse les liens vers la droite */
-  margin-right: 0.5rem; /* Espace réduit avec le bloc profil/auth pour les décaler encore plus à droite */
+  margin-left: auto;
+  /* Pousse les liens vers la droite */
+  margin-right: 0.5rem;
+  /* Espace réduit avec le bloc profil/auth pour les décaler encore plus à droite */
 }
 
 .navbar-main-links a {
@@ -130,7 +132,7 @@
   transition: all 0.3s ease;
   font-family: inherit;
   font-weight: 500;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .account-trigger:hover,
@@ -152,7 +154,7 @@
   font-weight: 700;
   color: var(--color-primary);
   flex-shrink: 0;
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.8);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
 }
 
 .chevron {
@@ -280,30 +282,36 @@
   }
 }
 
+.navbar-mobile-close, .navbar-mobile-overlay { display: none; }
+
 /* Responsive — 768px (mobile) */
 @media (max-width: 768px) {
   .mobile-menu-btn {
     display: block;
+    z-index: 1001;
   }
 
   .navbar-links {
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: 0;
     left: 0;
-    width: 100%;
-    background: #1A1A2E;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.98); /* Deep dark blue with slight transparency */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     flex-direction: column;
-    align-items: flex-start;
-    padding: 1.5rem 2rem;
-    gap: 1.5rem;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    gap: 2rem;
     transform: translateY(-100%);
     opacity: 0;
     pointer-events: none;
-    transition: all 0.3s ease;
-    z-index: -1;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
     margin-left: 0;
+    box-shadow: none;
   }
 
   .navbar-links.active {
@@ -314,28 +322,44 @@
 
   .navbar-main-links {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     width: 100%;
-    gap: 0;
+    gap: 1.5rem;
     margin-left: 0;
   }
 
   .navbar-main-links a {
-    font-size: 0.95rem;
-    padding: 0.6rem 0;
-    width: 100%;
-    border-radius: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    width: auto;
+    border-radius: 12px;
+    border-bottom: none;
+    color: white;
+    text-align: center;
+  }
+
+  .navbar-main-links a:hover, .navbar-main-links a:active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-accent);
   }
 
   .navbar-auth-links {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     margin-left: 0;
     width: 100%;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none;
     padding-top: 1rem;
-    gap: 0.75rem;
+    gap: 1.5rem;
+  }
+
+  .navbar-auth-links .btn {
+    width: 100%;
+    max-width: 250px;
+    text-align: center;
+    padding: 1rem;
+    font-size: 1.1rem;
   }
 
   .account-menu {

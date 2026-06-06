@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Filter, Image as ImageIcon, X, AlertTriangle, BookOpen } from 'lucide-react';
 import AdminCourseBuilder from './AdminCourseBuilder';
+import { API_URL } from '../../config';
 
 const mockCategories = ['Développement', 'Intelligence Artificielle', 'Bureautique', 'Design Graphique'];
 
@@ -30,7 +31,7 @@ const AdminFormations = () => {
   const fetchFormations = async () => {
     try {
       const token = localStorage.getItem('nv_token');
-      const response = await fetch('http://localhost:5001/api/admin/formations', {
+      const response = await fetch(`${API_URL}/api/admin/formations`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error("Erreur de récupération");
@@ -74,7 +75,7 @@ const AdminFormations = () => {
     try {
       const token = localStorage.getItem('nv_token');
       const method = formData.id ? 'PUT' : 'POST';
-      const url = formData.id ? `http://localhost:5001/api/admin/formations/${formData.id}` : 'http://localhost:5001/api/admin/formations';
+      const url = formData.id ? `${API_URL}/api/admin/formations/${formData.id}` : `${API_URL}/api/admin/formations`;
       
       const response = await fetch(url, {
         method,
@@ -96,7 +97,7 @@ const AdminFormations = () => {
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem('nv_token');
-      const response = await fetch(`http://localhost:5001/api/admin/formations/${id}`, {
+      const response = await fetch(`${API_URL}/api/admin/formations/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

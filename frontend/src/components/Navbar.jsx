@@ -40,7 +40,12 @@ const Navbar = () => {
           <img src="/4x.png" alt="Novatech Vision Logo" className="logo-image" />
         </Link>
 
-        {/* Nav Links */}
+        {/* Mobile Nav Overlay */}
+        {isOpen && (
+          <div className="navbar-mobile-overlay" onClick={closeAll}></div>
+        )}
+
+        {/* Nav Links (Drawer on mobile) */}
         <div className={`navbar-links ${isOpen ? 'active' : ''}`}>
 
           {/* Main links */}

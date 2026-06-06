@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import axios from 'axios';
 import './Galerie.css';
+import { API_URL } from '../config';
 
 const Galerie = () => {
   const [photos, setPhotos] = useState([]);
@@ -12,7 +13,7 @@ const Galerie = () => {
   useEffect(() => {
     const fetchGallery = async () => {
       try {
-        const res = await axios.get('http://localhost:5001/api/public/gallery');
+        const res = await axios.get(`${API_URL}/api/public/gallery`);
         // Convert API format to the expected format
         const formatted = res.data.map(g => ({
           id: g.id,

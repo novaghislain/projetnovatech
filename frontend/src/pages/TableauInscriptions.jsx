@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, Calendar, Clock, Download, ArrowLeft, Video, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './Home.css';
+import { API_URL } from '../config';
 
 const TableauInscriptions = () => {
   const auth = useAuth();
@@ -19,7 +20,7 @@ const TableauInscriptions = () => {
   const fetchEnrollments = async () => {
     try {
       const token = localStorage.getItem('nv_token');
-      const response = await fetch('http://localhost:5001/api/enroll/my-enrollments', {
+      const response = await fetch(`${API_URL}/api/enroll/my-enrollments`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -35,7 +36,7 @@ const TableauInscriptions = () => {
     if (!window.confirm("Êtes-vous sûr de vouloir annuler cette inscription ? Cette action est irréversible.")) return;
     try {
       const token = localStorage.getItem('nv_token');
-      const res = await fetch(`http://localhost:5001/api/enroll/${enrollmentId}`, {
+      const res = await fetch(`${API_URL}/api/enroll/${enrollmentId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -53,7 +54,7 @@ const TableauInscriptions = () => {
   const handleRateCourse = async (enrollmentId, ratingValue) => {
     try {
       const token = localStorage.getItem('nv_token');
-      const response = await fetch(`http://localhost:5001/api/enroll/enrollments/${enrollmentId}/rate`, {
+      const response = await fetch(`${API_URL}/api/enroll/enrollments/${enrollmentId}/rate`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,

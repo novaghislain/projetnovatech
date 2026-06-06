@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import FedapayWidget from '../components/FedapayWidget';
 import { CheckCircle, ShieldCheck, User, Users, MapPin, Mail, Phone, CreditCard, BookOpen, ArrowRight, Lock } from 'lucide-react';
 import './Inscription.css';
+import { API_URL } from '../config';
 
 const Inscription = () => {
   const location = useLocation();
@@ -48,7 +49,7 @@ const Inscription = () => {
 
   const fetchFormations = async () => {
     try {
-      const res = await fetch('http://localhost:5001/api/public/formations');
+      const res = await fetch(`${API_URL}/api/public/formations`);
       const data = await res.json();
       setFormations(data);
       if (!selectedCourseId && data.length > 0) setSelectedCourseId(data[0].id);
@@ -73,7 +74,7 @@ const Inscription = () => {
     setSubmitLoading(true);
     try {
       const token = localStorage.getItem('nv_token');
-      const response = await fetch('http://localhost:5001/api/enroll', {
+      const response = await fetch(`${API_URL}/api/enroll`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

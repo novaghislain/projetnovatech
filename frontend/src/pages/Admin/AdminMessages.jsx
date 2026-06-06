@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Search, Trash2, Reply, X, Send } from 'lucide-react';
+import { API_URL } from '../../config';
 
 const AdminMessages = () => {
   const [messages, setMessages] = useState([]);
@@ -19,7 +20,7 @@ const AdminMessages = () => {
 
   const fetchMessages = async () => {
     try {
-      const res = await fetch('http://localhost:5001/api/admin/messages', getHeaders());
+      const res = await fetch(`${API_URL}/api/admin/messages`, getHeaders());
       const data = await res.json();
       setMessages(data);
     } catch (err) {
@@ -31,7 +32,7 @@ const AdminMessages = () => {
 
   const markAsRead = async (id) => {
     try {
-      await fetch(`http://localhost:5001/api/admin/messages/${id}/read`, { method: 'PUT', ...getHeaders() });
+      await fetch(`${API_URL}/api/admin/messages/${id}/read`, { method: 'PUT', ...getHeaders() });
       setMessages(messages.map(m => m.id === id ? { ...m, isRead: true } : m));
     } catch (err) {
       console.error(err);
@@ -41,7 +42,7 @@ const AdminMessages = () => {
   const deleteMessage = async (id) => {
     if(confirm("Supprimer ce message ?")) {
       try {
-        await fetch(`http://localhost:5001/api/admin/messages/${id}`, { method: 'DELETE', ...getHeaders() });
+        await fetch(`${API_URL}/api/admin/messages/${id}`, { method: 'DELETE', ...getHeaders() });
         setMessages(messages.filter(m => m.id !== id));
       } catch (err) {
         console.error(err);
@@ -53,7 +54,7 @@ const AdminMessages = () => {
     e.preventDefault();
     setReplyStatus('sending');
     try {
-      await fetch(`http://localhost:5001/api/admin/messages/${replyModal.messageId}/reply`, { 
+      await fetch(`${API_URL}/api/admin/messages/${replyModal.messageId}/reply`, { 
         method: 'POST', 
         ...getHeaders(),
         body: JSON.stringify({ replyBody: replyModal.replyBody })

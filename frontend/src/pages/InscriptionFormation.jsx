@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Clock, Users, ArrowRight, ShieldCheck } from 'lucide-react';
 import './Home.css';
+import { API_URL } from '../config';
 
 const InscriptionFormation = () => {
   const [formations, setFormations] = useState([]);
@@ -13,7 +14,7 @@ const InscriptionFormation = () => {
   useEffect(() => { 
     const fetchRealFormations = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/public/formations');
+        const res = await fetch(`${API_URL}/api/public/formations`);
         if (res.ok) {
           const data = await res.json();
           setFormations(data);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Edit2, Trash2, ChevronDown, ChevronUp, Video, FileText, MoveUp, MoveDown } from 'lucide-react';
+import { API_URL } from '../../config';
 
 const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
   const [structure, setStructure] = useState([]);
@@ -19,7 +20,7 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
   const fetchStructure = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5001/api/courses/${formationId}/structure`);
+      const res = await fetch(`${API_URL}/api/courses/${formationId}/structure`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setStructure(data);
@@ -53,7 +54,7 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
     if (!formData.title) return alert('Le titre est requis');
 
     const isEdit = !!editingItem;
-    let url = 'http://localhost:5001/api/';
+    let url = `${API_URL}/api/`;
     let bodyData = { ...formData };
     
     if (modalType === 'module') {
@@ -86,7 +87,7 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
   const handleDelete = async (type, id) => {
     if (!window.confirm(`Voulez-vous vraiment supprimer cet élément ?`)) return;
     try {
-      const res = await fetch(`http://localhost:5001/api/${type}s/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/api/${type}s/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Erreur lors de la suppression');
       fetchStructure();
     } catch (err) {

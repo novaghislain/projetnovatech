@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { FileText, Download, CheckCircle } from 'lucide-react';
 import { getFormations } from '../services/formationService';
+import { API_URL } from '../config';
 
 const Recus = () => {
   const { user } = useAuth();
@@ -15,7 +16,7 @@ const Recus = () => {
     const fetchPayments = async () => {
       try {
         const token = localStorage.getItem('nv_token');
-        const response = await fetch('http://localhost:5001/api/user/payments', {
+        const response = await fetch(`${API_URL}/api/user/payments`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         

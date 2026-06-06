@@ -1283,6 +1283,11 @@
     font-size: 1.9rem;
   }
 
+  .hero-sidebar {
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
   .features-strip-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1292,7 +1297,7 @@
   }
 
   .gallery-section {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
   .key-figures-grid {
@@ -1300,11 +1305,14 @@
   }
 
   .hero-programs {
-    gap: 0.6rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem 0.5rem;
+    justify-items: center;
   }
 
   .hero-program-item {
-    max-width: 68px;
+    max-width: 85px;
   }
 
   .section-title {

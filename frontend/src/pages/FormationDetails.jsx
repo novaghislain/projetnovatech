@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Clock, Users, Calendar, CheckCircle2, ShieldCheck, ArrowLeft, AlertCircle } from 'lucide-react';
 import './Home.css';
+import { API_URL } from '../config';
 
 const FormationDetails = () => {
   const { id } = useParams();
@@ -17,7 +18,7 @@ const FormationDetails = () => {
   useEffect(() => {
     const fetchFormation = async () => {
       try {
-        const response = await fetch(`http://localhost:5001/api/public/formations/${id}`);
+        const response = await fetch(`${API_URL}/api/public/formations/${id}`);
         if (!response.ok) throw new Error("Formation introuvable");
         const data = await response.json();
         setFormation(data);

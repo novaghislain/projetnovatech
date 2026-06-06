@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Image as ImageIcon, MessageSquare, X } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../../config';
 
 const AdminContent = () => {
   const [testimonials, setTestimonials] = useState([]);
@@ -22,8 +23,8 @@ const AdminContent = () => {
   const fetchContent = async () => {
     try {
       const [testRes, galRes] = await Promise.all([
-        axios.get('http://localhost:5001/api/public/testimonials'),
-        axios.get('http://localhost:5001/api/public/gallery')
+        axios.get(`${API_URL}/api/public/testimonials`),
+        axios.get(`${API_URL}/api/public/gallery`)
       ]);
       setTestimonials(testRes.data);
       setGallery(galRes.data);
@@ -42,7 +43,7 @@ const AdminContent = () => {
   const handleTestimonialSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5001/api/admin/testimonials', testimonialForm, getHeaders());
+      await axios.post(`${API_URL}/api/admin/testimonials`, testimonialForm, getHeaders());
       setShowTestimonialModal(false);
       setTestimonialForm({ authorName: '', age: '', courseName: '', comment: '', rating: 5, avatar: '' });
       fetchContent();
@@ -53,7 +54,7 @@ const AdminContent = () => {
   const deleteTestimonial = async (id) => {
     if (!confirm("Supprimer ce témoignage ?")) return;
     try {
-      await axios.delete(`http://localhost:5001/api/admin/testimonials/${id}`, getHeaders());
+      await axios.delete(`${API_URL}/api/admin/testimonials/${id}`, getHeaders());
       fetchContent();
     } catch (err) {
       alert(err.message);
@@ -65,7 +66,7 @@ const AdminContent = () => {
   const handleGallerySubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5001/api/admin/gallery', galleryForm, getHeaders());
+      await axios.post(`${API_URL}/api/admin/gallery`, galleryForm, getHeaders());
       setShowGalleryModal(false);
       setGalleryForm({ title: '', imageUrl: '', category: 'Classes' });
       fetchContent();
@@ -76,7 +77,7 @@ const AdminContent = () => {
   const deleteGalleryImage = async (id) => {
     if (!confirm("Supprimer cette image ?")) return;
     try {
-      await axios.delete(`http://localhost:5001/api/admin/gallery/${id}`, getHeaders());
+      await axios.delete(`${API_URL}/api/admin/gallery/${id}`, getHeaders());
       fetchContent();
     } catch (err) {
       alert(err.message);

@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { BookOpen, Users, Star, MessageCircle, LogOut, Video, FileText, CheckCircle, Clock, ChevronRight, Plus, Trash2, Edit2, X } from 'lucide-react';
+import { BookOpen, Users, Star, MessageCircle, LogOut, Video, FileText, CheckCircle, Clock, ChevronRight, Plus, Trash2, Edit2, X, Menu } from 'lucide-react';
 import './Home.css';
+import './FormateurDashboard.css';
+import { API_URL } from '../config';
 
 const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Débutant', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', location: '', isOnline: false, meetLink: '', whatsappLink: '', imageUrl: '', sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
 
 const FormateurDashboard = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLiveModal, setShowLiveModal] = useState(false);
   
   const [data, setData] = useState(null);
@@ -28,7 +31,7 @@ const FormateurDashboard = () => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('nv_token');
-        const res = await fetch('http://localhost:5001/api/formateur/dashboard', {
+        const res = await fetch(`${API_URL}/api/formateur/dashboard`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -54,7 +57,7 @@ const FormateurDashboard = () => {
   const startLive = async (courseId) => {
     try {
       const token = localStorage.getItem('nv_token');
-      const res = await fetch(`http://localhost:5001/api/formateur/courses/${courseId}/live/start`, {
+      const res = await fetch(`${API_URL}/api/formateur/courses/${courseId}/live/start`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -70,7 +73,7 @@ const FormateurDashboard = () => {
   const stopLive = async () => {
     try {
       const token = localStorage.getItem('nv_token');
-      await fetch(`http://localhost:5001/api/formateur/courses/${liveCourseId}/live/stop`, {
+      await fetch(`${API_URL}/api/formateur/courses/${liveCourseId}/live/stop`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -89,41 +92,57 @@ const FormateurDashboard = () => {
 
   try {
     return (
-      <div style={{ backgroundColor: '#f4f7fe', minHeight: '100vh', display: 'flex' }}>
+      <div className="formateur-layout">
       
+      {/* MOBILE HEADER */}
+      <div className="formateur-mobile-header">
+        <h2 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 800, margin: 0, cursor: 'pointer' }} onClick={() => window.location.href = '/'}>Espace Formateur</h2>
+        <button className="formateur-mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
+          <Menu size={24} color="#fff" />
+        </button>
+      </div>
+
+      {/* OVERLAY */}
+      {isSidebarOpen && (
+        <div className="formateur-sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+
       {/* SIDEBAR */}
-      <aside style={{ width: '280px', backgroundColor: '#fff', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '2rem', borderBottom: '1px solid #e2e8f0' }}>
-          <h2 style={{ fontSize: '1.5rem', color: '#0f172a', fontWeight: 800, margin: 0 }}>Espace<br/><span style={{ color: '#4285f4' }}>Formateur</span></h2>
+      <aside className={`formateur-sidebar ${isSidebarOpen ? 'open' : ''}`}>
+        <div className="formateur-sidebar-header" style={{ padding: '2rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: '1.5rem', color: '#0f172a', fontWeight: 800, margin: 0, cursor: 'pointer' }} onClick={() => window.location.href = '/'}>Espace<br/><span style={{ color: '#4285f4' }}>Formateur</span></h2>
+          <button className="formateur-mobile-close-btn" onClick={() => setIsSidebarOpen(false)}>
+            <X size={24} color="#0f172a" />
+          </button>
         </div>
         
         <nav style={{ padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
           <button 
-            onClick={() => setActiveTab('overview')}
+            onClick={() => { setActiveTab('overview'); setIsSidebarOpen(false); }}
             style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'overview' ? '#eff6ff' : 'transparent', color: activeTab === 'overview' ? '#3b82f6' : '#64748b', fontWeight: activeTab === 'overview' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
           >
             <BookOpen size={20} /> Vue d'ensemble
           </button>
           <button 
-            onClick={() => setActiveTab('courses')}
+            onClick={() => { setActiveTab('courses'); setIsSidebarOpen(false); }}
             style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'courses' ? '#eff6ff' : 'transparent', color: activeTab === 'courses' ? '#3b82f6' : '#64748b', fontWeight: activeTab === 'courses' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
           >
             <Video size={20} /> Mes Cours
           </button>
           <button 
-            onClick={() => setActiveTab('students')}
+            onClick={() => { setActiveTab('students'); setIsSidebarOpen(false); }}
             style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'students' ? '#eff6ff' : 'transparent', color: activeTab === 'students' ? '#3b82f6' : '#64748b', fontWeight: activeTab === 'students' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
           >
             <Users size={20} /> Apprenants
           </button>
           <button 
-            onClick={() => setActiveTab('manage')}
+            onClick={() => { setActiveTab('manage'); setIsSidebarOpen(false); }}
             style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'manage' ? '#eff6ff' : 'transparent', color: activeTab === 'manage' ? '#3b82f6' : '#64748b', fontWeight: activeTab === 'manage' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
           >
             <Plus size={20} /> Mes Formations
           </button>
           <button 
-            onClick={() => setActiveTab('messages')}
+            onClick={() => { setActiveTab('messages'); setIsSidebarOpen(false); }}
             style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'messages' ? '#eff6ff' : 'transparent', color: activeTab === 'messages' ? '#3b82f6' : '#64748b', fontWeight: activeTab === 'messages' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
           >
             <MessageCircle size={20} /> Questions 
@@ -152,10 +171,10 @@ const FormateurDashboard = () => {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main style={{ flex: 1, padding: '2.5rem', overflowY: 'auto' }}>
+      <main className="formateur-main">
         
         {/* HEADER */}
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+        <header className="formateur-header">
           <div>
             <h1 style={{ fontSize: '2rem', color: '#0f172a', margin: '0 0 0.5rem 0' }}>Bonjour, {user?.firstName} 👋</h1>
             <p style={{ color: '#64748b', margin: 0, fontSize: '1.1rem' }}>Voici l'activité de vos classes aujourd'hui.</p>
@@ -174,7 +193,7 @@ const FormateurDashboard = () => {
         {activeTab === 'overview' && (
           <div className="fade-in">
             {/* STATS GRID */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+            <div className="formateur-stats-grid">
               <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '1.2rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
                 <div style={{ background: '#eff6ff', padding: '1.2rem', borderRadius: '16px', color: '#3b82f6' }}><BookOpen size={28} /></div>
                 <div><div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>{stats.courses}</div><div style={{ color: '#64748b', fontSize: '0.95rem', marginTop: '0.2rem' }}>Cours actifs</div></div>
@@ -189,7 +208,7 @@ const FormateurDashboard = () => {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
+            <div className="formateur-content-grid">
               {/* MES COURS */}
               <div style={{ background: '#fff', borderRadius: '20px', padding: '2rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -285,7 +304,7 @@ const FormateurDashboard = () => {
                                 if (!replyText) return;
                                 try {
                                   const token = localStorage.getItem('nv_token');
-                                  await fetch(`http://localhost:5001/api/formateur/questions/${q.id}/reply`, {
+                                  await fetch(`${API_URL}/api/formateur/questions/${q.id}/reply`, {
                                     method: 'PUT',
                                     headers: { 
                                       'Authorization': `Bearer ${token}`,
@@ -383,7 +402,7 @@ const FormateurDashboard = () => {
                             if (window.confirm('Voulez-vous vraiment retirer cet apprenant de la formation ?')) {
                               try {
                                 const token = localStorage.getItem('nv_token');
-                                await fetch(`http://localhost:5001/api/formateur/enrollments/${student.id}`, {
+                                await fetch(`${API_URL}/api/formateur/enrollments/${student.id}`, {
                                   method: 'DELETE',
                                   headers: { 'Authorization': `Bearer ${token}` }
                                 });
@@ -460,7 +479,7 @@ const FormateurDashboard = () => {
                             if (!replyText) return;
                             try {
                               const token = localStorage.getItem('nv_token');
-                              await fetch(`http://localhost:5001/api/formateur/questions/${q.id}/reply`, {
+                              await fetch(`${API_URL}/api/formateur/questions/${q.id}/reply`, {
                                 method: 'PUT',
                                 headers: { 
                                   'Authorization': `Bearer ${token}`,
@@ -552,7 +571,7 @@ const FormateurDashboard = () => {
                         onClick={async () => {
                           if (!window.confirm(`Supprimer "${course.title}" ? Cette action est irréversible.`)) return;
                           const token = localStorage.getItem('nv_token');
-                          const res = await fetch(`http://localhost:5001/api/formateur/courses/${course.id}`, {
+                          const res = await fetch(`${API_URL}/api/formateur/courses/${course.id}`, {
                             method: 'DELETE',
                             headers: { 'Authorization': `Bearer ${token}` }
                           });
@@ -585,8 +604,8 @@ const FormateurDashboard = () => {
               try {
                 const token = localStorage.getItem('nv_token');
                 const url = editingCourse
-                  ? `http://localhost:5001/api/formateur/courses/${editingCourse}`
-                  : 'http://localhost:5001/api/formateur/courses';
+                  ? `${API_URL}/api/formateur/courses/${editingCourse}`
+                  : `${API_URL}/api/formateur/courses`;
                 const method = editingCourse ? 'PUT' : 'POST';
                 const res = await fetch(url, {
                   method,

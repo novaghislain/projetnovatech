@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, X, User, Mail, Phone, BookOpen, CheckCircle, XCircle } from 'lucide-react';
+import { API_URL } from '../../config';
 
 const specialites = [
   'Développement Web', 'Intelligence Artificielle', 'Bureautique',
@@ -28,7 +29,7 @@ const AdminFormateurs = () => {
   const fetchFormateurs = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5001/api/admin/formateurs', { headers });
+      const res = await fetch(`${API_URL}/api/admin/formateurs`, { headers });
       if (res.ok) setFormateurs(await res.json());
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
@@ -55,8 +56,8 @@ const AdminFormateurs = () => {
     try {
       const method = formData.id ? 'PUT' : 'POST';
       const url = formData.id
-        ? `http://localhost:5001/api/admin/formateurs/${formData.id}`
-        : 'http://localhost:5001/api/admin/formateurs';
+        ? `${API_URL}/api/admin/formateurs/${formData.id}`
+        : `${API_URL}/api/admin/formateurs`;
       const res = await fetch(url, { method, headers, body: JSON.stringify(formData) });
       if (!res.ok) throw new Error("Erreur lors de l'enregistrement");
       await fetchFormateurs();
@@ -67,7 +68,7 @@ const AdminFormateurs = () => {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/admin/formateurs/${id}`, {
+      const res = await fetch(`${API_URL}/api/admin/formateurs/${id}`, {
         method: 'DELETE', headers
       });
       if (!res.ok) throw new Error("Erreur lors de la suppression");
@@ -79,7 +80,7 @@ const AdminFormateurs = () => {
   const handleToggleStatus = async (f) => {
     const newStatus = f.status === 'actif' ? 'inactif' : 'actif';
     try {
-      await fetch(`http://localhost:5001/api/admin/formateurs/${f.id}`, {
+      await fetch(`${API_URL}/api/admin/formateurs/${f.id}`, {
         method: 'PUT', headers, body: JSON.stringify({ ...f, status: newStatus })
       });
       await fetchFormateurs();

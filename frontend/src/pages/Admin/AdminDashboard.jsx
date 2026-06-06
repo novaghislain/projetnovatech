@@ -13,7 +13,9 @@ import {
   CheckCircle,
   XCircle,
   Eye,
-  MousePointerClick
+  MousePointerClick,
+  Menu,
+  X
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -37,11 +39,13 @@ import AdminMessages from './AdminMessages';
 import AdminFormateurs from './AdminFormateurs';
 import AdminCandidatures from './AdminCandidatures';
 import { useAuth } from '../../contexts/AuthContext';
+import { API_URL } from '../../config';
 
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const [stats, setStats] = useState({ activeFormations: 0, totalUsers: 0, totalRevenue: 0 });
   const [payments, setPayments] = useState([]);
@@ -53,11 +57,11 @@ const AdminDashboard = () => {
         const headers = { 'Authorization': `Bearer ${token}` };
         
         // Fetch stats
-        const statsRes = await fetch('http://localhost:5001/api/admin/stats', { headers });
+        const statsRes = await fetch(`${API_URL}/api/admin/stats`, { headers });
         if (statsRes.ok) setStats(await statsRes.json());
         
         // Fetch payments
-        const payRes = await fetch('http://localhost:5001/api/admin/payments', { headers });
+        const payRes = await fetch(`${API_URL}/api/admin/payments`, { headers });
         if (payRes.ok) setPayments(await payRes.json());
       } catch (err) {
         console.error(err);
@@ -70,7 +74,7 @@ const AdminDashboard = () => {
     if (window.confirm('Voulez-vous vraiment supprimer ce paiement ?')) {
       try {
         const token = localStorage.getItem('nv_token');
-        await fetch(`http://localhost:5001/api/admin/payments/${id}`, {
+        await fetch(`${API_URL}/api/admin/payments/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -110,44 +114,60 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-layout">
+      {/* MOBILE HEADER */}
+      <div className="admin-mobile-header">
+        <img src="/4x.png" alt="Novatech Vision" style={{ height: '30px', cursor: 'pointer' }} onClick={() => window.location.href = '/'} />
+        <button className="admin-mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
+          <Menu size={24} />
+        </button>
+      </div>
+
+      {/* OVERLAY */}
+      {isSidebarOpen && (
+        <div className="admin-sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+
       {/* SIDEBAR */}
-      <aside className="admin-sidebar">
+      <aside className={`admin-sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-header">
-          <img src="/4x.png" alt="Novatech Vision" />
+          <img src="/4x.png" alt="Novatech Vision" style={{ cursor: 'pointer' }} onClick={() => window.location.href = '/'} />
+          <button className="admin-mobile-close-btn" onClick={() => setIsSidebarOpen(false)}>
+            <X size={24} color="white" />
+          </button>
         </div>
         <nav className="admin-sidebar-nav">
-          <div className={`admin-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
+          <div className={`admin-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }}>
             <LayoutDashboard size={20} /> Dashboard
           </div>
           
-          <div className={`admin-nav-item ${activeTab === 'formations' ? 'active' : ''}`} onClick={() => setActiveTab('formations')}>
+          <div className={`admin-nav-item ${activeTab === 'formations' ? 'active' : ''}`} onClick={() => { setActiveTab('formations'); setIsSidebarOpen(false); }}>
             <BookOpen size={20} /> Formations
           </div>
-          <div className={`admin-nav-item ${activeTab === 'inscriptions' ? 'active' : ''}`} onClick={() => setActiveTab('inscriptions')}>
+          <div className={`admin-nav-item ${activeTab === 'inscriptions' ? 'active' : ''}`} onClick={() => { setActiveTab('inscriptions'); setIsSidebarOpen(false); }}>
             <Users size={20} /> Inscriptions
           </div>
-          <div className={`admin-nav-item ${activeTab === 'paiements' ? 'active' : ''}`} onClick={() => setActiveTab('paiements')}>
+          <div className={`admin-nav-item ${activeTab === 'paiements' ? 'active' : ''}`} onClick={() => { setActiveTab('paiements'); setIsSidebarOpen(false); }}>
             <CreditCard size={20} /> Paiements
           </div>
-          <div className={`admin-nav-item ${activeTab === 'ads' ? 'active' : ''}`} onClick={() => setActiveTab('ads')}>
+          <div className={`admin-nav-item ${activeTab === 'ads' ? 'active' : ''}`} onClick={() => { setActiveTab('ads'); setIsSidebarOpen(false); }}>
             <Megaphone size={20} /> Publicités
           </div>
-          <div className={`admin-nav-item ${activeTab === 'contenu' ? 'active' : ''}`} onClick={() => setActiveTab('contenu')}>
+          <div className={`admin-nav-item ${activeTab === 'contenu' ? 'active' : ''}`} onClick={() => { setActiveTab('contenu'); setIsSidebarOpen(false); }}>
             <Edit size={20} /> Contenu (Galerie & Témoignages)
           </div>
-          <div className={`admin-nav-item ${activeTab === 'messages' ? 'active' : ''}`} onClick={() => setActiveTab('messages')}>
+          <div className={`admin-nav-item ${activeTab === 'messages' ? 'active' : ''}`} onClick={() => { setActiveTab('messages'); setIsSidebarOpen(false); }}>
             <Edit size={20} /> Messages
           </div>
-          <div className={`admin-nav-item ${activeTab === 'utilisateurs' ? 'active' : ''}`} onClick={() => setActiveTab('utilisateurs')}>
+          <div className={`admin-nav-item ${activeTab === 'utilisateurs' ? 'active' : ''}`} onClick={() => { setActiveTab('utilisateurs'); setIsSidebarOpen(false); }}>
             <Users size={20} /> Utilisateurs
           </div>
-          <div className={`admin-nav-item ${activeTab === 'formateurs' ? 'active' : ''}`} onClick={() => setActiveTab('formateurs')}>
+          <div className={`admin-nav-item ${activeTab === 'formateurs' ? 'active' : ''}`} onClick={() => { setActiveTab('formateurs'); setIsSidebarOpen(false); }}>
             <Users size={20} /> Formateurs
           </div>
-          <div className={`admin-nav-item ${activeTab === 'candidatures' ? 'active' : ''}`} onClick={() => setActiveTab('candidatures')}>
+          <div className={`admin-nav-item ${activeTab === 'candidatures' ? 'active' : ''}`} onClick={() => { setActiveTab('candidatures'); setIsSidebarOpen(false); }}>
             <CheckCircle size={20} /> Candidatures
           </div>
-          <div className={`admin-nav-item ${activeTab === 'parametres' ? 'active' : ''}`} onClick={() => window.location.href = '/parametres'}>
+          <div className={`admin-nav-item ${activeTab === 'parametres' ? 'active' : ''}`} onClick={() => { window.location.href = '/parametres'; setIsSidebarOpen(false); }}>
             <Edit size={20} /> Paramètres
           </div>
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Lock, ArrowRight, CheckCircle } from 'lucide-react';
 import './Home.css';
+import { API_URL } from '../config';
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -30,7 +31,7 @@ const ResetPassword = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:5001/api/auth/reset-password', {
+      const res = await fetch(`${API_URL}/api/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, newPassword: password })

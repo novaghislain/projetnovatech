@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Trash2 } from 'lucide-react';
+import { API_URL } from '../../config';
 
 const AdminCandidatures = () => {
   const [candidatures, setCandidatures] = useState([]);
@@ -8,7 +9,7 @@ const AdminCandidatures = () => {
   const fetchCandidatures = async () => {
     try {
       const token = localStorage.getItem('nv_token');
-      const res = await fetch('http://localhost:5001/api/admin/applications', {
+      const res = await fetch(`${API_URL}/api/admin/applications`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -29,7 +30,7 @@ const AdminCandidatures = () => {
     if (!window.confirm("Voulez-vous vraiment approuver cette candidature ? L'utilisateur deviendra Formateur.")) return;
     try {
       const token = localStorage.getItem('nv_token');
-      const res = await fetch(`http://localhost:5001/api/admin/applications/${id}/approve`, {
+      const res = await fetch(`${API_URL}/api/admin/applications/${id}/approve`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -48,7 +49,7 @@ const AdminCandidatures = () => {
     if (!window.confirm("Voulez-vous vraiment rejeter cette candidature ?")) return;
     try {
       const token = localStorage.getItem('nv_token');
-      const res = await fetch(`http://localhost:5001/api/admin/applications/${id}/reject`, {
+      const res = await fetch(`${API_URL}/api/admin/applications/${id}/reject`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -67,7 +68,7 @@ const AdminCandidatures = () => {
     if (!window.confirm("Voulez-vous vraiment supprimer définitivement cette candidature ?")) return;
     try {
       const token = localStorage.getItem('nv_token');
-      const res = await fetch(`http://localhost:5001/api/admin/applications/${id}`, {
+      const res = await fetch(`${API_URL}/api/admin/applications/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Camera, Trash2, User, Upload, Settings, Lock, Save } from 'lucide-react';
 import './Home.css';
+import { API_URL } from '../config';
 
 const Parametres = () => {
   const { user, updateUserDetails } = useAuth();
@@ -44,7 +45,7 @@ const Parametres = () => {
       setMsgAvatar({ type: '', text: '' });
 
       const token = localStorage.getItem('nv_token');
-      const response = await fetch('http://localhost:5001/api/user/avatar', {
+      const response = await fetch(`${API_URL}/api/user/avatar`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
@@ -70,7 +71,7 @@ const Parametres = () => {
       setMsgAvatar({ type: '', text: '' });
 
       const token = localStorage.getItem('nv_token');
-      const response = await fetch('http://localhost:5001/api/user/avatar', {
+      const response = await fetch(`${API_URL}/api/user/avatar`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -95,7 +96,7 @@ const Parametres = () => {
       setMsgProfile({ type: '', text: '' });
 
       const token = localStorage.getItem('nv_token');
-      const response = await fetch('http://localhost:5001/api/user/profile', {
+      const response = await fetch(`${API_URL}/api/user/profile`, {
         method: 'PUT',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -128,7 +129,7 @@ const Parametres = () => {
       setMsgPwd({ type: '', text: '' });
 
       const token = localStorage.getItem('nv_token');
-      const response = await fetch('http://localhost:5001/api/user/password', {
+      const response = await fetch(`${API_URL}/api/user/password`, {
         method: 'PUT',
         headers: { 
           'Authorization': `Bearer ${token}`,
