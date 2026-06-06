@@ -1,4 +1,6 @@
 const express = require('express');
+const { sendEmail } = require('./emailService');
+const { enrollmentConfirmation } = require('./emailTemplates');
 
 module.exports = function(db, authenticateToken) {
   const router = express.Router();
@@ -54,6 +56,17 @@ module.exports = function(db, authenticateToken) {
           status, 
           message: isFull ? "Vous avez été placé(e) sur liste d'attente." : "Inscription confirmée avec succès.",
           enrollmentId: enrollId
+        });
+
+        // Email de confirmation (ne pas bloquer la réponse)
+        const childName = childFirstName ? `${childFirstName} ${childLastName || ''}`.trim() : null;
+        const emailData = enrollmentConfirmation({
+          firstName: parentName || req.user.firstName,
+          courseTitle: course.title,
+          childName
+        });
+        sendEmail({ to: parentEmail || req.user.email, ...emailData }).catch(err => {
+          console.error('Erreur envoi email confirmation:', err.message);
         });
       });
     });

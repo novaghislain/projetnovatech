@@ -8,7 +8,7 @@ const AdminAds = () => {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     advertiserName: '',
-    placement: 'Accueil',
+    placement: 'header',
     imageUrl: '',
     targetUrl: '',
     startDate: '',
@@ -135,8 +135,10 @@ const AdminAds = () => {
                 <div className="form-group">
                   <label>Emplacement *</label>
                   <select name="placement" className="form-control" onChange={handleChange}>
-                    <option value="Accueil">Accueil</option>
-                    <option value="Sidebar">Sidebar Formations</option>
+                    <option value="header">Bannière haute (header)</option>
+                    <option value="sidebar">Sidebar</option>
+                    <option value="inline">Entre les sections</option>
+                    <option value="footer">Pied de page</option>
                   </select>
                 </div>
                 

@@ -23,6 +23,8 @@ import Paiements from './pages/Paiements';
 import Recus from './pages/Recus';
 import Parametres from './pages/Parametres';
 import Testimonials from './pages/Testimonials';
+import LessonViewer from './pages/LessonViewer';
+import CertificateVerify from './pages/CertificateVerify';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -77,12 +79,14 @@ const AppLayout = () => {
           <Route path="/inscription" element={<Inscription />} />
           <Route path="/formations" element={<InscriptionFormation />} />
           <Route path="/formations/:id" element={<FormationDetails />} />
+          <Route path="/verifier/:certId" element={<CertificateVerify />} />
 
           {/* Espace Apprenant */}
           <Route path="/mon-espace" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><MonEspace /></ProtectedRoute>} />
           <Route path="/mon-espace/inscriptions" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><TableauInscriptions /></ProtectedRoute>} />
           <Route path="/mon-espace/paiements" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><Paiements /></ProtectedRoute>} />
           <Route path="/mon-espace/recus" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><Recus /></ProtectedRoute>} />
+          <Route path="/mon-espace/lecons/:courseId" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><LessonViewer /></ProtectedRoute>} />
           
           <Route path="/parametres" element={<ProtectedRoute><Parametres /></ProtectedRoute>} />
           

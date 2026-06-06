@@ -15,6 +15,7 @@ const Parametres = () => {
   // States pour le profil
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [bio, setBio] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [msgProfile, setMsgProfile] = useState({ type: '', text: '' });
 
@@ -29,6 +30,7 @@ const Parametres = () => {
     if (user) {
       setFirstName(user.firstName || '');
       setLastName(user.lastName || '');
+      setBio(user.bio || '');
     }
   }, [user]);
 
@@ -102,13 +104,13 @@ const Parametres = () => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ firstName, lastName })
+        body: JSON.stringify({ firstName, lastName, bio })
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Erreur de mise à jour');
 
-      if (updateUserDetails) updateUserDetails({ firstName, lastName });
+      if (updateUserDetails) updateUserDetails({ firstName, lastName, bio });
       setMsgProfile({ type: 'success', text: 'Profil mis à jour avec succès.' });
     } catch (err) {
       setMsgProfile({ type: 'error', text: err.message });
@@ -234,6 +236,11 @@ const Parametres = () => {
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#444' }}>Adresse Email</label>
                 <input type="email" value={user?.email || ''} readOnly className="form-control" style={{ backgroundColor: '#f5f5f5', color: '#777', cursor: 'not-allowed' }} />
                 <span style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.4rem', display: 'block' }}>L'adresse email ne peut pas être modifiée pour des raisons de sécurité.</span>
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#444' }}>Bio</label>
+                <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} className="form-control" placeholder="Parle-nous de toi..." style={{ resize: 'vertical' }} />
+                <span style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.4rem', display: 'block' }}>Cette bio sera visible sur ton profil public.</span>
               </div>
             </div>
             <button type="submit" disabled={loadingProfile} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
