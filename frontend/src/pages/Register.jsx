@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { reserveFormation } from '../services/formationService';
 import { User, Mail, Lock, ArrowRight, CheckCircle } from 'lucide-react';
 import './Home.css';
 
@@ -26,20 +25,14 @@ const Register = () => {
     setLoading(true);
     try {
       await auth.register({ firstName, email, password });
-      const auto = location.state?.autoReserve;
-      if (auto && auto.formationId) {
-        try {
-          await reserveFormation(auto.formationId, auth.user);
-          navigate('/mon-espace/inscriptions');
-          return;
-        } catch (err) {
-          alert(err.message);
-        }
+      if (location.state?.formationId) {
+        navigate('/inscription', { state: { formationId: location.state.formationId } });
+        return;
       }
       const dest = location.state?.from || '/mon-espace';
       navigate(dest);
     } catch (err) {
-      alert('Erreur inscription (demo)');
+      alert(err.message || "Erreur lors de l'inscription");
     } finally {
       setLoading(false);
     }
@@ -132,7 +125,7 @@ const Register = () => {
 
         <div style={{ textAlign: 'center', marginTop: '2.5rem', fontSize: '0.95rem', color: 'var(--color-text-muted)' }}>
           Vous avez déjà un compte ?{' '}
-          <Link to="/connexion" style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none' }}>Se connecter</Link>
+          <Link to="/connexion" state={location.state} style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none' }}>Se connecter</Link>
         </div>
 
       </div>

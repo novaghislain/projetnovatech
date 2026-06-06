@@ -110,40 +110,37 @@ const FormateurDashboard = () => {
       {/* SIDEBAR */}
       <aside className={`formateur-sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="formateur-sidebar-header" style={{ padding: '2rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1.5rem', color: '#0f172a', fontWeight: 800, margin: 0, cursor: 'pointer' }} onClick={() => window.location.href = '/'}>Espace<br/><span style={{ color: '#4285f4' }}>Formateur</span></h2>
-          <button className="formateur-mobile-close-btn" onClick={() => setIsSidebarOpen(false)}>
-            <X size={24} color="#0f172a" />
-          </button>
+          <h2 style={{ fontSize: '1.5rem', color: '#0f172a', fontWeight: 800, margin: 0, cursor: 'pointer' }} onClick={() => window.location.href = '/'}>Espace<br/><span style={{ color: '#0F3460' }}>Formateur</span></h2>
         </div>
         
         <nav style={{ padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
           <button 
             onClick={() => { setActiveTab('overview'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'overview' ? '#eff6ff' : 'transparent', color: activeTab === 'overview' ? '#3b82f6' : '#64748b', fontWeight: activeTab === 'overview' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
+            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'overview' ? '#f0f4f8' : 'transparent', color: activeTab === 'overview' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'overview' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
           >
             <BookOpen size={20} /> Vue d'ensemble
           </button>
           <button 
             onClick={() => { setActiveTab('courses'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'courses' ? '#eff6ff' : 'transparent', color: activeTab === 'courses' ? '#3b82f6' : '#64748b', fontWeight: activeTab === 'courses' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
+            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'courses' ? '#f0f4f8' : 'transparent', color: activeTab === 'courses' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'courses' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
           >
             <Video size={20} /> Mes Cours
           </button>
           <button 
             onClick={() => { setActiveTab('students'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'students' ? '#eff6ff' : 'transparent', color: activeTab === 'students' ? '#3b82f6' : '#64748b', fontWeight: activeTab === 'students' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
+            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'students' ? '#f0f4f8' : 'transparent', color: activeTab === 'students' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'students' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
           >
             <Users size={20} /> Apprenants
           </button>
           <button 
             onClick={() => { setActiveTab('manage'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'manage' ? '#eff6ff' : 'transparent', color: activeTab === 'manage' ? '#3b82f6' : '#64748b', fontWeight: activeTab === 'manage' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
+            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'manage' ? '#f0f4f8' : 'transparent', color: activeTab === 'manage' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'manage' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
           >
             <Plus size={20} /> Mes Formations
           </button>
           <button 
             onClick={() => { setActiveTab('messages'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'messages' ? '#eff6ff' : 'transparent', color: activeTab === 'messages' ? '#3b82f6' : '#64748b', fontWeight: activeTab === 'messages' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
+            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'messages' ? '#f0f4f8' : 'transparent', color: activeTab === 'messages' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'messages' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
           >
             <MessageCircle size={20} /> Questions 
             {questions.filter(q => q.status === 'pending').length > 0 && (
@@ -156,7 +153,7 @@ const FormateurDashboard = () => {
 
         <div style={{ padding: '1.5rem', borderTop: '1px solid #e2e8f0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'linear-gradient(135deg, #1A1A2E, #4285f4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800 }}>
+            <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'linear-gradient(135deg, #1A1A2E, #0F3460)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800 }}>
               {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
             </div>
             <div>
@@ -195,7 +192,7 @@ const FormateurDashboard = () => {
             {/* STATS GRID */}
             <div className="formateur-stats-grid">
               <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '1.2rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-                <div style={{ background: '#eff6ff', padding: '1.2rem', borderRadius: '16px', color: '#3b82f6' }}><BookOpen size={28} /></div>
+                <div style={{ background: '#f0f4f8', padding: '1.2rem', borderRadius: '16px', color: '#0F3460' }}><BookOpen size={28} /></div>
                 <div><div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>{stats.courses}</div><div style={{ color: '#64748b', fontSize: '0.95rem', marginTop: '0.2rem' }}>Cours actifs</div></div>
               </div>
               <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '1.2rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
@@ -213,14 +210,14 @@ const FormateurDashboard = () => {
               <div style={{ background: '#fff', borderRadius: '20px', padding: '2rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                   <h3 style={{ margin: 0, fontSize: '1.3rem', color: '#0f172a' }}>Mes Formations</h3>
-                  <button style={{ background: 'none', border: 'none', color: '#4285f4', fontWeight: 600, cursor: 'pointer' }}>Voir tout</button>
+                  <button style={{ background: 'none', border: 'none', color: '#0F3460', fontWeight: 600, cursor: 'pointer' }}>Voir tout</button>
                 </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {courses.map(course => (
-                    <div key={course.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.2rem', border: '1px solid #f1f5f9', borderRadius: '16px', transition: 'all 0.2s', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.borderColor = '#4285f4'} onMouseLeave={e => e.currentTarget.style.borderColor = '#f1f5f9'}>
+                    <div key={course.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.2rem', border: '1px solid #f1f5f9', borderRadius: '16px', transition: 'all 0.2s', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.borderColor = '#0F3460'} onMouseLeave={e => e.currentTarget.style.borderColor = '#f1f5f9'}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ width: '50px', height: '50px', background: '#f8fafc', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4285f4' }}>
+                        <div style={{ width: '50px', height: '50px', background: '#f8fafc', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F3460' }}>
                           <FileText size={24} />
                         </div>
                         <div>
@@ -236,7 +233,7 @@ const FormateurDashboard = () => {
                           <Clock size={14} /> {course.nextSession}
                         </div>
                         <div style={{ width: '120px', height: '6px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
-                          <div style={{ width: `${course.progress}%`, height: '100%', background: '#4285f4', borderRadius: '10px' }}></div>
+                          <div style={{ width: `${course.progress}%`, height: '100%', background: '#0F3460', borderRadius: '10px' }}></div>
                         </div>
                       </div>
                     </div>
@@ -262,7 +259,7 @@ const FormateurDashboard = () => {
                         <span style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{q.student}</span>
                         <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{q.time}</span>
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: '#4285f4', fontWeight: 600, marginBottom: '0.5rem' }}>{q.course}</div>
+                      <div style={{ fontSize: '0.8rem', color: '#0F3460', fontWeight: 600, marginBottom: '0.5rem' }}>{q.course}</div>
                       <p style={{ margin: '0 0 0.8rem 0', fontSize: '0.9rem', color: '#475569', lineHeight: 1.4 }}>"{q.text}"</p>
                       
                       {/* Threaded replies */}
@@ -281,7 +278,7 @@ const FormateurDashboard = () => {
                             alignSelf: reply.senderRole === 'formateur' ? 'flex-start' : 'flex-end',
                             background: reply.senderRole === 'formateur' ? '#ecfdf5' : '#f1f5f9',
                           }}>
-                            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: reply.senderRole === 'formateur' ? '#10b981' : '#3b82f6', marginBottom: '0.2rem', textAlign: reply.senderRole === 'formateur' ? 'left' : 'right' }}>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: reply.senderRole === 'formateur' ? '#10b981' : '#0F3460', marginBottom: '0.2rem', textAlign: reply.senderRole === 'formateur' ? 'left' : 'right' }}>
                               {reply.senderRole === 'formateur' ? 'Vous' : 'Apprenant'}
                               <span style={{ fontSize: '0.65rem', color: '#94a3b8', marginLeft: '0.4rem', fontWeight: 400 }}>{new Date(reply.createdAt).toLocaleDateString()}</span>
                             </div>
@@ -315,7 +312,7 @@ const FormateurDashboard = () => {
                                   window.location.reload();
                                 } catch(e) { alert('Erreur'); }
                               }} 
-                              style={{ padding: '0.5rem 1rem', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+                              style={{ padding: '0.5rem 1rem', background: '#0F3460', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
                               Envoyer
                             </button>
                             <button 
@@ -328,7 +325,7 @@ const FormateurDashboard = () => {
                       ) : (
                         <button 
                           onClick={() => { setReplyingTo(q.id); setReplyText(''); }} 
-                          style={{ padding: '0.5rem 1rem', background: '#eff6ff', color: '#3b82f6', border: 'none', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          style={{ padding: '0.5rem 1rem', background: '#f0f4f8', color: '#0F3460', border: 'none', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           Répondre <ChevronRight size={14} />
                         </button>
                       )}
@@ -360,7 +357,7 @@ const FormateurDashboard = () => {
                         <span>{course.progress}%</span>
                       </div>
                       <div style={{ width: '100%', height: '8px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
-                        <div style={{ width: `${course.progress}%`, height: '100%', background: '#4285f4', borderRadius: '10px' }}></div>
+                        <div style={{ width: `${course.progress}%`, height: '100%', background: '#0F3460', borderRadius: '10px' }}></div>
                       </div>
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -393,7 +390,7 @@ const FormateurDashboard = () => {
                     <tr key={student.id || i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '1rem 0.5rem', fontWeight: 600, color: '#0f172a' }}>{student.name}</td>
                       <td style={{ padding: '1rem 0.5rem', color: '#64748b' }}>{student.email}</td>
-                      <td style={{ padding: '1rem 0.5rem', color: '#4285f4', fontWeight: 500 }}>{student.course}</td>
+                      <td style={{ padding: '1rem 0.5rem', color: '#0F3460', fontWeight: 500 }}>{student.course}</td>
                       <td style={{ padding: '1rem 0.5rem', color: '#64748b' }}>{new Date(student.date).toLocaleDateString()}</td>
                       <td style={{ padding: '1rem 0.5rem', color: '#10b981', fontWeight: 600 }}>{student.amount ? `${student.amount} FCFA` : 'Gratuit'}</td>
                       <td style={{ padding: '1rem 0.5rem' }}>
@@ -437,7 +434,7 @@ const FormateurDashboard = () => {
                     <span style={{ fontWeight: 600, color: '#0f172a', fontSize: '1.05rem' }}>{q.student}</span>
                     <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{q.time}</span>
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: '#4285f4', fontWeight: 600, marginBottom: '0.8rem' }}>Formation : {q.course}</div>
+                  <div style={{ fontSize: '0.85rem', color: '#0F3460', fontWeight: 600, marginBottom: '0.8rem' }}>Formation : {q.course}</div>
                   <p style={{ margin: '0 0 1.2rem 0', fontSize: '0.95rem', color: '#475569', lineHeight: 1.5 }}>"{q.text}"</p>
                   
                   {/* Threaded replies */}
@@ -456,7 +453,7 @@ const FormateurDashboard = () => {
                         alignSelf: reply.senderRole === 'formateur' ? 'flex-start' : 'flex-end',
                         background: reply.senderRole === 'formateur' ? '#ecfdf5' : '#f1f5f9',
                       }}>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: reply.senderRole === 'formateur' ? '#10b981' : '#3b82f6', marginBottom: '0.3rem', textAlign: reply.senderRole === 'formateur' ? 'left' : 'right' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: reply.senderRole === 'formateur' ? '#10b981' : '#0F3460', marginBottom: '0.3rem', textAlign: reply.senderRole === 'formateur' ? 'left' : 'right' }}>
                           {reply.senderRole === 'formateur' ? 'Vous' : 'Apprenant'}
                           <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginLeft: '0.5rem', fontWeight: 400 }}>{new Date(reply.createdAt).toLocaleDateString()}</span>
                         </div>
@@ -490,7 +487,7 @@ const FormateurDashboard = () => {
                               window.location.reload();
                             } catch(e) { alert('Erreur'); }
                           }} 
-                          style={{ padding: '0.6rem 1.2rem', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}>
+                          style={{ padding: '0.6rem 1.2rem', background: '#0F3460', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}>
                           Envoyer la réponse
                         </button>
                         <button 
@@ -503,7 +500,7 @@ const FormateurDashboard = () => {
                   ) : (
                     <button 
                       onClick={() => { setReplyingTo(q.id); setReplyText(''); }} 
-                      style={{ padding: '0.6rem 1.2rem', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                      style={{ padding: '0.6rem 1.2rem', background: '#0F3460', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
                       Répondre <ChevronRight size={16} />
                     </button>
                   )}
@@ -520,7 +517,7 @@ const FormateurDashboard = () => {
               <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#0f172a' }}>Mes Formations</h2>
               <button
                 onClick={() => { setCourseForm(EMPTY_FORM); setEditingCourse(null); setShowCourseForm(true); }}
-                style={{ padding: '0.8rem 1.5rem', background: 'linear-gradient(135deg, #3b82f6, #6366f1)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 15px rgba(99,102,241,0.3)' }}
+                style={{ padding: '0.8rem 1.5rem', background: 'linear-gradient(135deg, #0F3460, #1A1A2E)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 15px rgba(15,52,96,0.3)' }}
               >
                 <Plus size={18} /> Ajouter une formation
               </button>
@@ -537,7 +534,7 @@ const FormateurDashboard = () => {
                 {courses.map(course => (
                   <div key={course.id} style={{ background: '#fff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '200px' }}>
-                      <div style={{ width: '54px', height: '54px', background: '#eff6ff', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', flexShrink: 0 }}>
+                      <div style={{ width: '54px', height: '54px', background: '#f0f4f8', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F3460', flexShrink: 0 }}>
                         <FileText size={26} />
                       </div>
                       <div>
@@ -674,7 +671,7 @@ const FormateurDashboard = () => {
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
                 <button type="button" onClick={() => setShowCourseForm(false)} style={{ padding: '0.9rem 1.8rem', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}>Annuler</button>
-                <button type="submit" disabled={courseFormLoading} style={{ padding: '0.9rem 1.8rem', background: courseFormLoading ? '#94a3b8' : 'linear-gradient(135deg, #3b82f6, #6366f1)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: courseFormLoading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 15px rgba(99,102,241,0.3)' }}>
+                <button type="submit" disabled={courseFormLoading} style={{ padding: '0.9rem 1.8rem', background: courseFormLoading ? '#94a3b8' : 'linear-gradient(135deg, #0F3460, #1A1A2E)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: courseFormLoading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 15px rgba(15,52,96,0.3)' }}>
                   {courseFormLoading ? 'Enregistrement...' : (editingCourse ? 'Enregistrer les modifications' : 'Créer la formation')}
                 </button>
               </div>
@@ -694,7 +691,7 @@ const FormateurDashboard = () => {
                 <button 
                   key={course.id}
                   onClick={() => setSelectedLiveCourse(course.id)}
-                  style={{ padding: '1rem', background: selectedLiveCourse === course.id ? '#eff6ff' : '#f8fafc', border: selectedLiveCourse === course.id ? '2px solid #3b82f6' : '1px solid #e2e8f0', borderRadius: '12px', textAlign: 'left', cursor: 'pointer', transition: 'all 0.2s' }}>
+                  style={{ padding: '1rem', background: selectedLiveCourse === course.id ? '#f0f4f8' : '#f8fafc', border: selectedLiveCourse === course.id ? '2px solid #0F3460' : '1px solid #e2e8f0', borderRadius: '12px', textAlign: 'left', cursor: 'pointer', transition: 'all 0.2s' }}>
                   <div style={{ fontWeight: 600, color: '#0f172a' }}>{course.title}</div>
                   <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.3rem' }}>{course.enrolled} apprenants inscrits</div>
                 </button>
@@ -702,7 +699,7 @@ const FormateurDashboard = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setShowLiveModal(false)} style={{ padding: '0.8rem 1.5rem', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: 'pointer' }}>Annuler</button>
-              <button onClick={() => { if(selectedLiveCourse) startLive(selectedLiveCourse); }} disabled={!selectedLiveCourse} style={{ padding: '0.8rem 1.5rem', background: selectedLiveCourse ? '#3b82f6' : '#94a3b8', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: selectedLiveCourse ? 'pointer' : 'not-allowed' }}>Démarrer</button>
+              <button onClick={() => { if(selectedLiveCourse) startLive(selectedLiveCourse); }} disabled={!selectedLiveCourse} style={{ padding: '0.8rem 1.5rem', background: selectedLiveCourse ? '#0F3460' : '#94a3b8', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: selectedLiveCourse ? 'pointer' : 'not-allowed' }}>Démarrer</button>
             </div>
           </div>
         </div>
@@ -710,8 +707,8 @@ const FormateurDashboard = () => {
 
       {/* Jitsi Meet Live Iframe */}
       {activeLiveRoom && (
-        <div style={{ position: 'fixed', top: '2rem', right: '2rem', width: '800px', maxWidth: '90%', height: '500px', background: '#000', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', zIndex: 1000, border: '4px solid #3b82f6', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ background: '#3b82f6', padding: '0.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', top: '2rem', right: '2rem', width: '800px', maxWidth: '90%', height: '500px', background: '#000', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', zIndex: 1000, border: '4px solid #0F3460', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#0F3460', padding: '0.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span style={{ width: '10px', height: '10px', background: '#ef4444', borderRadius: '50%', display: 'inline-block', boxShadow: '0 0 5px #ef4444' }}></span>
               Live en cours

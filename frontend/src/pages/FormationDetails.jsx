@@ -48,7 +48,7 @@ const FormationDetails = () => {
 
   const handleEnrollClick = () => {
     if (!auth.user) {
-      navigate('/connexion', { state: { from: '/inscription', autoReserve: { formationId: formation.id } } });
+      navigate('/register', { state: { formationId: formation.id } });
     } else {
       navigate('/inscription', { state: { formationId: formation.id } });
     }

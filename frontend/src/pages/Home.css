@@ -501,7 +501,7 @@
   display: flex;
   align-items: stretch;
   max-width: 1400px;
-  margin: 0 auto;
+  margin: 1.5rem auto 0 auto;
   gap: 0;
   padding: 0 2rem;
   height: 100%;
@@ -514,7 +514,7 @@
   flex: 1;
   min-height: 480px;
   overflow: hidden;
-  border-radius: 0 0 0 var(--radius-lg);
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
   box-shadow: var(--shadow-md);
 }
 
@@ -720,7 +720,7 @@
 .sidebar-card--cta {
   background: linear-gradient(160deg, #112050, #1A1A2E);
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 0;
+  border-radius: 0 var(--radius-lg) 0 0;
 }
 
 .sidebar-card-header {

@@ -67,6 +67,12 @@ db.serialize(() => {
     }
   });
 
+  db.run("ALTER TABLE Users ADD COLUMN companyName TEXT", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {
+      console.log("Migration 'companyName' sur Users : ignorée ou erreur (", err.message, ")");
+    }
+  });
+
   db.run(`
     CREATE TABLE IF NOT EXISTS Formations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -186,6 +192,19 @@ db.serialize(() => {
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  const adCols = [
+    "userId INTEGER",
+    "title TEXT",
+    "status TEXT DEFAULT 'En attente'",
+    "paymentStatus TEXT DEFAULT 'En attente'",
+    "budget INTEGER DEFAULT 0"
+  ];
+  adCols.forEach(colDef => {
+    db.run(`ALTER TABLE Advertisements ADD COLUMN ${colDef}`, (err) => {
+      // Ignore if column already exists
+    });
+  });
 
   db.run(`
     CREATE TABLE IF NOT EXISTS Testimonials (

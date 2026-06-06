@@ -367,12 +367,23 @@
   z-index: 20;
 }
 
-.admin-mobile-menu-btn, .admin-mobile-close-btn {
+.admin-mobile-menu-btn {
   background: none;
   border: none;
   color: white;
   cursor: pointer;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.admin-mobile-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 0.5rem;
@@ -419,6 +430,10 @@
 
   .admin-sidebar-header {
     justify-content: space-between;
+  }
+  
+  .admin-mobile-close-btn {
+    display: flex;
   }
 
   .admin-main {

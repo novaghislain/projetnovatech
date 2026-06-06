@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { reserveFormation } from '../services/formationService';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
 import './Home.css';
 
@@ -19,16 +18,10 @@ const Login = () => {
     try {
       const loggedUser = await auth.login({ email, password });
       
-      // if reservation intent exists, perform reservation automatically
-      const auto = location.state?.autoReserve;
-      if (auto && auto.formationId && loggedUser.role === 'apprenant') {
-        try {
-          await reserveFormation(auto.formationId, auth.user);
-          navigate('/mon-espace/inscriptions');
-          return;
-        } catch (err) {
-          // reservation failed, fall back to default routing
-        }
+      // if reservation intent exists, route to inscription payment page
+      if (location.state?.formationId && loggedUser.role === 'apprenant') {
+        navigate('/inscription', { state: { formationId: location.state.formationId } });
+        return;
       }
 
       // Route based on role
@@ -97,7 +90,7 @@ const Login = () => {
 
         <div style={{ textAlign: 'center', marginTop: '2.5rem', fontSize: '0.95rem', color: 'var(--color-text-muted)' }}>
           Vous n'avez pas encore de compte ?{' '}
-          <Link to="/register" style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none' }}>Créer un compte</Link>
+          <Link to="/register" state={location.state} style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none' }}>Créer un compte</Link>
         </div>
 
       </div>

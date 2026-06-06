@@ -35,7 +35,7 @@ const Inscription = () => {
 
   useEffect(() => {
     if (!auth.user) {
-      navigate('/connexion', { state: { from: '/inscription' } });
+      navigate('/register', { state: { from: '/inscription' } });
       return;
     }
     fetchFormations();

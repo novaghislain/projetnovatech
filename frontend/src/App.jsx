@@ -32,7 +32,8 @@ const AppLayout = () => {
   const location = useLocation();
   const isDashboard = location.pathname.startsWith('/admin') || 
                       location.pathname.startsWith('/formateur') || 
-                      location.pathname.startsWith('/annonceur');
+                      location.pathname.startsWith('/annonceur') ||
+                      location.pathname.startsWith('/mon-espace');
 
   // Remonter en haut de la page à chaque changement de route
   useEffect(() => {
@@ -55,6 +56,19 @@ const AppLayout = () => {
         <Route path="/annonceur/*" element={
           <ProtectedRoute allowedRoles={['annonceur', 'admin']}>
             <AnnonceurDashboard />
+          </ProtectedRoute>
+        } />
+        
+        {/* Espace Apprenant */}
+        <Route path="/mon-espace/*" element={
+          <ProtectedRoute allowedRoles={['apprenant', 'admin']}>
+            <Routes>
+              <Route path="/" element={<MonEspace />} />
+              <Route path="/inscriptions" element={<TableauInscriptions />} />
+              <Route path="/paiements" element={<Paiements />} />
+              <Route path="/recus" element={<Recus />} />
+              <Route path="/lecons/:courseId" element={<LessonViewer />} />
+            </Routes>
           </ProtectedRoute>
         } />
       </Routes>
@@ -81,13 +95,6 @@ const AppLayout = () => {
           <Route path="/formations/:id" element={<FormationDetails />} />
           <Route path="/verifier/:certId" element={<CertificateVerify />} />
 
-          {/* Espace Apprenant */}
-          <Route path="/mon-espace" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><MonEspace /></ProtectedRoute>} />
-          <Route path="/mon-espace/inscriptions" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><TableauInscriptions /></ProtectedRoute>} />
-          <Route path="/mon-espace/paiements" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><Paiements /></ProtectedRoute>} />
-          <Route path="/mon-espace/recus" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><Recus /></ProtectedRoute>} />
-          <Route path="/mon-espace/lecons/:courseId" element={<ProtectedRoute allowedRoles={['apprenant', 'admin']}><LessonViewer /></ProtectedRoute>} />
-          
           <Route path="/parametres" element={<ProtectedRoute><Parametres /></ProtectedRoute>} />
           
           {/* Fallback backward compatibility */}

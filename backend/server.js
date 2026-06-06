@@ -58,6 +58,7 @@ app.post('/api/auth/register', async (req, res) => {
       [firstName, lastName || '', email.toLowerCase(), phone || '', hashedPassword, userRole],
       function (err) {
         if (err) {
+          console.error("Erreur SQLite lors de l'inscription:", err);
           if (err.message.includes('UNIQUE')) {
             return res.status(400).json({ error: 'Cet email est déjà utilisé.' });
           }
@@ -91,7 +92,7 @@ app.post('/api/auth/login', (req, res) => {
 
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({
-      user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, avatar: user.avatar, bio: user.bio || '' },
+      user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, avatar: user.avatar, bio: user.bio || '', companyName: user.companyName || '' },
       token
     });
   });
@@ -196,6 +197,20 @@ app.post('/api/user/avatar', authenticateToken, upload.single('avatar'), (req, r
 app.delete('/api/user/avatar', authenticateToken, (req, res) => {
   db.run(`UPDATE Users SET avatar = NULL WHERE id = ?`, [req.user.id], function(err) {
     if (err) return res.status(500).json({ error: "Erreur lors de la suppression de l'avatar" });
+    res.json({ message: "Avatar supprimé" });
+  });
+});
+
+app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Aucun fichier fourni' });
+  }
+  const imageUrl = '/uploads/' + req.file.filename;
+  res.json({ imageUrl });
+});
+app.delete('/api/user/avatar', authenticateToken, (req, res) => {
+  db.run(`UPDATE Users SET avatar = NULL WHERE id = ?`, [req.user.id], function(err) {
+    if (err) return res.status(500).json({ error: "Erreur lors de la suppression de l'avatar" });
     res.json({ success: true });
   });
 });
@@ -208,14 +223,14 @@ app.get('/api/user/payments', authenticateToken, (req, res) => {
 });
 
 app.put('/api/user/profile', authenticateToken, (req, res) => {
-  const { firstName, lastName, bio } = req.body;
+  const { firstName, lastName, phone, companyName } = req.body;
   if (!firstName || !lastName) {
     return res.status(400).json({ error: "Le prénom et le nom sont requis." });
   }
 
-  db.run(`UPDATE Users SET firstName = ?, lastName = ?, bio = ? WHERE id = ?`, [firstName, lastName, bio || '', req.user.id], function(err) {
+  db.run(`UPDATE Users SET firstName = ?, lastName = ?, phone = ?, companyName = ? WHERE id = ?`, [firstName, lastName, phone || '', companyName || '', req.user.id], function(err) {
     if (err) return res.status(500).json({ error: "Erreur lors de la mise à jour du profil" });
-    res.json({ success: true, firstName, lastName, bio: bio || '' });
+    res.json({ success: true, firstName, lastName, phone: phone || '', companyName: companyName || '' });
   });
 });
 
@@ -986,40 +1001,46 @@ app.get('/api/certificates/generate/:courseId', authenticateToken, (req, res) =>
             db.get(`SELECT title FROM Formations WHERE id = ?`, [courseId], (err, formation) => {
               if (err || !formation) return res.status(404).json({ error: 'Formation introuvable' });
 
-              const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-              const certId = `NOV-${Date.now().toString(36).toUpperCase()}`;
+              db.get(`SELECT certId, createdAt FROM Certificates WHERE userId = ? AND courseId = ?`, [req.user.id, courseId], (err, existingCert) => {
+                if (err) console.error('Erreur vérification certificat existant:', err.message);
 
-              db.all(`SELECT title FROM Modules WHERE formationId = ?`, [courseId], (err, modules) => {
-                // Sauvegarder le certificat en base
-                db.run(`INSERT INTO Certificates (certId, userId, courseId, firstName, lastName, email, courseTitle) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                  [certId, req.user.id, courseId, user.firstName, user.lastName, user.email, formation.title],
-                  (err) => {
-                    if (err) console.error('Erreur sauvegarde certificat:', err.message);
+                const date = existingCert ? new Date(existingCert.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+                const certId = existingCert ? existingCert.certId : `NOV-${Date.now().toString(36).toUpperCase()}`;
+
+                db.all(`SELECT title FROM Modules WHERE formationId = ?`, [courseId], (err, modules) => {
+                  if (!existingCert) {
+                    // Sauvegarder le certificat en base si c'est la première fois
+                    db.run(`INSERT INTO Certificates (certId, userId, courseId, firstName, lastName, email, courseTitle) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                      [certId, req.user.id, courseId, user.firstName, user.lastName, user.email, formation.title],
+                      (err) => {
+                        if (err) console.error('Erreur sauvegarde certificat:', err.message);
+                      }
+                    );
+
+                    // Email de certificat
+                    const certEmailData = certificateEmail({
+                      firstName: user.firstName,
+                      courseTitle: formation.title,
+                      certId
+                    });
+                    sendEmail({ to: user.email, ...certEmailData }).catch(e => console.error('Erreur email certificat:', e.message));
                   }
-                );
 
-                // Email de certificat
-                const certEmailData = certificateEmail({
-                  firstName: user.firstName,
-                  courseTitle: formation.title,
-                  certId
+                  const doc = generateCertificate({
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    courseTitle: formation.title,
+                    completionDate: date,
+                    modules: modules || [],
+                    certId,
+                  });
+
+                  res.setHeader('Content-Type', 'application/pdf');
+                  res.setHeader('Content-Disposition', `attachment; filename="certificat-${formation.title.toLowerCase().replace(/\s+/g, '-')}.pdf"`);
+                  doc.pipe(res);
+                  doc.end();
                 });
-                sendEmail({ to: user.email, ...certEmailData }).catch(e => console.error('Erreur email certificat:', e.message));
-
-                const doc = generateCertificate({
-                  firstName: user.firstName,
-                  lastName: user.lastName,
-                  email: user.email,
-                  courseTitle: formation.title,
-                  completionDate: date,
-                  modules: modules || [],
-                  certId,
-                });
-
-                res.setHeader('Content-Type', 'application/pdf');
-                res.setHeader('Content-Disposition', `attachment; filename="certificat-${formation.title.toLowerCase().replace(/\s+/g, '-')}.pdf"`);
-                doc.pipe(res);
-                doc.end();
               });
             });
           });
@@ -1030,6 +1051,14 @@ app.get('/api/certificates/generate/:courseId', authenticateToken, (req, res) =>
 });
 
 // Vérifier un certificat (public)
+// Obtenir les certificats d'un utilisateur
+app.get('/api/certificates/my-certificates', authenticateToken, (req, res) => {
+  db.all(`SELECT * FROM Certificates WHERE userId = ? ORDER BY createdAt DESC`, [req.user.id], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
 app.get('/api/certificates/verify/:certId', (req, res) => {
   const { certId } = req.params;
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Filter, Image as ImageIcon, X, AlertTriangle, BookOpen } from 'lucide-react';
 import AdminCourseBuilder from './AdminCourseBuilder';
-import { API_URL } from '../../config';
+import { API_URL, getImageUrl } from '../../config';
 
 const mockCategories = ['Développement', 'Intelligence Artificielle', 'Bureautique', 'Design Graphique'];
 
@@ -109,9 +109,29 @@ const AdminFormations = () => {
     }
   };
 
-  const handleImageUpload = (e) => {
-    // Simulation upload image (à remplacer par un vrai upload)
-    setFormData({...formData, imageUrl: '/placeholder.jpg'});
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    try {
+      const token = localStorage.getItem('nv_token');
+      const res = await fetch(`${API_URL}/api/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFormData({...formData, imageUrl: data.imageUrl});
+      } else {
+        alert("Erreur lors de l'upload de l'image.");
+      }
+    } catch (err) {
+      alert("Erreur réseau.");
+    }
   };
 
   if (builderFormation) {
@@ -164,7 +184,7 @@ const AdminFormations = () => {
                   <td style={{ fontWeight: 600 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                       <div style={{ width: 40, height: 40, borderRadius: 8, background: '#eee', overflow: 'hidden' }}>
-                        {f.imageUrl && <img src={f.imageUrl} alt={f.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                        {f.imageUrl && <img src={getImageUrl(f.imageUrl)} alt={f.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                       </div>
                       <div>
                         <div>{f.title}</div>

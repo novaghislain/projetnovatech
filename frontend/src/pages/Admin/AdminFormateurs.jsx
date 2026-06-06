@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, X, User, Mail, Phone, BookOpen, CheckCircle, XCircle } from 'lucide-react';
-import { API_URL } from '../../config';
+import { API_URL, getImageUrl } from '../../config';
 
 const specialites = [
   'Développement Web', 'Intelligence Artificielle', 'Bureautique',
@@ -87,6 +87,30 @@ const AdminFormateurs = () => {
     } catch (err) { alert(err.message); }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const formDataObj = new FormData();
+    formDataObj.append('image', file);
+    
+    try {
+      const res = await fetch(`${API_URL}/api/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formDataObj
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFormData({...formData, photo: data.imageUrl});
+      } else {
+        alert("Erreur lors de l'upload de l'image.");
+      }
+    } catch (err) {
+      alert("Erreur réseau.");
+    }
+  };
+
   return (
     <div className="fade-in">
       <div className="admin-panel">
@@ -126,7 +150,7 @@ const AdminFormateurs = () => {
                     color: '#fff', fontWeight: 800, fontSize: '1.3rem', overflow: 'hidden', flexShrink: 0
                   }}>
                     {f.photo
-                      ? <img src={f.photo} alt={f.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.style.display = 'none'; }} />
+                      ? <img src={getImageUrl(f.photo)} alt={f.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.style.display = 'none'; }} />
                       : `${f.prenom.charAt(0)}${f.nom.charAt(0)}`
                     }
                   </div>
@@ -290,13 +314,17 @@ const AdminFormateurs = () => {
               </div>
 
               <div className="form-group">
-                <label>Photo (URL)</label>
-                <input
-                  type="text" className="form-control"
-                  value={formData.photo || ''}
-                  onChange={e => setFormData({ ...formData, photo: e.target.value })}
-                  placeholder="https://... ou /photo.jpg"
-                />
+                <label>Photo (URL ou Fichier)</label>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <input
+                    type="text" className="form-control"
+                    value={formData.photo || ''}
+                    onChange={e => setFormData({ ...formData, photo: e.target.value })}
+                    placeholder="https://... ou /photo.jpg"
+                  />
+                  <button className="admin-btn admin-btn-outline" onClick={() => document.getElementById('formateurImageUpload').click()} type="button">Uploader</button>
+                  <input type="file" id="formateurImageUpload" style={{ display: 'none' }} accept="image/*" onChange={handleImageUpload} />
+                </div>
               </div>
 
               <div className="form-group">

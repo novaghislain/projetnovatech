@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Clock, Users, ArrowRight, ShieldCheck, Search, Filter } from 'lucide-react';
+import { Clock, Users, ShieldCheck, Search, Filter } from 'lucide-react';
 import AdBanner from '../components/AdBanner';
 import './Home.css';
-import { API_URL } from '../config';
+import { API_URL, getImageUrl } from '../config';
 
 const InscriptionFormation = () => {
   const [formations, setFormations] = useState([]);
@@ -49,10 +49,10 @@ const InscriptionFormation = () => {
 
   const handleReserve = (f) => {
     if (!auth.user) {
-      navigate('/connexion', { state: { from: '/inscription', autoReserve: { course: f } } });
+      navigate('/register', { state: { formationId: f.id } });
       return;
     }
-    navigate('/inscription', { state: { course: f } });
+    navigate('/inscription', { state: { formationId: f.id } });
   };
 
   return (
@@ -148,7 +148,7 @@ const InscriptionFormation = () => {
               return (
                 <div key={f.id} className="formation-card">
                   <div className="formation-card-img">
-                    <img src={f.imageUrl || '/placeholder.jpg'} alt={f.title} />
+                    <img src={f.imageUrl ? getImageUrl(f.imageUrl) : '/placeholder.jpg'} alt={f.title} />
                     <div className="formation-card-tag">{f.category}</div>
                     {isFull && <div className="formation-card-complet">COMPLET</div>}
                   </div>
