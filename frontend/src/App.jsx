@@ -15,12 +15,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import MonEspace from './pages/MonEspace';
+
+import ApprenantDashboard from './pages/ApprenantDashboard';
 import InscriptionFormation from './pages/InscriptionFormation';
 import FormationDetails from './pages/FormationDetails';
-import TableauInscriptions from './pages/TableauInscriptions';
-import Paiements from './pages/Paiements';
-import Recus from './pages/Recus';
 import Parametres from './pages/Parametres';
 import Testimonials from './pages/Testimonials';
 import LessonViewer from './pages/LessonViewer';
@@ -33,7 +31,8 @@ const AppLayout = () => {
   const isDashboard = location.pathname.startsWith('/admin') || 
                       location.pathname.startsWith('/formateur') || 
                       location.pathname.startsWith('/annonceur') ||
-                      location.pathname.startsWith('/mon-espace');
+                      location.pathname.startsWith('/mon-espace') ||
+                      location.pathname.startsWith('/inscription');
 
   // Remonter en haut de la page à chaque changement de route
   useEffect(() => {
@@ -58,17 +57,19 @@ const AppLayout = () => {
             <AnnonceurDashboard />
           </ProtectedRoute>
         } />
-        
-        {/* Espace Apprenant */}
+        <Route path="/mon-espace/lecons/:courseId" element={
+          <ProtectedRoute allowedRoles={['apprenant', 'admin']}>
+            <LessonViewer />
+          </ProtectedRoute>
+        } />
         <Route path="/mon-espace/*" element={
           <ProtectedRoute allowedRoles={['apprenant', 'admin']}>
-            <Routes>
-              <Route path="/" element={<MonEspace />} />
-              <Route path="/inscriptions" element={<TableauInscriptions />} />
-              <Route path="/paiements" element={<Paiements />} />
-              <Route path="/recus" element={<Recus />} />
-              <Route path="/lecons/:courseId" element={<LessonViewer />} />
-            </Routes>
+            <ApprenantDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/inscription" element={
+          <ProtectedRoute>
+            <Inscription />
           </ProtectedRoute>
         } />
       </Routes>
@@ -90,7 +91,7 @@ const AppLayout = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
-          <Route path="/inscription" element={<Inscription />} />
+          <Route path="/inscription" element={<Navigate to="/inscription" replace />} />
           <Route path="/formations" element={<InscriptionFormation />} />
           <Route path="/formations/:id" element={<FormationDetails />} />
           <Route path="/verifier/:certId" element={<CertificateVerify />} />
@@ -98,7 +99,7 @@ const AppLayout = () => {
           <Route path="/parametres" element={<ProtectedRoute><Parametres /></ProtectedRoute>} />
           
           {/* Fallback backward compatibility */}
-          <Route path="/inscriptions" element={<Navigate to="/mon-espace/inscriptions" replace />} />
+          <Route path="/inscriptions" element={<Navigate to="/mon-espace/formations" replace />} />
         </Routes>
       </main>
       <Footer />

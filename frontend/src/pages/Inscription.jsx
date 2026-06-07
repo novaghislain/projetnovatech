@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import FedapayWidget from '../components/FedapayWidget';
-import { CheckCircle, ShieldCheck, User, Users, MapPin, Mail, Phone, CreditCard, BookOpen, ArrowRight, Lock } from 'lucide-react';
+import { CheckCircle, ShieldCheck, User, Users, MapPin, Mail, Phone, CreditCard, BookOpen, ArrowRight, Lock, ArrowLeft } from 'lucide-react';
 import './Inscription.css';
 import { API_URL } from '../config';
 
@@ -136,7 +136,18 @@ const Inscription = () => {
   const isFull = course && course.enrolled >= course.maxParticipants;
 
   return (
-    <div className="inscription-page page-transition">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+      {/* TOP BAR - Remplace la Navbar publique */}
+      <div style={{ background: '#1A1A2E', padding: '1rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>
+        <img src="/4x.png" alt="Novatech Vision" style={{ height: '36px' }} />
+        <button
+          onClick={() => navigate('/formations')}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.5rem 1.2rem', borderRadius: '50px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
+        >
+          <ArrowLeft size={16} /> Retour
+        </button>
+      </div>
+      <div className="inscription-page page-transition">
       <div className="inscription-layout">
         
         {/* MAIN FORM */}
@@ -327,6 +338,7 @@ const Inscription = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

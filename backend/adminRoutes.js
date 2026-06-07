@@ -24,7 +24,8 @@ module.exports = function(db, authenticateToken) {
       stats.activeFormations = row ? row.count : 0;
       db.get("SELECT COUNT(*) as count FROM Users", (err, row) => {
         stats.totalUsers = row ? row.count : 0;
-        db.get("SELECT SUM(amount) as sum FROM Enrollments WHERE status IN ('active', 'completed')", (err, row) => {
+        // Assurer que le revenu est bien calculé à partir des paiements validés
+        db.get("SELECT SUM(amount) as sum FROM Enrollments WHERE status = 'active' OR status = 'completed'", (err, row) => {
           stats.totalRevenue = row && row.sum ? row.sum : 0;
           res.json(stats);
         });

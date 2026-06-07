@@ -32,18 +32,20 @@
 /* Links Area */
 .navbar-links {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   flex: 1;
-  gap: 2.5rem;
   margin-left: 2.5rem;
 }
 
 .navbar-main-links {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  margin: 0;
+  gap: 1rem;
+  margin-left: auto;
+  /* Pousse les liens vers la droite */
+  margin-right: 1.5rem;
+  /* Espace réduit avec le bloc profil/auth pour les décaler encore plus à droite */
 }
 
 .navbar-main-links a {
@@ -90,7 +92,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin: 0;
+  margin-left: auto;
 }
 
 .nav-auth-text {
@@ -280,10 +282,7 @@
   }
 }
 
-.navbar-mobile-close,
-.navbar-mobile-overlay {
-  display: none;
-}
+.navbar-mobile-close, .navbar-mobile-overlay { display: none; }
 
 /* Responsive — 768px (mobile) */
 @media (max-width: 768px) {
@@ -298,8 +297,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.98);
-    /* Deep dark blue with slight transparency */
+    background: rgba(15, 23, 42, 0.98); /* Deep dark blue with slight transparency */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     flex-direction: column;
@@ -341,8 +339,7 @@
     text-align: center;
   }
 
-  .navbar-main-links a:hover,
-  .navbar-main-links a:active {
+  .navbar-main-links a:hover, .navbar-main-links a:active {
     background: rgba(255, 255, 255, 0.1);
     color: var(--color-accent);
   }

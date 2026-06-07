@@ -67,6 +67,14 @@ db.serialize(() => {
     }
   });
 
+  // Migrations pour l'espace Apprenant (Infos Parent)
+  db.run("ALTER TABLE Users ADD COLUMN parentName TEXT", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {}
+  });
+  db.run("ALTER TABLE Users ADD COLUMN parentPhone TEXT", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {}
+  });
+
   db.run("ALTER TABLE Users ADD COLUMN companyName TEXT", (err) => {
     if (err && !err.message.includes("duplicate column name")) {
       console.log("Migration 'companyName' sur Users : ignorée ou erreur (", err.message, ")");
@@ -145,6 +153,15 @@ db.serialize(() => {
       FOREIGN KEY(userId) REFERENCES Users(id)
     )
   `);
+
+  // Vider la table des inscriptions au démarrage pour le développement
+  db.run("DELETE FROM Enrollments", (err) => {
+    if (err) {
+      console.error("Erreur lors de la suppression des inscriptions:", err.message);
+    } else {
+      console.log("Table des inscriptions vidée pour le développement.");
+    }
+  });
 
   db.run(`
     CREATE TABLE IF NOT EXISTS Messages (

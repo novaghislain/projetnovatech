@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import './Navbar.css';
-import { Menu, X, User, ChevronDown, LayoutDashboard, BookOpen, LogOut, Settings, CreditCard, FileText, ArrowLeft } from 'lucide-react';
+import { Menu, X, User, ChevronDown, LayoutDashboard, BookOpen, LogOut, Settings, CreditCard, FileText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
@@ -10,9 +10,6 @@ const Navbar = () => {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const auth = useAuth();
-  const location = useLocation();
-
-  const isCheckout = ['/inscription', '/register', '/connexion'].includes(location.pathname);
 
   useEffect(() => {
     setIsLoggedIn(!!auth?.user);
@@ -51,17 +48,8 @@ const Navbar = () => {
         {/* Nav Links (Drawer on mobile) */}
         <div className={`navbar-links ${isOpen ? 'active' : ''}`}>
 
-          {isCheckout ? (
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.85)', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
-                <ArrowLeft size={16} />
-                Retour à l'accueil
-              </Link>
-            </div>
-          ) : (
-            <>
-              {/* Main links */}
-              <div className="navbar-main-links">
+          {/* Main links */}
+          <div className="navbar-main-links">
             <Link to="/" onClick={closeAll}>Accueil</Link>
             <Link to="/formations" onClick={closeAll}>Formations</Link>
             {!isLoggedIn ? (
@@ -92,33 +80,97 @@ const Navbar = () => {
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
-
-                {/* Simple direct links instead of dropdown */}
-                {auth.user?.role === 'admin' && (
-                  <Link to="/admin" className="btn btn-primary" onClick={closeAll}>
-                    Dashboard Admin
-                  </Link>
-                )}
-                {auth.user?.role === 'formateur' && (
-                  <Link to="/formateur" className="btn btn-primary" onClick={closeAll}>
-                    Espace Formateur
-                  </Link>
-                )}
-                {auth.user?.role === 'annonceur' && (
-                  <Link to="/annonceur" className="btn btn-primary" onClick={closeAll}>
-                    Espace Annonceur
-                  </Link>
-                )}
+                {/* Quick links for apprenant */}
                 {auth.user?.role === 'apprenant' && (
-                  <Link to="/mon-espace" className="btn btn-primary" onClick={closeAll} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <LayoutDashboard size={16} /> Mon Espace
-                  </Link>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.5rem' }}>
+                    <Link
+                      to="/mon-espace"
+                      onClick={closeAll}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.45rem 0.9rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.75)', textDecoration: 'none', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}
+                    >
+                      <BookOpen size={15} /> Mon Espace
+                    </Link>
+                    <Link
+                      to="/mon-espace/inscriptions"
+                      onClick={closeAll}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.45rem 0.9rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.75)', textDecoration: 'none', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}
+                    >
+                      <CreditCard size={15} /> Mes Inscriptions
+                    </Link>
+                  </div>
                 )}
+
+                <div className="account-dropdown" ref={dropdownRef}>
+                  <button
+                    className="account-trigger"
+                    onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                    aria-expanded={accountMenuOpen}
+                  >
+                    <div className="account-avatar">
+                      {auth.user?.avatar ? (
+                        <img src={auth.user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                      ) : (
+                        <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>
+                          {auth.user?.firstName ? auth.user.firstName.charAt(0).toUpperCase() : <User size={16} />}
+                        </span>
+                      )}
+                    </div>
+                    <span>{auth.user?.firstName || auth.user?.email || 'Utilisateur'}</span>
+                    <ChevronDown size={16} className={`chevron ${accountMenuOpen ? 'open' : ''}`} />
+                  </button>
+
+                  <div className={`account-menu ${accountMenuOpen ? 'open' : ''}`}>
+                    {auth.user?.role === 'admin' && (
+                      <Link to="/admin" className="account-menu-item" onClick={closeAll}>
+                        <LayoutDashboard size={16} /> Dashboard Admin
+                      </Link>
+                    )}
+                    {auth.user?.role === 'formateur' && (
+                      <Link to="/formateur" className="account-menu-item" onClick={closeAll}>
+                        <LayoutDashboard size={16} /> Espace Formateur
+                      </Link>
+                    )}
+                    {auth.user?.role === 'annonceur' && (
+                      <Link to="/annonceur" className="account-menu-item" onClick={closeAll}>
+                        <LayoutDashboard size={16} /> Espace Annonceur
+                      </Link>
+                    )}
+                    {auth.user?.role === 'apprenant' && (
+                      <>
+                        <Link to="/mon-espace" className="account-menu-item" onClick={closeAll}>
+                          <LayoutDashboard size={16} /> Mon Espace
+                        </Link>
+                        <Link to="/mon-espace/inscriptions" className="account-menu-item" onClick={closeAll}>
+                          <BookOpen size={16} /> Mes Inscriptions
+                        </Link>
+                        <Link to="/mon-espace/paiements" className="account-menu-item" onClick={closeAll}>
+                          <CreditCard size={16} /> Mes paiements
+                        </Link>
+                        <Link to="/mon-espace/recus" className="account-menu-item" onClick={closeAll}>
+                          <FileText size={16} /> Mes reçus
+                        </Link>
+                      </>
+                    )}
+
+                    <Link to="/parametres" className="account-menu-item" onClick={closeAll}>
+                      <Settings size={16} /> Paramètres
+                    </Link>
+                    <div className="account-menu-divider" />
+                    <button
+                      className="account-menu-item account-menu-logout"
+                      onClick={() => { auth.logout(); closeAll(); }}
+                    >
+                      <LogOut size={16} /> Déconnexion
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
-          </>
-          )}
         </div>
 
         {/* Mobile burger */}

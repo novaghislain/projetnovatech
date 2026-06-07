@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
@@ -11,6 +11,20 @@ const Login = () => {
   const auth = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (auth.user) {
+      if (location.state?.formationId && auth.user.role === 'apprenant') {
+        navigate('/inscription', { state: { formationId: location.state.formationId }, replace: true });
+        return;
+      }
+      const role = auth.user.role;
+      if (role === 'admin') navigate('/admin', { replace: true });
+      else if (role === 'formateur') navigate('/formateur', { replace: true });
+      else if (role === 'annonceur') navigate('/annonceur', { replace: true });
+      else navigate('/mon-espace', { replace: true });
+    }
+  }, [auth.user, navigate, location.state]);
 
   const submit = async (e) => {
     e.preventDefault();

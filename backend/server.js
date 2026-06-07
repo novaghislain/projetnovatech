@@ -92,11 +92,12 @@ app.post('/api/auth/login', (req, res) => {
 
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({
-      user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, avatar: user.avatar, bio: user.bio || '', companyName: user.companyName || '' },
+      user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, avatar: user.avatar, bio: user.bio || '', companyName: user.companyName || '', parentName: user.parentName || '', parentPhone: user.parentPhone || '' },
       token
     });
   });
 });
+
 app.post('/api/auth/forgot-password', (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email requis.' });
@@ -223,14 +224,15 @@ app.get('/api/user/payments', authenticateToken, (req, res) => {
 });
 
 app.put('/api/user/profile', authenticateToken, (req, res) => {
-  const { firstName, lastName, phone, companyName } = req.body;
+  const { firstName, lastName, phone, companyName, parentName, parentPhone } = req.body;
   if (!firstName || !lastName) {
     return res.status(400).json({ error: "Le prénom et le nom sont requis." });
   }
 
-  db.run(`UPDATE Users SET firstName = ?, lastName = ?, phone = ?, companyName = ? WHERE id = ?`, [firstName, lastName, phone || '', companyName || '', req.user.id], function(err) {
+  db.run(`UPDATE Users SET firstName = ?, lastName = ?, phone = ?, companyName = ?, parentName = ?, parentPhone = ? WHERE id = ?`, 
+    [firstName, lastName, phone || '', companyName || '', parentName || '', parentPhone || '', req.user.id], function(err) {
     if (err) return res.status(500).json({ error: "Erreur lors de la mise à jour du profil" });
-    res.json({ success: true, firstName, lastName, phone: phone || '', companyName: companyName || '' });
+    res.json({ success: true, firstName, lastName, phone: phone || '', companyName: companyName || '', parentName: parentName || '', parentPhone: parentPhone || '' });
   });
 });
 

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { API_URL, getImageUrl } from '../config';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import {
   Monitor, Shield, Code2, BrainCircuit, UserCheck,
@@ -10,6 +8,8 @@ import {
 } from 'lucide-react';
 import AdBanner from '../components/AdBanner';
 import './Home.css';
+import { API_URL } from '../config';
+
   const programs = [
   { icon: <Monitor size={26} />, label: 'Bureautique' },
   { icon: <Shield size={26} />, label: 'Internet & Sécurité' },
@@ -58,26 +58,6 @@ const Home = () => {
     };
     fetchFormations();
   }, []);
-
-  const auth = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (auth?.user) {
-      if (auth.user.role === 'apprenant') navigate('/mon-espace');
-      else if (auth.user.role === 'admin') navigate('/admin');
-      else if (auth.user.role === 'formateur') navigate('/formateur');
-      else if (auth.user.role === 'annonceur') navigate('/annonceur');
-    }
-  }, [auth.user, navigate]);
-
-  const handleReserve = (f) => {
-    if (!auth.user) {
-      navigate('/register', { state: { formationId: f.id } });
-      return;
-    }
-    navigate('/inscription', { state: { formationId: f.id } });
-  };
 
   const handleContactChange = (e) => setContactForm({ ...contactForm, [e.target.name]: e.target.value });
   
@@ -234,7 +214,7 @@ const Home = () => {
             {featuredCourses.map((course, i) => (
               <div className="course-card" key={i} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-light)', transition: 'all 0.3s ease', display: 'flex', flexDirection: 'column' }}>
                 <div className="course-card-img" style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
-                  <img src={course.imageUrl ? getImageUrl(course.imageUrl) : '/placeholder.jpg'} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={course.imageUrl || '/placeholder.jpg'} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', top: '15px', right: '15px', backgroundColor: 'var(--color-white)', padding: '0.4rem 0.8rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', boxShadow: 'var(--shadow-sm)' }}>
                     {course.category}
                   </div>
@@ -254,14 +234,9 @@ const Home = () => {
                         {course.price ? course.price.toLocaleString() + ' FCFA' : 'Gratuit'}
                       </strong>
                     </div>
-                    <button 
-                      onClick={() => handleReserve(course)} 
-                      className="btn btn-primary" 
-                      style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}
-                      disabled={course.isFull || course.status === 'full'}
-                    >
-                      {course.isFull || course.status === 'full' ? 'Plein' : "S'inscrire"}
-                    </button>
+                    <Link to="/formations" className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
+                      S'inscrire
+                    </Link>
                   </div>
                 </div>
               </div>
