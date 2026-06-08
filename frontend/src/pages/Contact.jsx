@@ -1,8 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { API_URL } from '../config';
 import './Home.css';
 
 const Contact = () => {
+  const [formData, setFormData] = useState({ name: '', email: '', body: '' });
+  const [status, setStatus] = useState('idle');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus('loading');
+    try {
+      const res = await fetch(`${API_URL}/api/public/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: formData.name, email: formData.email, subject: 'Message de contact', body: formData.body })
+      });
+      if (res.ok) {
+        setStatus('success');
+        setFormData({ name: '', email: '', body: '' });
+      } else {
+        setStatus('error');
+      }
+    } catch (err) {
+      setStatus('error');
+    }
+  };
+
   return (
     <div className="page-transition">
 
@@ -52,25 +76,27 @@ const Contact = () => {
           {/* Formulaire */}
           <form
             className="contact-page-form"
-            onSubmit={(e) => { e.preventDefault(); alert('Message envoyé !'); }}
+            onSubmit={handleSubmit}
           >
             <h3>Envoyez-nous un message</h3>
+            {status === 'success' && <div style={{ backgroundColor: '#dcfce7', color: '#166534', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #bbf7d0' }}>Votre message a été envoyé avec succès ! Nous vous répondrons très vite.</div>}
+            {status === 'error' && <div style={{ backgroundColor: '#fee2e2', color: '#dc2626', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #fecaca' }}>Erreur lors de l'envoi du message. Veuillez réessayer.</div>}
             <div className="form-row-2">
               <div className="form-field">
                 <label>Nom complet *</label>
-                <input type="text" placeholder="Jean Dupont" required />
+                <input type="text" placeholder="Jean Dupont" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
               </div>
               <div className="form-field">
                 <label>Email *</label>
-                <input type="email" placeholder="jean@example.com" required />
+                <input type="email" placeholder="jean@example.com" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
               </div>
             </div>
             <div className="form-field">
               <label>Message *</label>
-              <textarea rows={5} placeholder="Comment pouvons-nous vous aider ?" required></textarea>
+              <textarea rows={5} placeholder="Comment pouvons-nous vous aider ?" value={formData.body} onChange={e => setFormData({...formData, body: e.target.value})} required></textarea>
             </div>
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.9rem' }}>
-              Envoyer <Send size={16} />
+            <button type="submit" disabled={status === 'loading'} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.9rem', opacity: status === 'loading' ? 0.7 : 1 }}>
+              {status === 'loading' ? 'Envoi en cours...' : <>Envoyer <Send size={16} /></>}
             </button>
           </form>
 

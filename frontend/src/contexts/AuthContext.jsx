@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       return data.user;
     } catch (err) {
-      throw new Error("Identifiants incorrects ou serveur injoignable.");
+      throw new Error(err.message || "Identifiants incorrects ou serveur injoignable.");
     }
   };
 

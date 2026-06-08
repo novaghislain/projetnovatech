@@ -15,7 +15,7 @@ const AdminMessages = () => {
 
   const getHeaders = () => {
     const token = localStorage.getItem('nv_token');
-    return { headers: { 'Authorization': `Bearer ${token}` } };
+    return { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } };
   };
 
   const fetchMessages = async () => {

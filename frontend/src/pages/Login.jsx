@@ -8,6 +8,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const auth = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,7 +46,7 @@ const Login = () => {
       else navigate('/mon-espace');
 
     } catch (err) {
-      alert('Erreur de connexion. Vérifiez vos identifiants.');
+      setError(err.message || 'Erreur de connexion. Vérifiez vos identifiants.');
     } finally {
       setLoading(false);
     }
@@ -61,6 +62,11 @@ const Login = () => {
         </div>
 
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {error && (
+            <div style={{ backgroundColor: '#fee2e2', color: '#dc2626', padding: '1rem', borderRadius: '8px', fontSize: '0.9rem', textAlign: 'center', border: '1px solid #f87171' }}>
+              {error}
+            </div>
+          )}
           
           <div style={{ position: 'relative' }}>
             <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Adresse Email</label>

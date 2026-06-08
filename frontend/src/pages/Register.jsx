@@ -9,6 +9,7 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const auth = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -46,7 +47,7 @@ const Register = () => {
       const dest = location.state?.from || '/mon-espace';
       navigate(dest);
     } catch (err) {
-      alert(err.message || "Erreur lors de l'inscription");
+      setError(err.message || "Erreur lors de l'inscription");
     } finally {
       setLoading(false);
     }
@@ -62,6 +63,11 @@ const Register = () => {
         </div>
 
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {error && (
+            <div style={{ backgroundColor: '#fee2e2', color: '#dc2626', padding: '1rem', borderRadius: '8px', fontSize: '0.9rem', textAlign: 'center', border: '1px solid #f87171' }}>
+              {error}
+            </div>
+          )}
           
           <div style={{ position: 'relative' }}>
             <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Prénom</label>

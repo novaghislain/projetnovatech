@@ -43,6 +43,7 @@ const ApprenantDashboard = () => {
     else if (path.includes('/ressources')) setActiveTab('resources');
     else if (path.includes('/paiements')) setActiveTab('payments');
     else if (path.includes('/compte')) setActiveTab('account');
+    else if (path.includes('/devenir-formateur')) setActiveTab('apply');
     else setActiveTab('overview');
   }, [location]);
 
@@ -57,6 +58,7 @@ const ApprenantDashboard = () => {
     { id: 'resources', path: '/mon-espace/ressources', icon: FileText, label: 'Ressources' },
     { id: 'payments', path: '/mon-espace/paiements', icon: CreditCard, label: 'Paiements' },
     { id: 'account', path: '/mon-espace/compte', icon: User, label: 'Mon compte' },
+    { id: 'apply', path: '/mon-espace/devenir-formateur', icon: TrendingUp, label: 'Devenir Formateur' },
   ];
 
   return (
@@ -141,6 +143,7 @@ const ApprenantDashboard = () => {
             <Route path="/ressources" element={<ResourcesTab enrollments={enrollments} />} />
             <Route path="/paiements" element={<PaymentsTab />} />
             <Route path="/compte" element={<AccountTab />} />
+            <Route path="/devenir-formateur" element={<BecomeFormateurTab />} />
           </Routes>
         </div>
       </div>
@@ -556,6 +559,77 @@ const AccountTab = () => {
           </div>
 
           <button type="submit" style={{ marginTop: '1rem', padding: '0.8rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>Mettre à jour</button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// =======================
+// ONGLET 6 : DEVENIR FORMATEUR
+// =======================
+const BecomeFormateurTab = () => {
+  const [form, setForm] = useState({ specialite: '', bio: '', photo: '' });
+  const [status, setStatus] = useState('loading'); // loading, none, pending, rejected
+  const token = localStorage.getItem('nv_token');
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/user/application-status`, { headers: { 'Authorization': `Bearer ${token}` }})
+      .then(r => r.json())
+      .then(data => {
+        setStatus(data.status || 'none');
+      }).catch(() => setStatus('none'));
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_URL}/api/user/apply-formateur`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(form)
+      });
+      if (res.ok) setStatus('pending');
+      else alert("Erreur lors de l'envoi de la candidature");
+    } catch (err) {
+      alert("Erreur serveur");
+    }
+  };
+
+  if (status === 'loading') return <div>Chargement...</div>;
+
+  if (status === 'pending') {
+    return (
+      <div className="fade-in" style={{ background: 'white', padding: '3rem', borderRadius: '12px', textAlign: 'center', border: '1px solid #f1f5f9' }}>
+        <CheckCircle2 size={48} color="#f59e0b" style={{ marginBottom: '1rem', display: 'inline-block' }} />
+        <h2 style={{ color: '#1A1A2E' }}>Candidature en cours d'examen</h2>
+        <p style={{ color: '#64748b' }}>Votre candidature pour devenir formateur est actuellement en cours de révision par notre équipe. Nous vous contacterons très prochainement.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fade-in">
+      <h2 style={{ fontSize: '1.6rem', color: '#1A1A2E', marginBottom: '1.5rem' }}>Devenir Formateur</h2>
+      <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+        <p style={{ color: '#64748b', marginBottom: '2rem' }}>Rejoignez l'équipe pédagogique de Novatech Vision et partagez votre passion avec la nouvelle génération !</p>
+        
+        {status === 'rejected' && <div style={{ backgroundColor: '#fee2e2', color: '#dc2626', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>Votre précédente candidature n'a pas été retenue. Vous pouvez soumettre une nouvelle demande.</div>}
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.4rem', fontWeight: 600 }}>Spécialité *</label>
+            <input type="text" value={form.specialite} onChange={e => setForm({...form, specialite: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #e2e8f0' }} placeholder="Ex: Développement Web, Intelligence Artificielle..." required />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.4rem', fontWeight: 600 }}>Biographie & Motivation *</label>
+            <textarea rows={5} value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #e2e8f0' }} placeholder="Présentez-vous brièvement et expliquez pourquoi vous souhaitez devenir formateur..." required></textarea>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.4rem', fontWeight: 600 }}>Lien vers photo de profil / portfolio (Optionnel)</label>
+            <input type="text" value={form.photo} onChange={e => setForm({...form, photo: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #e2e8f0' }} placeholder="https://..." />
+          </div>
+          <button type="submit" style={{ marginTop: '1rem', padding: '1rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}>Soumettre ma candidature</button>
         </form>
       </div>
     </div>
