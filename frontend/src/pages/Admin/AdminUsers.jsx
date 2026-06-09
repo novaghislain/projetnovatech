@@ -85,6 +85,30 @@ const AdminUsers = () => {
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const exportToCSV = () => {
+    const headers = ["ID", "Prenom", "Nom", "Email", "Telephone", "Role", "Statut", "Date Creation"];
+    const rows = filteredUsers.map(u => [
+      u.id,
+      u.firstName,
+      u.lastName,
+      u.email,
+      u.phone || '',
+      u.role,
+      u.status || 'active',
+      new Date(u.createdAt).toLocaleDateString()
+    ]);
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `utilisateurs_novatech_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="fade-in">
       <div className="admin-panel">
@@ -94,8 +118,8 @@ const AdminUsers = () => {
 
         {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
 
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-          <div className="form-control" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '300px' }}>
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="form-control" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '300px', margin: 0 }}>
             <Search size={18} color="#888" />
             <input 
               type="text" 
@@ -105,6 +129,16 @@ const AdminUsers = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <button 
+            onClick={exportToCSV}
+            style={{
+              background: '#10b981', color: 'white', border: 'none',
+              padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer',
+              fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem'
+            }}
+          >
+            Exporter en CSV
+          </button>
         </div>
 
         <div className="admin-table-wrapper">

@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Navbar.css';
 import { Menu, X, User, ChevronDown, LayoutDashboard, BookOpen, LogOut, Settings, CreditCard, FileText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +11,71 @@ const Navbar = () => {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const auth = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { language, toggleLanguage, t } = useLanguage();
+
+  const handleToggleLanguage = () => {
+    const currentPath = location.pathname;
+    const pathMappings = {
+      '/': '/en',
+      '/fr': '/en',
+      '/formations': '/en/courses',
+      '/fr/formations': '/en/courses',
+      '/inscription': '/en/enroll',
+      '/fr/inscription': '/en/enroll',
+      '/a-propos': '/en/about',
+      '/fr/a-propos': '/en/about',
+      '/contact': '/en/contact',
+      '/fr/contact': '/en/contact',
+      '/faq': '/en/faq',
+      '/fr/faq': '/en/faq',
+      '/conditions-utilisation': '/en/terms',
+      '/fr/conditions-utilisation': '/en/terms',
+      '/politique-confidentialite': '/en/privacy',
+      '/fr/politique-confidentialite': '/en/privacy',
+      '/galerie': '/en/gallery',
+      '/fr/galerie': '/en/gallery',
+      '/temoignages': '/en/testimonials',
+      '/fr/temoignages': '/en/testimonials',
+      '/connexion': '/en/login',
+      '/fr/connexion': '/en/login',
+      '/register': '/en/register',
+      '/fr/register': '/en/register',
+      '/mot-de-passe-oublie': '/en/forgot-password',
+      '/fr/mot-de-passe-oublie': '/en/forgot-password',
+
+      '/en': '/fr',
+      '/en/courses': '/fr/formations',
+      '/en/enroll': '/fr/inscription',
+      '/en/about': '/fr/a-propos',
+      '/en/contact': '/fr/contact',
+      '/en/faq': '/fr/faq',
+      '/en/terms': '/fr/conditions-utilisation',
+      '/en/privacy': '/fr/politique-confidentialite',
+      '/en/gallery': '/fr/galerie',
+      '/en/testimonials': '/fr/temoignages',
+      '/en/login': '/fr/connexion',
+      '/en/register': '/fr/register',
+      '/en/forgot-password': '/fr/mot-de-passe-oublie'
+    };
+
+    let nextPath = pathMappings[currentPath] || null;
+    if (!nextPath) {
+      if (currentPath.startsWith('/formations/') || currentPath.startsWith('/fr/formations/')) {
+        const id = currentPath.split('/').pop();
+        nextPath = `/en/courses/${id}`;
+      } else if (currentPath.startsWith('/en/courses/')) {
+        const id = currentPath.split('/').pop();
+        nextPath = `/fr/formations/${id}`;
+      }
+    }
+
+    toggleLanguage();
+    if (nextPath) {
+      navigate(nextPath);
+    }
+  };
 
   useEffect(() => {
     setIsLoggedIn(!!auth?.user);
@@ -50,31 +116,55 @@ const Navbar = () => {
 
           {/* Main links */}
           <div className="navbar-main-links">
-            <Link to="/" onClick={closeAll}>Accueil</Link>
-            <Link to="/formations" onClick={closeAll}>Formations</Link>
+            <Link to="/" onClick={closeAll}>{t('nav_home')}</Link>
+            <Link to="/formations" onClick={closeAll}>{t('nav_courses')}</Link>
             {!isLoggedIn ? (
               <>
-                <Link to="/a-propos" onClick={closeAll}>À propos</Link>
-                <Link to="/galerie" onClick={closeAll}>Galerie</Link>
-                <Link to="/temoignages" onClick={closeAll}>Témoignages</Link>
+                <Link to="/a-propos" onClick={closeAll}>{t('nav_about')}</Link>
+                <Link to="/galerie" onClick={closeAll}>{t('nav_gallery')}</Link>
+                <Link to="/temoignages" onClick={closeAll}>{t('nav_testimonials')}</Link>
               </>
             ) : (
               <>
-                {auth.user?.role === 'admin' && <Link to="/admin" onClick={closeAll}>Espace Admin</Link>}
-                {auth.user?.role === 'formateur' && <Link to="/formateur" onClick={closeAll}>Espace Formateur</Link>}
-                {auth.user?.role === 'annonceur' && <Link to="/annonceur" onClick={closeAll}>Espace Annonceur</Link>}
-                {/* For apprenant, 'Mon Espace' is now on the right side */}
+                {auth.user?.role === 'admin' && <Link to="/admin" onClick={closeAll}>{t('nav_admin')}</Link>}
+                {auth.user?.role === 'formateur' && <Link to="/formateur" onClick={closeAll}>{t('nav_formateur')}</Link>}
+                {auth.user?.role === 'annonceur' && <Link to="/annonceur" onClick={closeAll}>{t('nav_annonceur')}</Link>}
               </>
             )}
-            <Link to="/contact" onClick={closeAll}>Contact</Link>
+            <Link to="/contact" onClick={closeAll}>{t('nav_contact')}</Link>
           </div>
 
           <div className="navbar-auth-links">
+            {/* Lang Switcher */}
+            <button 
+              onClick={handleToggleLanguage} 
+              className="lang-switcher"
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                color: 'white',
+                padding: '0.4rem 0.8rem',
+                borderRadius: '50px',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontWeight: 'bold',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                marginRight: '0.5rem',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+            >
+              🌐 {language.toUpperCase()}
+            </button>
+
             {!isLoggedIn ? (
               <>
-                <Link to="/connexion" className="nav-auth-text" onClick={closeAll}>Connexion</Link>
+                <Link to="/connexion" className="nav-auth-text" onClick={closeAll}>{t('nav_login')}</Link>
                 <Link to="/register" className="btn btn-primary" onClick={closeAll}>
-                  S'inscrire
+                  {t('nav_register')}
                 </Link>
               </>
             ) : (
@@ -90,7 +180,7 @@ const Navbar = () => {
                       onMouseEnter={e => e.currentTarget.style.color = '#fff'}
                       onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}
                     >
-                      <BookOpen size={15} /> Mon Espace
+                      <BookOpen size={15} /> {t('nav_my_space')}
                     </Link>
                     <Link
                       to="/mon-espace/inscriptions"
@@ -99,7 +189,7 @@ const Navbar = () => {
                       onMouseEnter={e => e.currentTarget.style.color = '#fff'}
                       onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.75)'}
                     >
-                      <CreditCard size={15} /> Mes Inscriptions
+                      <CreditCard size={15} /> {t('nav_my_enrollments')}
                     </Link>
                   </div>
                 )}
@@ -126,45 +216,45 @@ const Navbar = () => {
                   <div className={`account-menu ${accountMenuOpen ? 'open' : ''}`}>
                     {auth.user?.role === 'admin' && (
                       <Link to="/admin" className="account-menu-item" onClick={closeAll}>
-                        <LayoutDashboard size={16} /> Dashboard Admin
+                        <LayoutDashboard size={16} /> {t('nav_admin')}
                       </Link>
                     )}
                     {auth.user?.role === 'formateur' && (
                       <Link to="/formateur" className="account-menu-item" onClick={closeAll}>
-                        <LayoutDashboard size={16} /> Espace Formateur
+                        <LayoutDashboard size={16} /> {t('nav_formateur')}
                       </Link>
                     )}
                     {auth.user?.role === 'annonceur' && (
                       <Link to="/annonceur" className="account-menu-item" onClick={closeAll}>
-                        <LayoutDashboard size={16} /> Espace Annonceur
+                        <LayoutDashboard size={16} /> {t('nav_annonceur')}
                       </Link>
                     )}
                     {auth.user?.role === 'apprenant' && (
                       <>
                         <Link to="/mon-espace" className="account-menu-item" onClick={closeAll}>
-                          <LayoutDashboard size={16} /> Mon Espace
+                          <LayoutDashboard size={16} /> {t('nav_my_space')}
                         </Link>
                         <Link to="/mon-espace/inscriptions" className="account-menu-item" onClick={closeAll}>
-                          <BookOpen size={16} /> Mes Inscriptions
+                          <BookOpen size={16} /> {t('nav_my_enrollments')}
                         </Link>
                         <Link to="/mon-espace/paiements" className="account-menu-item" onClick={closeAll}>
-                          <CreditCard size={16} /> Mes paiements
+                          <CreditCard size={16} /> {t('nav_my_payments')}
                         </Link>
                         <Link to="/mon-espace/recus" className="account-menu-item" onClick={closeAll}>
-                          <FileText size={16} /> Mes reçus
+                          <FileText size={16} /> {t('nav_my_receipts')}
                         </Link>
                       </>
                     )}
 
                     <Link to="/parametres" className="account-menu-item" onClick={closeAll}>
-                      <Settings size={16} /> Paramètres
+                      <Settings size={16} /> {t('nav_settings')}
                     </Link>
                     <div className="account-menu-divider" />
                     <button
                       className="account-menu-item account-menu-logout"
                       onClick={() => { auth.logout(); closeAll(); }}
                     >
-                      <LogOut size={16} /> Déconnexion
+                      <LogOut size={16} /> {t('nav_logout')}
                     </button>
                   </div>
                 </div>

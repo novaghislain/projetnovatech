@@ -1,16 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Footer.css';
 
 const Footer = () => {
+  const { t, language } = useLanguage();
+  const homePath = language === 'en' ? '/en' : '/';
+  const coursesPath = language === 'en' ? '/en/courses' : '/formations';
+  const aboutPath = language === 'en' ? '/en/about' : '/a-propos';
+  const contactPath = language === 'en' ? '/en/contact' : '/contact';
+  const privacyPath = language === 'en' ? '/en/privacy' : '/politique-confidentialite';
+  const termsPath = language === 'en' ? '/en/terms' : '/conditions-utilisation';
+
   return (
     <footer className="footer">
       <div className="container footer-container">
         <div className="footer-section">
           <h3 style={{ color: 'var(--color-white)', marginBottom: '1rem', fontFamily: 'var(--font-heading)', fontSize: '1.5rem' }}>NOVATECH VISION</h3>
           <p className="footer-desc">
-            Organisme de formation spécialisé dans l'éducation informatique des enfants et jeunes de 8 à 18 ans.
+            {t('footer_desc')}
           </p>
           <div className="social-links">
             <a href="https://www.facebook.com/novatechvision" target="_blank" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
@@ -21,14 +30,14 @@ const Footer = () => {
         </div>
 
         <div className="footer-section">
-          <h4>Liens Rapides</h4>
+          <h4>{t('footer_quick_links')}</h4>
           <ul>
-            <li><Link to="/">Accueil</Link></li>
-            <li><Link to="/formations">Nos Formations</Link></li>
-            <li><Link to="/a-propos">À Propos de Nous</Link></li>
-            <li><Link to="/contact">Nous Contacter</Link></li>
-            <li><Link to="/politique-confidentialite">Politique de confidentialité</Link></li>
-            <li><Link to="/conditions-utilisation">Conditions d'utilisation</Link></li>
+            <li><Link to={homePath}>{t('nav_home')}</Link></li>
+            <li><Link to={coursesPath}>{t('nav_courses')}</Link></li>
+            <li><Link to={aboutPath}>{t('nav_about')}</Link></li>
+            <li><Link to={contactPath}>{t('nav_contact')}</Link></li>
+            <li><Link to={privacyPath}>{t('footer_privacy')}</Link></li>
+            <li><Link to={termsPath}>{t('footer_terms')}</Link></li>
           </ul>
         </div>
 
@@ -42,7 +51,7 @@ const Footer = () => {
         </div>
       </div>
       <div className="footer-bottom">
-        <p>&copy; {new Date().getFullYear()} Novatech Vision. Tous droits réservés.</p>
+        <p>&copy; {new Date().getFullYear()} Novatech Vision. {t('footer_rights')}</p>
       </div>
     </footer>
   );

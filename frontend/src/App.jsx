@@ -15,6 +15,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import StaticPage from './pages/StaticPage';
 
 import ApprenantDashboard from './pages/ApprenantDashboard';
 import InscriptionFormation from './pages/InscriptionFormation';
@@ -25,6 +26,22 @@ import LessonViewer from './pages/LessonViewer';
 import CertificateVerify from './pages/CertificateVerify';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+
+const LanguageRouteWatcher = () => {
+  const location = useLocation();
+  const { language, setLanguage } = useLanguage();
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/en')) {
+      if (language !== 'en') setLanguage('en');
+    } else if (location.pathname.startsWith('/fr')) {
+      if (language !== 'fr') setLanguage('fr');
+    }
+  }, [location.pathname, language, setLanguage]);
+
+  return null;
+};
 
 const AppLayout = () => {
   const location = useLocation();
@@ -32,7 +49,9 @@ const AppLayout = () => {
                       location.pathname.startsWith('/formateur') || 
                       location.pathname.startsWith('/annonceur') ||
                       location.pathname.startsWith('/mon-espace') ||
-                      location.pathname.startsWith('/inscription');
+                      location.pathname.startsWith('/inscription') ||
+                      location.pathname.startsWith('/fr/inscription') ||
+                      location.pathname.startsWith('/en/enroll');
 
   // Remonter en haut de la page à chaque changement de route
   useEffect(() => {
@@ -72,6 +91,16 @@ const AppLayout = () => {
             <Inscription />
           </ProtectedRoute>
         } />
+        <Route path="/fr/inscription" element={
+          <ProtectedRoute>
+            <Inscription />
+          </ProtectedRoute>
+        } />
+        <Route path="/en/enroll" element={
+          <ProtectedRoute>
+            <Inscription />
+          </ProtectedRoute>
+        } />
       </Routes>
     );
   }
@@ -81,20 +110,51 @@ const AppLayout = () => {
       <Navbar />
       <main className="main-content">
         <Routes>
+          {/* French & Default routes */}
           <Route path="/" element={<Home />} />
+          <Route path="/fr" element={<Home />} />
           <Route path="/galerie" element={<Galerie />} />
+          <Route path="/fr/galerie" element={<Galerie />} />
           <Route path="/temoignages" element={<Testimonials />} />
+          <Route path="/fr/temoignages" element={<Testimonials />} />
           <Route path="/a-propos" element={<Apropos />} />
+          <Route path="/fr/a-propos" element={<Apropos />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/fr/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/fr/faq" element={<FAQ />} />
+          <Route path="/conditions-utilisation" element={<StaticPage slug="conditions" defaultTitle="Conditions d'utilisation" />} />
+          <Route path="/fr/conditions-utilisation" element={<StaticPage slug="conditions" defaultTitle="Conditions d'utilisation" />} />
+          <Route path="/politique-confidentialite" element={<StaticPage slug="politique" defaultTitle="Politique de confidentialité" />} />
+          <Route path="/fr/politique-confidentialite" element={<StaticPage slug="politique" defaultTitle="Politique de confidentialité" />} />
           <Route path="/connexion" element={<Login />} />
+          <Route path="/fr/connexion" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/fr/register" element={<Register />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+          <Route path="/fr/mot-de-passe-oublie" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/inscription" element={<Navigate to="/inscription" replace />} />
           <Route path="/formations" element={<InscriptionFormation />} />
+          <Route path="/fr/formations" element={<InscriptionFormation />} />
           <Route path="/formations/:id" element={<FormationDetails />} />
+          <Route path="/fr/formations/:id" element={<FormationDetails />} />
           <Route path="/verifier/:certId" element={<CertificateVerify />} />
+
+          {/* English routes */}
+          <Route path="/en" element={<Home />} />
+          <Route path="/en/gallery" element={<Galerie />} />
+          <Route path="/en/testimonials" element={<Testimonials />} />
+          <Route path="/en/about" element={<Apropos />} />
+          <Route path="/en/contact" element={<Contact />} />
+          <Route path="/en/faq" element={<FAQ />} />
+          <Route path="/en/terms" element={<StaticPage slug="conditions" defaultTitle="Terms of use" />} />
+          <Route path="/en/privacy" element={<StaticPage slug="politique" defaultTitle="Privacy Policy" />} />
+          <Route path="/en/login" element={<Login />} />
+          <Route path="/en/register" element={<Register />} />
+          <Route path="/en/forgot-password" element={<ForgotPassword />} />
+          <Route path="/en/courses" element={<InscriptionFormation />} />
+          <Route path="/en/courses/:id" element={<FormationDetails />} />
 
           <Route path="/parametres" element={<ProtectedRoute><Parametres /></ProtectedRoute>} />
           
@@ -110,9 +170,12 @@ const AppLayout = () => {
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <AppLayout />
-      </AuthProvider>
+      <LanguageProvider>
+        <LanguageRouteWatcher />
+        <AuthProvider>
+          <AppLayout />
+        </AuthProvider>
+      </LanguageProvider>
     </Router>
   );
 }

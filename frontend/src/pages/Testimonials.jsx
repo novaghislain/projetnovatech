@@ -1,11 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Testimonials.css';
 import { API_URL } from '../config';
+
+const translateTestimonial = (item, lang) => {
+  if (lang !== 'en') return item;
+  
+  const dict = {
+    "J'ai adoré créer mon propre jeu vidéo ! Les animateurs sont super sympas.": "I loved creating my own video game! The instructors are super friendly.",
+    "C'est incroyable de voir comment fonctionne une intelligence artificielle.": "It's amazing to see how artificial intelligence works.",
+    "Initiation à la Programmation": "Introduction to Programming",
+    "Découverte de l'IA": "Discovering AI",
+    "Bureautique Avancée": "Advanced Office Tools",
+    "12 ans": "12 years old",
+    "15 ans": "15 years old"
+  };
+
+  return {
+    ...item,
+    comment: dict[item.comment] || item.comment,
+    courseName: dict[item.courseName] || item.courseName,
+    age: dict[item.age] || item.age
+  };
+};
 
 const Testimonials = () => {
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { language } = useLanguage();
 
   useEffect(() => {
     fetchTestimonials();
@@ -28,9 +51,13 @@ const Testimonials = () => {
       <section className="testimonials-hero">
         <div className="hero-background-glow"></div>
         <div className="container testimonials-hero-content">
-          <h1 className="testimonials-title">Ils ont osé le numérique</h1>
+          <h1 className="testimonials-title">
+            {language === 'en' ? 'They ventured into digital' : 'Ils ont osé le numérique'}
+          </h1>
           <p className="testimonials-subtitle">
-            Découvrez comment nos formations transforment la curiosité en véritables compétences techniques. Laissez-vous inspirer par nos brillants apprenants.
+            {language === 'en' 
+              ? 'Discover how our training programs transform curiosity into real technical skills. Let yourself be inspired by our brilliant learners.'
+              : 'Découvrez comment nos formations transforment la curiosité en véritables compétences techniques. Laissez-vous inspirer par nos brillants apprenants.'}
           </p>
         </div>
       </section>
@@ -41,17 +68,17 @@ const Testimonials = () => {
           {loading ? (
             <div className="testimonials-loading">
               <div className="spinner"></div>
-              <p>Chargement des retours d'expérience...</p>
+              <p>{language === 'en' ? 'Loading feedback...' : "Chargement des retours d'expérience..."}</p>
             </div>
           ) : testimonials.length === 0 ? (
             <div className="testimonials-empty">
               <div className="empty-icon">✨</div>
-              <h3>Soyez le premier à partager votre expérience !</h3>
-              <p>Aucun témoignage n'est encore publié.</p>
+              <h3>{language === 'en' ? 'Be the first to share your experience!' : 'Soyez le premier à partager votre expérience !'}</h3>
+              <p>{language === 'en' ? 'No testimonials have been published yet.' : "Aucun témoignage n'est encore publié."}</p>
             </div>
           ) : (
             <div className="masonry-grid">
-              {testimonials.map((t, index) => (
+              {testimonials.map(t => translateTestimonial(t, language)).map((t, index) => (
                 <div key={t.id} className="premium-testimonial-card" style={{ animationDelay: `${index * 0.1}s` }}>
                   <div className="card-quote-mark">"</div>
                   
@@ -62,7 +89,7 @@ const Testimonials = () => {
                   <p className="card-comment">
                     {t.comment}
                   </p>
-
+ 
                   <div className="card-author-info">
                     <div className="author-avatar">
                       {t.avatar ? (

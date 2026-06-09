@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   Monitor, Shield, Code2, BrainCircuit, UserCheck,
   GraduationCap, BookOpen, FlaskConical, Award, Clock, ArrowRight,
@@ -10,35 +11,33 @@ import AdBanner from '../components/AdBanner';
 import './Home.css';
 import { API_URL } from '../config';
 
-  const programs = [
-  { icon: <Monitor size={26} />, label: 'Bureautique' },
-  { icon: <Shield size={26} />, label: 'Internet & Sécurité' },
-  { icon: <Code2 size={26} />, label: 'Programmation' },
-  { icon: <BrainCircuit size={26} />, label: 'Intelligence Artificielle' },
-  { icon: <UserCheck size={26} />, label: 'Accompagnement personnalisé' },
-];
-
-const features = [
-  { icon: <GraduationCap size={32} />, title: 'Formateurs qualifiés', desc: 'Des professionnels passionnés par la transmission des connaissances.' },
-  { icon: <BookOpen size={32} />, title: 'Programmes adaptés', desc: 'Des contenus conçus spécifiquement pour les enfants et adolescents.' },
-  { icon: <FlaskConical size={32} />, title: 'Apprentissage pratique', desc: 'Plus de pratique que de théorie pour des compétences concrètes.' },
-  { icon: <Award size={32} />, title: 'Certifications', desc: 'Des attestations de participation et de fin de formation sont délivrées.' },
-  { icon: <UserCheck size={32} />, title: 'Suivi individuel', desc: 'Chaque apprenant est accompagné tout au long de son parcours.' },
-  { icon: <Clock size={32} />, title: 'Horaires flexibles', desc: 'Formations disponibles en présentiel, à domicile ou en ligne selon vos besoins.' },
-];
-
-
-
-
-
-const stats = [
-  { value: '500+', label: 'Enfants formés' },
-  { value: '15+', label: 'Formations' },
-  { value: '98%', label: 'Parents satisfaits' },
-  { value: '10', label: 'Formateurs experts' },
-];
-
 const Home = () => {
+  const { t, language } = useLanguage();
+
+  const programs = [
+    { icon: <Monitor size={26} />, label: t('program_office') },
+    { icon: <Shield size={26} />, label: t('program_safety') },
+    { icon: <Code2 size={26} />, label: t('program_prog') },
+    { icon: <BrainCircuit size={26} />, label: t('program_ai') },
+    { icon: <UserCheck size={26} />, label: t('program_coaching') },
+  ];
+
+  const features = [
+    { icon: <GraduationCap size={32} />, title: t('why_feat1_title'), desc: t('why_feat1_desc') },
+    { icon: <BookOpen size={32} />, title: t('why_feat2_title'), desc: t('why_feat2_desc') },
+    { icon: <FlaskConical size={32} />, title: t('why_feat3_title'), desc: t('why_feat3_desc') },
+    { icon: <Award size={32} />, title: t('why_feat4_title'), desc: t('why_feat4_desc') },
+    { icon: <UserCheck size={32} />, title: t('why_feat5_title'), desc: t('why_feat5_desc') },
+    { icon: <Clock size={32} />, title: t('why_feat6_title'), desc: t('why_feat6_desc') },
+  ];
+
+  const stats = [
+    { value: '500+', label: t('stats_students') },
+    { value: '15+', label: t('stats_courses') },
+    { value: '98%', label: t('stats_satisfaction') },
+    { value: '10', label: t('stats_experts') },
+  ];
+
   const [featuredCourses, setFeaturedCourses] = useState([]);
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', body: '' });
   const [contactStatus, setContactStatus] = useState('idle');
@@ -95,13 +94,12 @@ const Home = () => {
 
             <div className="hero-text-block">
               <h1>
-                Former Aujourd'hui<br />
-                <span className="hero-blue">Les Talents Numériques</span><br />
-                de Demain
+                {t('hero_title')}<br />
+                <span className="hero-blue">{t('hero_title_accent')}</span><br />
+                {t('hero_title_end')}
               </h1>
               <p>
-                Nous accompagnons les enfants et les jeunes de 8 à 18 ans<br />
-                dans l'acquisition des compétences informatiques essentielles.
+                {t('hero_desc')}
               </p>
 
               <div className="hero-programs">
@@ -113,8 +111,8 @@ const Home = () => {
                 ))}
               </div>
 
-              <Link to="/formations" className="hero-cta-btn">
-                S'inscrire Maintenant <ArrowRight size={18} />
+              <Link to={language === 'en' ? '/en/courses' : '/formations'} className="hero-cta-btn">
+                {t('hero_cta')} <ArrowRight size={18} />
               </Link>
             </div>
           </div>
@@ -127,22 +125,22 @@ const Home = () => {
               <div className="sidebar-card-header">
                 <Clock size={24} />
                 <div>
-                  <h3 className="sidebar-card-title">Inscriptions ouvertes 2026</h3>
-                  <p className="sidebar-card-subtitle">Offrez à votre enfant les compétences du futur !</p>
+                  <h3 className="sidebar-card-title">{t('hero_card_title')}</h3>
+                  <p className="sidebar-card-subtitle">{t('hero_card_subtitle')}</p>
                 </div>
               </div>
-              <Link to="/inscription" className="sidebar-card-btn">
-                Je réserve ma place
+              <Link to={language === 'en' ? '/en/enroll' : '/inscription'} className="sidebar-card-btn">
+                {t('hero_card_btn')}
               </Link>
             </div>
 
             {/* AI Discovery card */}
             <div className="sidebar-card sidebar-card--ai">
               <div className="sidebar-card-content">
-                <h3 className="sidebar-card-title">Découvrez l'Intelligence Artificielle pour les jeunes</h3>
-                <p className="sidebar-card-subtitle">Comprendre, créer, innover avec les technologies de demain.</p>
-                <Link to="/formations/ia" className="sidebar-card-btn-outline">
-                  En savoir plus
+                <h3 className="sidebar-card-title">{t('hero_ai_title')}</h3>
+                <p className="sidebar-card-subtitle">{t('hero_ai_subtitle')}</p>
+                <Link to={language === 'en' ? '/en/courses/2' : '/formations/2'} className="sidebar-card-btn-outline">
+                  {t('hero_ai_btn')}
                 </Link>
               </div>
               <div className="sidebar-card-bg-ai">
@@ -161,22 +159,22 @@ const Home = () => {
         <div className="container">
           <div className="presentation-content" style={{ display: 'flex', gap: '4rem', alignItems: 'center' }}>
             <div className="presentation-text" style={{ flex: 1 }}>
-              <div className="section-eyebrow">Qui sommes-nous ?</div>
-              <h2 className="section-title">L'informatique à la portée de vos enfants</h2>
+              <div className="section-eyebrow">{t('about_eyebrow')}</div>
+              <h2 className="section-title">{t('about_title')}</h2>
               <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '1.05rem', lineHeight: 1.7 }}>
-                Novatech Vision est un organisme de formation spécialisé dans l'éducation informatique des enfants et jeunes de 8 à 18 ans.
+                {t('about_desc1')}
               </p>
               <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', lineHeight: 1.7 }}>
-                Notre mission est de préparer la prochaine génération aux défis du monde numérique en leur offrant des compétences solides en bureautique, sécurité internet, et intelligence artificielle, dans un cadre ludique et stimulant.
+                {t('about_desc2')}
               </p>
               <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontWeight: 600, color: 'var(--color-primary)' }}>
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(15, 52, 96,0.15)', color: '#0F3460' }}><Award size={18} /></span>
-                  Excellence pédagogique
+                  {t('about_feat1')}
                 </li>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontWeight: 600, color: 'var(--color-primary)' }}>
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(15, 52, 96,0.15)', color: '#0F3460' }}><Shield size={18} /></span>
-                  Environnement sécurisé
+                  {t('about_feat2')}
                 </li>
               </ul>
             </div>
@@ -188,7 +186,7 @@ const Home = () => {
                 <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', border: '3px solid var(--color-accent)', borderRadius: 'var(--radius-lg)', zIndex: -1 }}></div>
                 <div style={{ position: 'absolute', bottom: '-20px', left: '-20px', backgroundColor: 'var(--color-primary)', color: 'var(--color-white)', padding: '1.5rem 2rem', borderRadius: 'var(--radius-md)', boxShadow: '0 10px 30px rgba(15, 52, 96,0.3)', display: 'flex', alignItems: 'center', gap: '1.2rem', zIndex: 2 }}>
                   <div style={{ fontSize: '3rem', fontWeight: 900, color: '#0F3460', lineHeight: 1 }}>5+</div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Années<br />d'expérience</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{t('about_years')}</div>
                 </div>
               </div>
             </div>
@@ -205,9 +203,9 @@ const Home = () => {
       <section className="featured-courses-section section-padding" style={{ backgroundColor: 'var(--color-white)' }}>
         <div className="container">
           <div className="text-center">
-            <div className="section-eyebrow">Nos Formations</div>
-            <h2 className="section-title">Formations en vedette</h2>
-            <p className="section-subtitle" style={{ margin: '0 auto 3rem' }}>Découvrez nos programmes les plus populaires conçus pour vos enfants.</p>
+            <div className="section-eyebrow">{t('courses_eyebrow')}</div>
+            <h2 className="section-title">{t('courses_title')}</h2>
+            <p className="section-subtitle" style={{ margin: '0 auto 3rem' }}>{t('courses_subtitle')}</p>
           </div>
 
           <div className="courses-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
@@ -228,14 +226,14 @@ const Home = () => {
                   <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1.2rem' }}>
                     <div>
                       <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                        {course.isFull || course.status === 'full' ? 'Complet' : `${course.maxParticipants - course.enrolled} places restantes`}
+                        {course.isFull || course.status === 'full' ? t('courses_full') : `${course.maxParticipants - course.enrolled} ${t('courses_remaining')}`}
                       </span>
                       <strong style={{ fontSize: '1.1rem', color: 'var(--color-primary)', fontFamily: 'var(--font-heading)' }}>
-                        {course.price ? course.price.toLocaleString() + ' FCFA' : 'Gratuit'}
+                        {course.price ? course.price.toLocaleString() + ' FCFA' : t('courses_free')}
                       </strong>
                     </div>
-                    <Link to="/formations" className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
-                      S'inscrire
+                    <Link to={language === 'en' ? '/en/courses' : '/formations'} className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
+                      {t('courses_enroll')}
                     </Link>
                   </div>
                 </div>
@@ -243,7 +241,7 @@ const Home = () => {
             ))}
           </div>
           <div className="text-center" style={{ marginTop: '3rem' }}>
-            <Link to="/formations" className="btn btn-secondary">Voir toutes les formations</Link>
+            <Link to={language === 'en' ? '/en/courses' : '/formations'} className="btn btn-secondary">{t('courses_more')}</Link>
           </div>
         </div>
       </section>
@@ -251,8 +249,8 @@ const Home = () => {
       {/* Statistics / Key Figures */}
       <section className="key-figures-section section-padding">
         <div className="container text-center">
-          <h2 className="section-title">Novatech Vision en Chiffres</h2>
-          <p className="section-subtitle">Notre impact et notre engagement envers l'excellence.</p>
+          <h2 className="section-title">{t('stats_title')}</h2>
+          <p className="section-subtitle">{t('stats_subtitle')}</p>
           <div className="key-figures-grid">
             {stats.map((stat, i) => (
               <div className="key-figure-item" key={i}>
@@ -270,9 +268,9 @@ const Home = () => {
       <section className="why-us-section section-padding" style={{ backgroundColor: 'var(--color-bg-alt)' }}>
         <div className="container">
           <div className="text-center">
-            <div className="section-eyebrow">Nos Atouts</div>
-            <h2 className="section-title">Pourquoi nous choisir ?</h2>
-            <p className="section-subtitle" style={{ margin: '0 auto 3rem' }}>L'environnement idéal pour le développement des compétences de vos enfants.</p>
+            <div className="section-eyebrow">{t('why_eyebrow')}</div>
+            <h2 className="section-title">{t('why_title')}</h2>
+            <p className="section-subtitle" style={{ margin: '0 auto 3rem' }}>{t('why_subtitle')}</p>
           </div>
 
           <div className="features-strip-grid" style={{ gap: '2rem' }}>
@@ -295,10 +293,10 @@ const Home = () => {
           <div className="contact-layout" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem' }}>
 
             <div className="contact-info-block">
-              <div className="section-eyebrow">Restons connectés</div>
-              <h2 className="section-title">Rejoignez la communauté</h2>
+              <div className="section-eyebrow">{t('contact_eyebrow')}</div>
+              <h2 className="section-title">{t('contact_title')}</h2>
               <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', lineHeight: 1.7 }}>
-                Suivez nos actualités, nos événements et interagissez avec nous sur les réseaux sociaux. Nous sommes disponibles pour répondre à toutes vos questions.
+                {t('contact_desc')}
               </p>
 
               <div className="social-links-grid" style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem' }}>
@@ -333,22 +331,22 @@ const Home = () => {
             </div>
 
             <div className="contact-form-block" style={{ backgroundColor: 'var(--color-bg-light)', padding: '2.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
-              <h3 style={{ marginBottom: '1.5rem', fontSize: '1.4rem' }}>Formulaire de contact rapide</h3>
+              <h3 style={{ marginBottom: '1.5rem', fontSize: '1.4rem' }}>{t('contact_form_title')}</h3>
               <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
-                  <input type="text" name="name" value={contactForm.name} onChange={handleContactChange} required placeholder="Votre nom complet" style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)' }} />
+                  <input type="text" name="name" value={contactForm.name} onChange={handleContactChange} required placeholder={t('contact_form_name')} style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)' }} />
                 </div>
                 <div>
-                  <input type="email" name="email" value={contactForm.email} onChange={handleContactChange} required placeholder="Votre adresse email" style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)' }} />
+                  <input type="email" name="email" value={contactForm.email} onChange={handleContactChange} required placeholder={t('contact_form_email')} style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)' }} />
                 </div>
                 <div>
-                  <input type="text" name="subject" value={contactForm.subject} onChange={handleContactChange} required placeholder="Sujet" style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)' }} />
+                  <input type="text" name="subject" value={contactForm.subject} onChange={handleContactChange} required placeholder={t('contact_form_subject')} style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)' }} />
                 </div>
                 <div>
-                  <textarea name="body" value={contactForm.body} onChange={handleContactChange} required placeholder="Votre message..." rows={4} style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)', resize: 'none' }}></textarea>
+                  <textarea name="body" value={contactForm.body} onChange={handleContactChange} required placeholder={t('contact_form_body')} rows={4} style={{ width: '100%', padding: '0.9rem 1.2rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', fontFamily: 'var(--font-body)', resize: 'none' }}></textarea>
                 </div>
                 <button type="submit" disabled={contactStatus === 'sending'} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem', opacity: contactStatus === 'sending' ? 0.7 : 1 }}>
-                  {contactStatus === 'sending' ? 'Envoi en cours...' : contactStatus === 'sent' ? 'Message envoyé !' : 'Envoyer le message'} <Send size={18} />
+                  {contactStatus === 'sending' ? t('contact_form_sending') : contactStatus === 'sent' ? t('contact_form_sent') : t('contact_form_submit')} <Send size={18} />
                 </button>
               </form>
             </div>

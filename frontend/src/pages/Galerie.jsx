@@ -1,14 +1,47 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import axios from 'axios';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Galerie.css';
 import { API_URL } from '../config';
+
+const translateGalleryTag = (tag, lang) => {
+  if (lang !== 'en') return tag;
+  const dict = {
+    'Tous': 'All',
+    'Classes': 'Classes',
+    'Événements': 'Events',
+    'Ateliers': 'Workshops',
+    'Autre': 'Other'
+  };
+  return dict[tag] || tag;
+};
+
+const translateGalleryItem = (item, lang) => {
+  if (lang !== 'en') return item;
+  const dict = {
+    'Session Mars 2026': 'March 2026 Session',
+    'Remise de Certificats': 'Certificates Award Ceremony',
+    'Atelier Robotique': 'Robotics Workshop',
+    'Classes': 'Classes',
+    'Événements': 'Events',
+    'Ateliers': 'Workshops',
+    'Autre': 'Other',
+    'Sans titre': 'Untitled'
+  };
+  return {
+    ...item,
+    caption: dict[item.caption] || item.caption,
+    tag: dict[item.tag] || item.tag
+  };
+};
 
 const Galerie = () => {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState('Tous');
   const [lightboxIdx, setLightboxIdx] = useState(null);
+  const { language } = useLanguage();
 
   useEffect(() => {
     const fetchGallery = async () => {
@@ -31,7 +64,8 @@ const Galerie = () => {
     fetchGallery();
   }, []);
 
-  const tags = ['Tous', ...Array.from(new Set(photos.map(p => p.tag)))];
+  // Compute tags
+  const rawTags = ['Tous', ...Array.from(new Set(photos.map(p => p.tag)))];
   const filtered = activeTag === 'Tous' ? photos : photos.filter(p => p.tag === activeTag);
 
   const openLightbox = (idx) => setLightboxIdx(idx);
@@ -57,26 +91,34 @@ const Galerie = () => {
       {/* ── Header ── */}
       <div className="page-top-bar">
         <div className="container">
-          <h1>Galerie Photo</h1>
-          <p className="page-top-desc">Découvrez nos sessions de formation, ateliers et événements en images.</p>
+          <h1>{language === 'en' ? 'Photo Gallery' : 'Galerie Photo'}</h1>
+          <p className="page-top-desc">
+            {language === 'en' 
+              ? 'Discover our training sessions, workshops, and events in pictures.'
+              : 'Découvrez nos sessions de formation, ateliers et événements en images.'}
+          </p>
         </div>
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '5rem', color: '#666' }}>Chargement de la galerie...</div>
+        <div style={{ textAlign: 'center', padding: '5rem', color: '#666' }}>
+          {language === 'en' ? 'Loading gallery...' : 'Chargement de la galerie...'}
+        </div>
       ) : photos.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '5rem', color: '#666' }}>La galerie est actuellement vide.</div>
+        <div style={{ textAlign: 'center', padding: '5rem', color: '#666' }}>
+          {language === 'en' ? 'The gallery is currently empty.' : 'La galerie est actuellement vide.'}
+        </div>
       ) : (
         <>
           {/* ── Filter Tags ── */}
           <div className="galerie-filters container">
-            {tags.map(tag => (
+            {rawTags.map(tag => (
               <button
                 key={tag}
                 className={`filter-btn ${activeTag === tag ? 'filter-btn--active' : ''}`}
                 onClick={() => setActiveTag(tag)}
               >
-                {tag}
+                {translateGalleryTag(tag, language)}
                 <span className="filter-count">
                   {tag === 'Tous' ? photos.length : photos.filter(p => p.tag === tag).length}
                 </span>
@@ -86,7 +128,7 @@ const Galerie = () => {
 
           {/* ── Grid ── */}
           <div className="galerie-grid container">
-            {filtered.map((photo, i) => (
+            {filtered.map(p => translateGalleryItem(p, language)).map((photo, i) => (
               <div
                 className="galerie-card"
                 key={photo.id || i}
@@ -127,8 +169,10 @@ const Galerie = () => {
           <div className="lb-content" onClick={e => e.stopPropagation()}>
             <img src={filtered[lightboxIdx].src} alt={filtered[lightboxIdx].caption} />
             <div className="lb-info">
-              <span className="galerie-tag">{filtered[lightboxIdx].tag}</span>
-              <p>{filtered[lightboxIdx].caption}</p>
+              <span className="galerie-tag">
+                {translateGalleryTag(filtered[lightboxIdx].tag, language)}
+              </span>
+              <p>{translateGalleryItem(filtered[lightboxIdx], language).caption}</p>
               <span className="lb-counter">{lightboxIdx + 1} / {filtered.length}</span>
             </div>
           </div>

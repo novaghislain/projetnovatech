@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const FedapayWidget = ({ amount, customerInfo, onSuccess, onFail }) => {
+  const { language } = useLanguage();
+
   useEffect(() => {
     // Inject Fedapay script dynamically
     if (!document.getElementById('fedapay-script')) {
@@ -32,11 +35,23 @@ const FedapayWidget = ({ amount, customerInfo, onSuccess, onFail }) => {
         onComplete: (resp) => {
           console.log("Paiement FedaPay réussi", resp);
           if (onSuccess) onSuccess(resp);
+        },
+        onClose: () => {
+          console.log("Paiement FedaPay fermé ou annulé");
+          if (onFail) {
+            onFail();
+          } else {
+            alert(language === 'en' 
+              ? "Payment failed. Please contact support." 
+              : "Échec du paiement. Veuillez contacter le support.");
+          }
         }
       });
       widget.open();
     } else {
-      alert("Le module de paiement FedaPay est en cours de chargement, veuillez patienter.");
+      alert(language === 'en'
+        ? "The FedaPay payment module is loading, please wait."
+        : "Le module de paiement FedaPay est en cours de chargement, veuillez patienter.");
     }
   };
 
@@ -57,7 +72,7 @@ const FedapayWidget = ({ amount, customerInfo, onSuccess, onFail }) => {
         marginTop: '1rem'
       }}
     >
-      Payer avec FedaPay
+      {language === 'en' ? 'Pay with FedaPay' : 'Payer avec FedaPay'}
     </button>
   );
 };

@@ -16,23 +16,30 @@ module.exports = function(db, authenticateToken) {
     const userId = req.user.id;
 
     // 1. Vérifier la capacité de la formation
-    db.get("SELECT maxParticipants, enrolled, title FROM Formations WHERE id = ?", [courseId], (err, course) => {
+    db.get("SELECT maxParticipants, enrolled, title, meetLink, whatsappLink FROM Formations WHERE id = ?", [courseId], (err, course) => {
       if (err) return res.status(500).json({ error: "Erreur serveur" });
       if (!course) return res.status(404).json({ error: "Formation introuvable" });
 
       const isFull = course.enrolled >= course.maxParticipants;
       const status = isFull ? 'waitlist' : 'active';
+      
+      const isMensuel = paymentType === 'mensuel';
+      const actualAmount = isMensuel ? Math.ceil(amount / 3) : amount;
+      const installmentsPaid = isFull ? 0 : 1; // 0 payé si sur liste d'attente
+      const totalInstallments = isMensuel ? 3 : 1;
 
       // 2. Insérer l'inscription
       const query = `
         INSERT INTO Enrollments (
           userId, courseId, amount, transactionId, paymentMethod, status, 
-          childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address, paymentType
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address, paymentType,
+          installmentsPaid, totalInstallments
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const params = [
-        userId, courseId, amount, transactionId, paymentMethod, status,
-        childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address, paymentType
+        userId, courseId, actualAmount, transactionId, paymentMethod, status,
+        childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address, paymentType,
+        installmentsPaid, totalInstallments
       ];
 
       db.run(query, params, function(err) {
@@ -63,11 +70,27 @@ module.exports = function(db, authenticateToken) {
         const emailData = enrollmentConfirmation({
           firstName: parentName || req.user.firstName,
           courseTitle: course.title,
-          childName
+          childName,
+          meetLink: course.meetLink,
+          whatsappLink: course.whatsappLink
         });
         sendEmail({ to: parentEmail || req.user.email, ...emailData }).catch(err => {
           console.error('Erreur envoi email confirmation:', err.message);
         });
+
+        // SMS de confirmation
+        const { sendSMS } = require('./smsService');
+        if (status === 'active') {
+          const smsText = `Bonjour ${parentName || req.user.firstName}, l'inscription de votre enfant a la formation ${course.title} est confirmee. Accedez a votre espace apprenant !`;
+          sendSMS({ to: parentPhone || req.user.phone, message: smsText }).catch(err => {
+            console.error('Erreur envoi SMS confirmation:', err.message);
+          });
+        } else if (status === 'waitlist') {
+          const smsText = `Bonjour ${parentName || req.user.firstName}, la formation ${course.title} etant complete, vous avez ete ajoute(e) a la liste d'attente. Novatech Vision.`;
+          sendSMS({ to: parentPhone || req.user.phone, message: smsText }).catch(err => {
+            console.error('Erreur envoi SMS liste d\'attente:', err.message);
+          });
+        }
       });
     });
   });
@@ -76,9 +99,9 @@ module.exports = function(db, authenticateToken) {
   router.get('/my-enrollments', authenticateToken, (req, res) => {
     const query = `
       SELECT e.id, e.amount, e.paymentMethod, e.paymentType, e.status, e.createdAt, 
-             e.childFirstName, e.childLastName, e.rating,
+             e.childFirstName, e.childLastName, e.rating, e.installmentsPaid, e.totalInstallments,
              f.id as courseId, f.title as courseTitle, f.isOnline, f.meetLink, f.whatsappLink, f.imageUrl,
-             f.startDate, f.endDate, f.duration, f.sessionDuration, f.isLive, f.liveRoomName
+             f.startDate, f.endDate, f.duration, f.sessionDuration, f.isLive, f.liveRoomName, f.price as courseFullPrice
       FROM Enrollments e
       JOIN Formations f ON e.courseId = f.id
       WHERE e.userId = ?
@@ -86,7 +109,66 @@ module.exports = function(db, authenticateToken) {
     `;
     db.all(query, [req.user.id], (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json(rows);
+      
+      if (rows.length === 0) return res.json([]);
+
+      const promises = rows.map(row => {
+        return new Promise((resolve) => {
+          const totalLessonsQuery = `
+            SELECT COUNT(*) as total FROM Lessons 
+            WHERE chapterId IN (
+              SELECT id FROM Chapters 
+              WHERE moduleId IN (
+                SELECT id FROM Modules WHERE formationId = ?
+              )
+            )
+          `;
+          db.get(totalLessonsQuery, [row.courseId], (err, totalRow) => {
+            const total = totalRow ? totalRow.total : 0;
+
+            const completedQuery = `
+              SELECT COUNT(*) as completed FROM LessonProgress 
+              WHERE userId = ? AND courseId = ?
+            `;
+            db.get(completedQuery, [req.user.id, row.courseId], (err, compRow) => {
+              const completed = compRow ? compRow.completed : 0;
+              row.progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+              resolve(row);
+            });
+          });
+        });
+      });
+
+      Promise.all(promises).then((enrichedRows) => {
+        res.json(enrichedRows);
+      });
+    });
+  });
+
+  // Route pour payer la mensualité suivante
+  router.post('/payments/:id/pay-installment', authenticateToken, (req, res) => {
+    const enrollmentId = req.params.id;
+    const { transactionId, paymentMethod, amount } = req.body;
+
+    db.get("SELECT installmentsPaid, totalInstallments, amount FROM Enrollments WHERE id = ? AND userId = ?", [enrollmentId, req.user.id], (err, enrollment) => {
+      if (err) return res.status(500).json({ error: "Erreur serveur" });
+      if (!enrollment) return res.status(404).json({ error: "Inscription introuvable" });
+
+      if (enrollment.installmentsPaid >= enrollment.totalInstallments) {
+        return res.status(400).json({ error: "Toutes les mensualités de cette formation ont déjà été payées." });
+      }
+
+      const nextPaidCount = enrollment.installmentsPaid + 1;
+      const nextAmount = enrollment.amount + Number(amount);
+
+      db.run(
+        "UPDATE Enrollments SET installmentsPaid = ?, amount = ?, transactionId = ?, paymentMethod = ? WHERE id = ?",
+        [nextPaidCount, nextAmount, transactionId, paymentMethod, enrollmentId],
+        function(err) {
+          if (err) return res.status(500).json({ error: "Erreur lors de la mise à jour du paiement" });
+          res.json({ success: true, installmentsPaid: nextPaidCount, totalAmount: nextAmount });
+        }
+      );
     });
   });
 
@@ -181,7 +263,47 @@ module.exports = function(db, authenticateToken) {
         if (err) return res.status(500).json({ error: "Erreur serveur" });
         
         if (enrollment.status !== 'waitlist') {
-          db.run("UPDATE Formations SET enrolled = max(0, enrolled - 1), status = 'active' WHERE id = ?", [enrollment.courseId]);
+          // Si l'inscription supprimée était active, on regarde s'il y a quelqu'un en liste d'attente
+          db.get(
+            "SELECT e.*, f.title as courseTitle FROM Enrollments e JOIN Formations f ON e.courseId = f.id WHERE e.courseId = ? AND e.status = 'waitlist' ORDER BY e.createdAt ASC LIMIT 1",
+            [enrollment.courseId],
+            (waitlistErr, nextEnrollment) => {
+              if (!waitlistErr && nextEnrollment) {
+                // On promeut cet étudiant
+                db.run("UPDATE Enrollments SET status = 'active', installmentsPaid = 1 WHERE id = ?", [nextEnrollment.id], (promoErr) => {
+                  if (!promoErr) {
+                    console.log(`[WAITLIST] Étudiant ${nextEnrollment.id} promu à actif pour la formation ${enrollment.courseId}`);
+                    // Envoyer un email de notification
+                    const childName = nextEnrollment.childFirstName ? `${nextEnrollment.childFirstName} ${nextEnrollment.childLastName || ''}`.trim() : null;
+                    sendEmail({
+                      to: nextEnrollment.parentEmail || nextEnrollment.email,
+                      subject: `Une place se libère ! Inscription active - Novatech Vision`,
+                      html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                          <h2 style="color: #10b981;">Bonne nouvelle !</h2>
+                          <p>Bonjour ${nextEnrollment.parentName || 'Parent'},</p>
+                          <p>Une place vient de se libérer pour la formation <strong>${nextEnrollment.courseTitle}</strong>.</p>
+                          <p>L'inscription de votre enfant <strong>${childName || 'Apprenant'}</strong> a été automatiquement activée et retirée de la liste d'attente.</p>
+                          <p>Vous pouvez désormais accéder à son espace de cours en ligne.</p>
+                          <hr style="border: none; border-top: 1px solid #e5e7eb;" />
+                          <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
+                        </div>
+                    }).catch(e => console.error("Erreur envoi email promotion liste d'attente:", e.message));
+
+                    // Envoyer un SMS de notification
+                    const { sendSMS } = require('./smsService');
+                    const smsText = `Bonne nouvelle ! Une place s'est liberee pour ${nextEnrollment.courseTitle}. L'inscription de votre enfant est active. Novatech Vision.`;
+                    sendSMS({ to: nextEnrollment.parentPhone, message: smsText }).catch(err => {
+                      console.error('Erreur envoi SMS promotion:', err.message);
+                    });
+                  }
+                });
+              } else {
+                // Personne en liste d'attente, on décrémente simplement le compteur d'inscrits
+                db.run("UPDATE Formations SET enrolled = max(0, enrolled - 1), status = 'active' WHERE id = ?", [enrollment.courseId]);
+              }
+            }
+          );
         }
         res.json({ success: true });
       });

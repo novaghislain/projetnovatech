@@ -73,13 +73,18 @@ module.exports = (db, authenticateToken) => {
     });
   });
 
-  // POST /ads/:id/pay (Mock payment)
+  // POST /ads/:id/pay (FedaPay or simulated payment)
   router.post('/ads/:id/pay', authenticateToken, requireAnnonceur, (req, res) => {
     const adId = req.params.id;
     const userId = req.user.id;
+    const { transactionId, paymentMethod } = req.body;
     
-    const query = `UPDATE Advertisements SET status = 'Active', paymentStatus = 'Payé', isActive = 1 WHERE id = ? AND userId = ?`;
-    db.run(query, [adId, userId], function(err) {
+    const query = `
+      UPDATE Advertisements 
+      SET status = 'Active', paymentStatus = 'Payé', isActive = 1, transactionId = ?, paymentMethod = ? 
+      WHERE id = ? AND userId = ?
+    `;
+    db.run(query, [transactionId || 'SIMULATED', paymentMethod || 'Simulation', adId, userId], function(err) {
       if (err) return res.status(500).json({ error: 'Erreur DB' });
       res.json({ success: true });
     });

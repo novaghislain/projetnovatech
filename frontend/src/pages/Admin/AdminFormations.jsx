@@ -20,7 +20,9 @@ const AdminFormations = () => {
   
   // Form state
   const [formData, setFormData] = useState({
-    id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '', maxParticipants: '', status: 'draft', imageUrl: ''
+    id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '',
+    maxParticipants: '', status: 'draft', imageUrl: '', isFull: false,
+    whatsappLink: '', meetLink: '', startDate: '', endDate: '', location: '', isOnline: false
   });
   const [errors, setErrors] = useState({});
 
@@ -54,7 +56,11 @@ const AdminFormations = () => {
     if (formation) {
       setFormData(formation);
     } else {
-      setFormData({ id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '', maxParticipants: '', status: 'draft', imageUrl: '', isFull: false });
+      setFormData({
+        id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '',
+        maxParticipants: '', status: 'draft', imageUrl: '', isFull: false,
+        whatsappLink: '', meetLink: '', startDate: '', endDate: '', location: '', isOnline: false
+      });
     }
     setErrors({});
     setIsModalOpen(true);
@@ -205,6 +211,27 @@ const AdminFormations = () => {
                       <button className="admin-btn admin-btn-outline" style={{ padding: '0.3rem 0.5rem', color: 'var(--color-secondary)', borderColor: 'var(--color-secondary)' }} title="Gérer le programme (Cours)" onClick={() => setBuilderFormation({ id: f.id, title: f.title })}>
                         <BookOpen size={16} />
                       </button>
+                      {/* Quick publish/unpublish toggle */}
+                      <button
+                        className="admin-btn admin-btn-outline"
+                        style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700,
+                          color: f.status === 'published' ? '#d97706' : '#16a34a',
+                          borderColor: f.status === 'published' ? '#d97706' : '#16a34a'
+                        }}
+                        title={f.status === 'published' ? 'Mettre en brouillon' : 'Publier la formation'}
+                        onClick={async () => {
+                          const token = localStorage.getItem('nv_token');
+                          const newStatus = f.status === 'published' ? 'draft' : 'published';
+                          await fetch(`${API_URL}/api/admin/formations/${f.id}`, {
+                            method: 'PUT',
+                            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ...f, status: newStatus })
+                          });
+                          await fetchFormations();
+                        }}
+                      >
+                        {f.status === 'published' ? '⏸ Brouillon' : '▶ Publier'}
+                      </button>
                       <button className="admin-btn admin-btn-outline" style={{ padding: '0.3rem 0.5rem' }} title="Modifier les infos" onClick={() => handleOpenModal(f)}>
                         <Edit size={16} />
                       </button>
@@ -310,6 +337,58 @@ const AdminFormations = () => {
                 </div>
               </div>
 
+              {/* === LIENS & INFOS PRATIQUES === */}
+              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                <h5 style={{ margin: '0 0 1rem 0', color: '#374151', fontSize: '0.95rem', fontWeight: 700 }}>🔗 Liens & Informations Pratiques</h5>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>📱 Lien WhatsApp du groupe</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="https://chat.whatsapp.com/..."
+                      value={formData.whatsappLink || ''}
+                      onChange={e => setFormData({...formData, whatsappLink: e.target.value})}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>🎥 Lien Meet / Zoom</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="https://meet.google.com/... ou Zoom"
+                      value={formData.meetLink || ''}
+                      onChange={e => setFormData({...formData, meetLink: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>📅 Date de début</label>
+                    <input type="date" className="form-control" value={formData.startDate || ''} onChange={e => setFormData({...formData, startDate: e.target.value})} />
+                  </div>
+                  <div className="form-group">
+                    <label>📅 Date de fin</label>
+                    <input type="date" className="form-control" value={formData.endDate || ''} onChange={e => setFormData({...formData, endDate: e.target.value})} />
+                  </div>
+                  <div className="form-group">
+                    <label>📍 Lieu (si présentiel)</label>
+                    <input type="text" className="form-control" placeholder="ex: Cotonou, Bénin" value={formData.location || ''} onChange={e => setFormData({...formData, location: e.target.value})} />
+                  </div>
+                </div>
+                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input
+                    type="checkbox"
+                    id="isOnlineCheckAdmin"
+                    checked={formData.isOnline || false}
+                    onChange={e => setFormData({...formData, isOnline: e.target.checked})}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <label htmlFor="isOnlineCheckAdmin" style={{ margin: 0, cursor: 'pointer', fontWeight: 600 }}>
+                    🌐 Formation en ligne (visioconférence)
+                  </label>
+                </div>
+              </div>
             </div>
             <div className="admin-modal-footer">
               <button className="admin-btn admin-btn-outline" onClick={() => setIsModalOpen(false)}>Annuler</button>

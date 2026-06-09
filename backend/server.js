@@ -10,6 +10,8 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const helmet = require('helmet');
+const morgan = require('morgan');
 const { sendEmail } = require('./emailService');
 const { paymentReceipt, welcomeEmail, certificateEmail } = require('./emailTemplates');
 const { generateCertificate } = require('./certificateService');
@@ -17,10 +19,73 @@ const { generateCertificate } = require('./certificateService');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// ===== SECURITE : Helmet (XSS, Clickjacking, CSRF Headers) =====
+app.use(helmet({
+  contentSecurityPolicy: false, // désactivé pour compatibilité React + CDN FedaPay
+  crossOriginEmbedderPolicy: false,
+}));
+app.use(helmet.xssFilter());
+app.use(helmet.noSniff());
+app.use(helmet.frameguard({ action: 'SAMEORIGIN' }));
+app.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }));
+
+// ===== LOGS D'ACCES (Morgan) =====
+const logsDir = path.join(__dirname, 'logs');
+if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+const accessLogStream = fs.createWriteStream(path.join(logsDir, 'access.log'), { flags: 'a' });
+app.use(morgan('combined', { stream: accessLogStream }));
+app.use(morgan('dev')); // Console lisible en dev
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// ===== SEO : Sitemap XML dynamique =====
+app.get('/sitemap.xml', (req, res) => {
+  const SITE_URL = process.env.SITE_URL || 'https://novatechvision.com';
+  db.all("SELECT id, title FROM Formations WHERE status IN ('published','active') ORDER BY id DESC", (err, formations) => {
+    const staticUrls = [
+      { loc: `${SITE_URL}/`, priority: '1.0', changefreq: 'weekly' },
+      { loc: `${SITE_URL}/formations`, priority: '0.9', changefreq: 'daily' },
+      { loc: `${SITE_URL}/inscription`, priority: '0.8', changefreq: 'monthly' },
+      { loc: `${SITE_URL}/a-propos`, priority: '0.6', changefreq: 'monthly' },
+      { loc: `${SITE_URL}/contact`, priority: '0.6', changefreq: 'monthly' },
+      { loc: `${SITE_URL}/faq`, priority: '0.5', changefreq: 'monthly' },
+    ];
+    const formationUrls = (formations || []).map(f => ({
+      loc: `${SITE_URL}/formations/${f.id}`,
+      priority: '0.8',
+      changefreq: 'weekly'
+    }));
+    const allUrls = [...staticUrls, ...formationUrls];
+    const lastmod = new Date().toISOString().split('T')[0];
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allUrls.map(u => `  <url>
+    <loc>${u.loc}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`;
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  });
+});
+
+// ===== SEO : robots.txt =====
+app.get('/robots.txt', (req, res) => {
+  const SITE_URL = process.env.SITE_URL || 'https://novatechvision.com';
+  res.type('text/plain');
+  res.send(`User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /dashboard
+Sitemap: ${SITE_URL}/sitemap.xml`);
+});
+
 
 // Configuration Multer
 const storage = multer.diskStorage({
@@ -462,6 +527,14 @@ app.get('/api/public/gallery', (req, res) => {
   db.all("SELECT * FROM Gallery ORDER BY id DESC", (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
+  });
+});
+
+app.get('/api/public/pages/:slug', (req, res) => {
+  db.get("SELECT * FROM StaticPages WHERE slug = ?", [req.params.slug], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: "Page statique introuvable" });
+    res.json(row);
   });
 });
 
@@ -1082,8 +1155,128 @@ app.get('/api/certificates/verify/:certId', (req, res) => {
   });
 });
 
+// --- TÂCHES PLANIFIÉES (CRON SIMULÉ) ---
+const checkExpiringAds = () => {
+  const targetDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  db.all(
+    `SELECT a.*, u.email as userEmail, u.firstName as userFirstName 
+     FROM Advertisements a 
+     JOIN Users u ON a.userId = u.id 
+     WHERE a.isActive = 1 AND a.endDate = ?`,
+    [targetDate],
+    (err, ads) => {
+      if (err) {
+        console.error("[CRON ADS] Erreur lors de la vérification:", err.message);
+        return;
+      }
+      if (!ads || ads.length === 0) return;
+      
+      ads.forEach(ad => {
+        sendEmail({
+          to: ad.userEmail,
+          subject: `Votre annonce "${ad.title || 'Publicité'}" expire dans 3 jours - Novatech Vision`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2563eb;">Novatech Vision - Relance Publicitaire</h2>
+              <p>Bonjour ${ad.userFirstName || 'Annonceur'},</p>
+              <p>Votre annonce publicitaire intitulée <strong>"${ad.title || 'Publicité'}"</strong> (Emplacement: ${ad.placement}) arrive à échéance le <strong>${ad.endDate}</strong>.</p>
+              <p>Pour éviter toute interruption de diffusion, vous pouvez la renouveler dès maintenant depuis votre Espace Annonceur.</p>
+              <a href="http://localhost:5173/annonceur/ads" style="display: inline-block; padding: 12px 24px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0; font-weight: bold;">Accéder à mes publicités</a>
+              <hr style="border: none; border-top: 1px solid #e5e7eb;" />
+              <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
+            </div>
+          `
+        }).then(() => console.log(`[CRON ADS] Relance envoyée à ${ad.userEmail} pour la pub ${ad.id}`))
+          .catch(e => console.error(`[CRON ADS] Erreur envoi relance à ${ad.userEmail}:`, e.message));
+      });
+    }
+  );
+};
+
+const solicitTestimonials = () => {
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  db.all(
+    `SELECT e.*, u.email, u.firstName, f.title as courseTitle 
+     FROM Enrollments e 
+     JOIN Users u ON e.userId = u.id 
+     JOIN Formations f ON e.courseId = f.id 
+     WHERE f.endDate = ? AND e.status = 'active'`,
+    [yesterday],
+    (err, enrollments) => {
+      if (err) {
+        console.error("[CRON TESTIMONIALS] Erreur lors de la vérification:", err.message);
+        return;
+      }
+      if (!enrollments || enrollments.length === 0) return;
+      
+      enrollments.forEach(enroll => {
+        sendEmail({
+          to: enroll.email,
+          subject: `Partagez votre avis sur la formation "${enroll.courseTitle}" - Novatech Vision`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2563eb;">Votre avis nous intéresse !</h2>
+              <p>Bonjour ${enroll.firstName || 'Apprenant'},</p>
+              <p>Félicitations pour avoir terminé la formation <strong>${enroll.courseTitle}</strong> !</p>
+              <p>Nous espérons que cette formation a répondu à vos attentes. Pour nous aider à nous améliorer et inspirer d'autres parents, partagez votre avis et votre témoignage en ligne dès aujourd'hui.</p>
+              <a href="http://localhost:5173/temoignages" style="display: inline-block; padding: 12px 24px; background: #10b981; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0; font-weight: bold;">Déposer un témoignage</a>
+              <hr style="border: none; border-top: 1px solid #e5e7eb;" />
+              <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
+            </div>
+          `
+        }).then(() => console.log(`[CRON TESTIMONIALS] Invitation envoyée à ${enroll.email}`))
+          .catch(e => console.error(`[CRON TESTIMONIALS] Erreur invitation à ${enroll.email}:`, e.message));
+      });
+    }
+  );
+};
+
+const runCronTasks = () => {
+  console.log("[CRON] Lancement des tâches de vérification périodique (Ads & Témoignages)...");
+  checkExpiringAds();
+  solicitTestimonials();
+};
+
+// Démarrer après 10s puis toutes les 24 heures
+setTimeout(runCronTasks, 10000);
+setInterval(runCronTasks, 24 * 60 * 60 * 1000);
+
 // Démarrage du serveur
 app.listen(PORT, () => {
   console.log(`Serveur Backend démarré sur http://localhost:${PORT}`);
   console.log(`[En attente des webhooks Kkiapay et FedaPay]`);
 });
+
+// ===== SAUVEGARDE AUTOMATIQUE DB (toutes les 24h) =====
+const backupDB = () => {
+  const backupDir = path.join(__dirname, 'backups');
+  if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+  const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const src = path.join(__dirname, 'database.db');
+  const dest = path.join(backupDir, `novatech_backup_${date}.db`);
+  if (fs.existsSync(src)) {
+    fs.copyFile(src, dest, (err) => {
+      if (err) {
+        console.error('[BACKUP] Erreur sauvegarde DB:', err.message);
+      } else {
+        console.log(`[BACKUP] Base de données sauvegardée : ${dest}`);
+        // Supprimer les sauvegardes de plus de 30 jours
+        fs.readdir(backupDir, (e, files) => {
+          if (e) return;
+          const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+          files.forEach(f => {
+            const fp = path.join(backupDir, f);
+            fs.stat(fp, (se, stat) => {
+              if (!se && stat.mtimeMs < cutoff) fs.unlink(fp, () => {});
+            });
+          });
+        });
+      }
+    });
+  } else {
+    console.warn('[BACKUP] Fichier database.db introuvable, backup ignoré.');
+  }
+};
+// Première sauvegarde après 30s, puis toutes les 24h
+setTimeout(backupDB, 30000);
+setInterval(backupDB, 24 * 60 * 60 * 1000);

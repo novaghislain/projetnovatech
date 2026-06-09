@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { API_URL } from '../config';
 
-const API = 'http://localhost:5001';
+const API = API_URL;
 
 export default function CertificateVerify() {
   const { certId } = useParams();

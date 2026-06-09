@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Clock, Users, ShieldCheck, Search, Filter } from 'lucide-react';
 import AdBanner from '../components/AdBanner';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Home.css';
 import { API_URL, getImageUrl } from '../config';
 
@@ -18,6 +19,17 @@ const InscriptionFormation = () => {
   const [showFilters, setShowFilters] = useState(false);
   const auth = useAuth();
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
+
+  const categoryDisplay = {
+    'Développement': language === 'en' ? 'Development' : 'Développement',
+    'Intelligence Artificielle': language === 'en' ? 'Artificial Intelligence' : 'Intelligence Artificielle',
+    'Bureautique': language === 'en' ? 'Office Applications' : 'Bureautique',
+    'Cybersécurité': language === 'en' ? 'Cybersecurity' : 'Cybersécurité',
+    'Design': language === 'en' ? 'Design' : 'Design',
+    'Robotique': language === 'en' ? 'Robotics' : 'Robotique',
+    'Autre': language === 'en' ? 'Other' : 'Autre'
+  };
 
   const fetchFormations = useCallback(async () => {
     setLoading(true);
@@ -59,9 +71,9 @@ const InscriptionFormation = () => {
     <div className="page-transition">
       <div className="page-top-bar">
         <div className="container">
-          <h1>Catalogue de Formations</h1>
+          <h1>{t('cat_title')}</h1>
           <p className="page-top-desc">
-            Choisissez la formation idéale pour initier votre enfant au numérique dans un cadre sécurisé et encadré par des professionnels.
+            {t('cat_subtitle')}
           </p>
         </div>
       </div>
@@ -76,7 +88,7 @@ const InscriptionFormation = () => {
               <Search size={18} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               <input
                 type="text"
-                placeholder="Rechercher une formation..."
+                placeholder={t('cat_search_placeholder')}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 style={{
@@ -94,7 +106,7 @@ const InscriptionFormation = () => {
                 color: showFilters ? '#fff' : '#334155', cursor: 'pointer', fontSize: 14, fontWeight: 500
               }}
             >
-              <Filter size={16} /> Filtres
+              <Filter size={16} /> {t('cat_filters')}
             </button>
           </div>
 
@@ -104,31 +116,31 @@ const InscriptionFormation = () => {
               border: '1px solid #e2e8f0', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'end'
             }}>
               <div>
-                <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 4 }}>Catégorie</label>
+                <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 4 }}>{t('cat_category')}</label>
                 <select value={category} onChange={e => setCategory(e.target.value)}
                   style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 13, minWidth: 160 }}>
-                  <option value="">Toutes</option>
-                  {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  <option value="">{t('cat_category_all')}</option>
+                  {categories.map(c => <option key={c} value={c}>{categoryDisplay[c] || c}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 4 }}>Prix min (FCFA)</label>
+                <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 4 }}>{t('cat_price_min')}</label>
                 <input type="number" placeholder="0" value={minPrice} onChange={e => setMinPrice(e.target.value)}
                   style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 13, width: 110 }} />
               </div>
               <div>
-                <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 4 }}>Prix max (FCFA)</label>
+                <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 4 }}>{t('cat_price_max')}</label>
                 <input type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)}
                   style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 13, width: 110 }} />
               </div>
               <div>
-                <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 4 }}>Trier par</label>
+                <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 4 }}>{t('cat_sort_by')}</label>
                 <select value={sort} onChange={e => setSort(e.target.value)}
                   style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 13, minWidth: 140 }}>
-                  <option value="">Plus récents</option>
-                  <option value="price_asc">Prix croissant</option>
-                  <option value="price_desc">Prix décroissant</option>
-                  <option value="title">Ordre alphabétique</option>
+                  <option value="">{t('cat_sort_recent')}</option>
+                  <option value="price_asc">{t('cat_sort_price_asc')}</option>
+                  <option value="price_desc">{t('cat_sort_price_desc')}</option>
+                  <option value="title">{t('cat_sort_alpha')}</option>
                 </select>
               </div>
             </div>
@@ -136,10 +148,10 @@ const InscriptionFormation = () => {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem 0', color: '#94a3b8' }}>Chargement...</div>
+          <div style={{ textAlign: 'center', padding: '3rem 0', color: '#94a3b8' }}>{t('loading')}</div>
         ) : formations.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem 0', color: '#94a3b8' }}>
-            Aucune formation trouvée. Essayez de modifier vos filtres.
+            {t('cat_no_course')}
           </div>
         ) : (
           <div className="formations-page-list">
@@ -149,29 +161,52 @@ const InscriptionFormation = () => {
                 <div key={f.id} className="formation-card">
                   <div className="formation-card-img">
                     <img src={f.imageUrl ? getImageUrl(f.imageUrl) : '/placeholder.jpg'} alt={f.title} />
-                    <div className="formation-card-tag">{f.category}</div>
-                    {isFull && <div className="formation-card-complet">COMPLET</div>}
+                    <div className="formation-card-tag">{categoryDisplay[f.category] || f.category}</div>
+                    {isFull && <div className="formation-card-complet">{t('courses_full').toUpperCase()}</div>}
                   </div>
                   <div className="formation-card-body">
                     <div className="formation-card-meta">
-                      <span><Clock size={16} /> {f.duration}</span>
-                      <span><Users size={16} /> {f.ageGroup}</span>
+                      <span><Clock size={16} /> {f.duration?.replace('semaines', language === 'en' ? 'weeks' : 'semaines')}</span>
+                      <span><Users size={16} /> {f.ageGroup?.replace('ans', language === 'en' ? 'years old' : 'ans').replace('Tous âges', language === 'en' ? 'All ages' : 'Tous âges')}</span>
                     </div>
                     <h3>{f.title}</h3>
                     <p>{f.description}</p>
+                    
+                    {/* Jauge de remplissage & alerte places */}
+                    <div style={{ margin: '1rem 0' }}>
+                      {isFull ? (
+                        <div style={{ fontSize: '0.8rem', color: '#dc2626', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <span>{language === 'en' ? '● Course Full (Waitlist)' : '● Formation Complète (Liste d\'attente)'}</span>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#64748b' }}>
+                          <span>{f.enrolled || 0} / {f.maxParticipants || 20} {t('cat_spots')}</span>
+                          {(f.maxParticipants || 20) - (f.enrolled || 0) <= 5 && (
+                            <span style={{ color: '#ea580c', fontWeight: 700 }}>{t('cat_spots_only').replace('{spots}', (f.maxParticipants || 20) - (f.enrolled || 0))}</span>
+                          )}
+                        </div>
+                      )}
+                      <div style={{ width: '100%', height: '5px', backgroundColor: '#f1f5f9', borderRadius: '4px', marginTop: '0.3rem', overflow: 'hidden' }}>
+                        <div style={{ 
+                          height: '100%', 
+                          backgroundColor: isFull ? '#dc2626' : (((f.maxParticipants || 20) - (f.enrolled || 0) <= 5) ? '#ea580c' : '#10b981'), 
+                          width: `${Math.min(100, (((f.enrolled || 0) / (f.maxParticipants || 20)) * 100))}%` 
+                        }}></div>
+                      </div>
+                    </div>
+
                     <div className="formation-card-foot">
-                      <strong>{f.price ? f.price.toLocaleString() + ' FCFA' : 'Gratuit'}</strong>
+                      <strong>{f.price ? f.price.toLocaleString() + ' FCFA' : t('courses_free')}</strong>
                       <div className="formation-card-actions">
-                        <Link to={`/formations/${f.id}`} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
-                          Détails
+                        <Link to={language === 'en' ? `/en/courses/${f.id}` : `/formations/${f.id}`} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+                          {t('details')}
                         </Link>
                         <button 
                           className="btn btn-primary" 
-                          style={{ padding: '0.5rem 1rem' }}
-                          disabled={isFull}
+                          style={{ padding: '0.5rem 1rem', backgroundColor: isFull ? '#475569' : 'var(--color-primary)' }}
                           onClick={() => handleReserve(f)}
                         >
-                          {isFull ? 'Plein' : "S'inscrire"}
+                          {isFull ? t('cat_waitlist') : t('cat_enroll')}
                         </button>
                       </div>
                     </div>
@@ -187,8 +222,8 @@ const InscriptionFormation = () => {
         <div className="secure-banner">
           <ShieldCheck size={40} />
           <div>
-            <strong>Paiement 100% sécurisé via FedaPay</strong>
-            <span>Vos transactions sont cryptées et protégées. Nous ne conservons aucune donnée bancaire.</span>
+            <strong>{t('cat_secure_banner_title')}</strong>
+            <span>{t('cat_secure_banner_desc')}</span>
           </div>
         </div>
       </div>

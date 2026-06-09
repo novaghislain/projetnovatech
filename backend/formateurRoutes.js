@@ -67,40 +67,114 @@ module.exports = (db, authenticateToken) => {
             db.all(`SELECT * FROM CourseQuestionReplies WHERE questionId IN (${qIdsStr}) ORDER BY createdAt ASC`, [], (err, replies) => {
               if (err) return res.status(500).json({ error: 'Erreur base de données (replies)' });
 
-              res.json({
-                stats: { courses: totalCourses, students: totalStudents, rating: avgRating },
-                courses: courses.map(c => ({
-                  id: c.id,
-                  title: c.title,
-                  category: c.category,
-                  students: c.enrolled,
-                  enrolled: c.enrolled,
-                  rating: avgRating,
-                  progress: c.maxParticipants > 0 ? Math.round((c.enrolled / c.maxParticipants) * 100) : 0,
-                  nextSession: c.startDate || 'Prochainement',
-                  isLive: c.isLive,
-                  liveRoomName: c.liveRoomName
-                })),
-                rawCourses: courses,
-                questions: questionsData.map(q => ({
-                  id: q.id,
-                  student: q.studentName,
-                  course: q.courseTitle,
-                  text: q.text,
-                  answerText: q.answerText,
-                  repliedAt: q.repliedAt,
-                  time: new Date(q.createdAt).toLocaleDateString(),
-                  status: q.status,
-                  replies: replies.filter(r => r.questionId === q.id)
-                })),
-                studentsList: studentsData.map(s => ({
-                  id: s.enrollmentId,
-                  name: `${s.firstName} ${s.lastName}`.trim() || 'Apprenant',
-                  email: s.email,
-                  course: s.courseTitle,
-                  date: s.date,
-                  amount: s.amount
-                }))
+              const coursePromises = courses.map(c => {
+                return new Promise((resolveCourse) => {
+                  // 1. Get total lessons in this course
+                  const totalLessonsQuery = `
+                    SELECT COUNT(*) as total FROM Lessons 
+                    WHERE chapterId IN (
+                      SELECT id FROM Chapters 
+                      WHERE moduleId IN (
+                        SELECT id FROM Modules WHERE formationId = ?
+                      )
+                    )
+                  `;
+                  db.get(totalLessonsQuery, [c.id], (err, totalRow) => {
+                    const totalLessons = totalRow ? totalRow.total : 0;
+                    if (totalLessons === 0) {
+                      return resolveCourse({
+                        ...c,
+                        progress: 0
+                      });
+                    }
+
+                    // 2. Get active student enrollments for this course
+                    const activeEnrollmentsQuery = `
+                      SELECT userId FROM Enrollments WHERE courseId = ? AND status = 'active'
+                    `;
+                    db.all(activeEnrollmentsQuery, [c.id], (err, enrollments) => {
+                      if (err || !enrollments || enrollments.length === 0) {
+                        return resolveCourse({
+                          ...c,
+                          progress: 0
+                        });
+                      }
+
+                      const userIds = enrollments.map(e => e.userId);
+                      
+                      // 3. For these users, count completed lessons
+                      const completedQuery = `
+                        SELECT userId, COUNT(*) as completed FROM LessonProgress
+                        WHERE courseId = ? AND userId IN (${userIds.join(',')})
+                        GROUP BY userId
+                      `;
+                      db.all(completedQuery, [c.id], (err, progressRows) => {
+                        if (err) {
+                          return resolveCourse({
+                            ...c,
+                            progress: 0
+                          });
+                        }
+
+                        const progressMap = {};
+                        progressRows.forEach(row => {
+                          progressMap[row.userId] = row.completed;
+                        });
+
+                        let sumProgress = 0;
+                        userIds.forEach(userId => {
+                          const completed = progressMap[userId] || 0;
+                          const progressPercent = Math.round((completed / totalLessons) * 100);
+                          sumProgress += progressPercent;
+                        });
+
+                        const averageProgress = Math.round(sumProgress / userIds.length);
+                        resolveCourse({
+                          ...c,
+                          progress: averageProgress
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+
+              Promise.all(coursePromises).then(enrichedCourses => {
+                res.json({
+                  stats: { courses: totalCourses, students: totalStudents, rating: avgRating },
+                  courses: enrichedCourses.map(c => ({
+                    id: c.id,
+                    title: c.title,
+                    category: c.category,
+                    students: c.enrolled,
+                    enrolled: c.enrolled,
+                    rating: avgRating,
+                    progress: c.progress,
+                    nextSession: c.startDate || 'Prochainement',
+                    isLive: c.isLive,
+                    liveRoomName: c.liveRoomName
+                  })),
+                  rawCourses: courses,
+                  questions: questionsData.map(q => ({
+                    id: q.id,
+                    student: q.studentName,
+                    course: q.courseTitle,
+                    text: q.text,
+                    answerText: q.answerText,
+                    repliedAt: q.repliedAt,
+                    time: new Date(q.createdAt).toLocaleDateString(),
+                    status: q.status,
+                    replies: replies.filter(r => r.questionId === q.id)
+                  })),
+                  studentsList: studentsData.map(s => ({
+                    id: s.enrollmentId,
+                    name: `${s.firstName} ${s.lastName}`.trim() || 'Apprenant',
+                    email: s.email,
+                    course: s.courseTitle,
+                    date: s.date,
+                    amount: s.amount
+                  }))
+                });
               });
             });
           });
@@ -284,6 +358,80 @@ module.exports = (db, authenticateToken) => {
         doDelete(formateurId);
       });
     }
+  });
+
+  // Envoyer un message groupé à tous les apprenants d'un cours
+  router.post('/courses/:id/message-group', authenticateToken, (req, res) => {
+    if (req.user.role !== 'formateur' && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+
+    const { subject, body } = req.body;
+    const courseId = req.params.id;
+
+    if (!subject || !body) {
+      return res.status(400).json({ error: 'Sujet et message requis.' });
+    }
+
+    // 1. Fetch the course to make sure it exists
+    db.get('SELECT title FROM Formations WHERE id = ?', [courseId], (err, course) => {
+      if (err) return res.status(500).json({ error: 'Erreur base de données' });
+      if (!course) return res.status(404).json({ error: 'Cours introuvable' });
+
+      // 2. Fetch all student emails enrolled in this course
+      const query = `
+        SELECT DISTINCT u.email, u.firstName, u.lastName 
+        FROM Enrollments e
+        JOIN Users u ON e.userId = u.id
+        WHERE e.courseId = ? AND (e.status = 'active' OR e.status = 'completed')
+      `;
+
+      db.all(query, [courseId], (err, students) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (students.length === 0) {
+          return res.json({ success: true, message: 'Aucun apprenant inscrit à ce cours.', count: 0 });
+        }
+
+        // Import sendEmail from emailService
+        const { sendEmail } = require('./emailService');
+
+        // Send emails
+        const emailPromises = students.map(student => {
+          return sendEmail({
+            to: student.email,
+            subject: `[${course.title}] ${subject}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <h2 style="color: #0f3460; margin: 0;">Novatech Vision</h2>
+                  <p style="color: #6b7280; font-size: 14px; margin: 4px 0 0;">Espace de Formation</p>
+                </div>
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin-bottom: 24px;" />
+                <p>Bonjour <strong>${student.firstName} ${student.lastName}</strong>,</p>
+                <p>Votre formateur a envoyé un message important concernant le cours <strong>${course.title}</strong> :</p>
+                
+                <div style="background: #f8fafc; border-left: 4px solid #0f3460; padding: 16px; border-radius: 4px; margin: 20px 0; line-height: 1.6;">
+                  <h4 style="margin: 0 0 10px 0; color: #1e293b;">${subject}</h4>
+                  <p style="margin: 0; color: #334155; white-space: pre-wrap;">${body}</p>
+                </div>
+                
+                <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">Pour répondre à ce message ou poser vos questions, veuillez vous connecter à votre espace apprenant.</p>
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+                <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">Novatech Vision - Cotonou, Bénin</p>
+              </div>
+            `
+          }).catch(e => console.error(`Error sending group email to ${student.email}:`, e.message));
+        });
+
+        Promise.all(emailPromises)
+          .then(() => {
+            res.json({ success: true, message: `Message groupé envoyé à ${students.length} apprenant(s).`, count: students.length });
+          })
+          .catch(err => {
+            res.status(500).json({ error: 'Erreur lors de l\'envoi des messages: ' + err.message });
+          });
+      });
+    });
   });
 
   return router;

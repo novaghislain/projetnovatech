@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Image as ImageIcon, MessageSquare, X } from 'lucide-react';
+import { Plus, Trash2, Image as ImageIcon, MessageSquare, X, Edit } from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '../../config';
 
@@ -15,6 +15,91 @@ const AdminContent = () => {
   // Form states
   const [testimonialForm, setTestimonialForm] = useState({ authorName: '', age: '', courseName: '', comment: '', rating: 5, avatar: '' });
   const [galleryForm, setGalleryForm] = useState({ title: '', imageUrl: '', category: 'Classes' });
+
+  // Static pages states
+  const [selectedSlug, setSelectedSlug] = useState('apropos');
+  const [pageContent, setPageContent] = useState('');
+  const [pageTitle, setPageTitle] = useState('');
+  const [pageLoading, setPageLoading] = useState(false);
+  const [editorTab, setEditorTab] = useState('edit');
+
+  const fetchPage = async (slug) => {
+    setPageLoading(true);
+    try {
+      const response = await axios.get(`${API_URL}/api/public/pages/${slug}`);
+      setPageContent(response.data.content);
+      setPageTitle(response.data.title);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPageLoading(false);
+    }
+  };
+
+  const handleSavePage = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('nv_token');
+      await axios.put(`${API_URL}/api/admin/pages/${selectedSlug}`, {
+        title: pageTitle,
+        content: pageContent
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      alert("Page mise à jour avec succès !");
+    } catch (err) {
+      alert("Erreur lors de la sauvegarde : " + err.message);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'staticPages') {
+      fetchPage(selectedSlug);
+    }
+  }, [selectedSlug, activeTab]);
+
+  const parseMarkdown = (markdown) => {
+    if (!markdown) return '';
+    let html = markdown;
+    
+    // HTML escaping
+    html = html
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+    // Headers
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+    // Bold
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // Italic
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    // Links
+    html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: var(--color-accent); text-decoration: underline;">$1</a>');
+
+    // Lists
+    html = html.replace(/^\s*-\s+(.*$)/gim, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
+    html = html.replace(/<\/ul>\s*<ul>/g, '');
+
+    // Paragraphs
+    const paragraphs = html.split(/\n{2,}/);
+    html = paragraphs.map(p => {
+      p = p.trim();
+      if (!p) return '';
+      if (p.startsWith('<h') || p.startsWith('<ul') || p.startsWith('<li')) {
+        return p;
+      }
+      return `<p style="margin-bottom: 1rem; line-height: 1.6; color: #444;">${p.replace(/\n/g, '<br/>')}</p>`;
+    }).join('');
+
+    return html;
+  };
 
   useEffect(() => {
     fetchContent();
@@ -88,7 +173,7 @@ const AdminContent = () => {
     <div className="fade-in">
       
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
         <button 
           className={`admin-btn ${activeTab === 'testimonials' ? '' : 'admin-btn-outline'}`}
           onClick={() => setActiveTab('testimonials')}
@@ -102,6 +187,13 @@ const AdminContent = () => {
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <ImageIcon size={18} /> Galerie Photos
+        </button>
+        <button 
+          className={`admin-btn ${activeTab === 'staticPages' ? '' : 'admin-btn-outline'}`}
+          onClick={() => setActiveTab('staticPages')}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <Edit size={18} /> Pages Statiques (Markdown)
         </button>
       </div>
 
@@ -267,6 +359,132 @@ const AdminContent = () => {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Pages Statiques Tab */}
+      {activeTab === 'staticPages' && (
+        <div className="admin-panel fade-in">
+          <div className="admin-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+            <h3 className="admin-panel-title" style={{ margin: 0 }}>Gestion des Pages Statiques</h3>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <select 
+                className="form-control" 
+                style={{ width: '250px', marginBottom: 0, padding: '0.5rem' }}
+                value={selectedSlug}
+                onChange={(e) => setSelectedSlug(e.target.value)}
+              >
+                <option value="apropos">À Propos</option>
+                <option value="faq">FAQ</option>
+                <option value="conditions">Conditions d'utilisation</option>
+                <option value="politique">Politique de confidentialité</option>
+              </select>
+            </div>
+          </div>
+
+          {pageLoading ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: '#888' }}>Chargement du contenu...</div>
+          ) : (
+            <form onSubmit={handleSavePage} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="form-group">
+                <label style={{ fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>Titre de la Page</label>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  value={pageTitle} 
+                  onChange={(e) => setPageTitle(e.target.value)} 
+                  required 
+                  style={{ maxWidth: '400px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', borderBottom: '1px solid #ddd', gap: '1rem', marginBottom: '1rem' }}>
+                  <button 
+                    type="button"
+                    style={{
+                      padding: '0.5rem 1rem',
+                      border: 'none',
+                      borderBottom: editorTab === 'edit' ? '2px solid var(--color-accent)' : 'none',
+                      background: 'none',
+                      cursor: 'pointer',
+                      fontWeight: editorTab === 'edit' ? 600 : 400,
+                      color: editorTab === 'edit' ? 'var(--color-accent)' : '#666'
+                    }}
+                    onClick={() => setEditorTab('edit')}
+                  >
+                    Éditeur Markdown / Côte à côte
+                  </button>
+                  <button 
+                    type="button"
+                    style={{
+                      padding: '0.5rem 1rem',
+                      border: 'none',
+                      borderBottom: editorTab === 'preview' ? '2px solid var(--color-accent)' : 'none',
+                      background: 'none',
+                      cursor: 'pointer',
+                      fontWeight: editorTab === 'preview' ? 600 : 400,
+                      color: editorTab === 'preview' ? 'var(--color-accent)' : '#666'
+                    }}
+                    onClick={() => setEditorTab('preview')}
+                  >
+                    Aperçu HTML seul
+                  </button>
+                </div>
+
+                {editorTab === 'edit' ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', minHeight: '400px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem', fontWeight: 600 }}>Markdown</span>
+                      <textarea
+                        className="form-control"
+                        style={{ flex: 1, fontFamily: 'monospace', fontSize: '0.9rem', padding: '1rem', lineHeight: '1.5', resize: 'vertical', minHeight: '350px' }}
+                        value={pageContent}
+                        onChange={(e) => setPageContent(e.target.value)}
+                        placeholder="Écrivez votre contenu en Markdown ici..."
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem', fontWeight: 600 }}>Aperçu en direct</span>
+                      <div 
+                        style={{
+                          flex: 1,
+                          border: '1px solid #ddd',
+                          borderRadius: '8px',
+                          padding: '1rem',
+                          backgroundColor: '#f9f9f9',
+                          overflowY: 'auto',
+                          maxHeight: '400px',
+                          minHeight: '350px'
+                        }}
+                        dangerouslySetInnerHTML={{ __html: parseMarkdown(pageContent) }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div 
+                    style={{
+                      border: '1px solid #ddd',
+                      borderRadius: '8px',
+                      padding: '2rem',
+                      backgroundColor: '#fff',
+                      minHeight: '400px',
+                      maxHeight: '600px',
+                      overflowY: 'auto'
+                    }}
+                    className="markdown-body"
+                    dangerouslySetInnerHTML={{ __html: parseMarkdown(pageContent) }}
+                  />
+                )}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <button type="submit" className="admin-btn admin-btn-primary">
+                  Enregistrer les modifications
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       )}
 

@@ -20,7 +20,7 @@ module.exports = function(db, authenticateToken) {
   // 1. Statistiques Globales
   router.get('/stats', (req, res) => {
     const stats = {};
-    db.get("SELECT COUNT(*) as count FROM Formations WHERE status='published'", (err, row) => {
+    db.get("SELECT COUNT(*) as count FROM Formations WHERE status IN ('published','active')", (err, row) => {
       stats.activeFormations = row ? row.count : 0;
       db.get("SELECT COUNT(*) as count FROM Users", (err, row) => {
         stats.totalUsers = row ? row.count : 0;
@@ -83,16 +83,121 @@ module.exports = function(db, authenticateToken) {
 
   router.put('/payments/:id/status', (req, res) => {
     const { status } = req.body;
-    db.run('UPDATE Enrollments SET status = ? WHERE id = ?', [status, req.params.id], function(err) {
+    const enrollmentId = req.params.id;
+
+    db.get("SELECT courseId, status FROM Enrollments WHERE id = ?", [enrollmentId], (err, oldEnrollment) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ success: true });
+      if (!oldEnrollment) return res.status(404).json({ error: "Inscription introuvable" });
+
+      db.run('UPDATE Enrollments SET status = ? WHERE id = ?', [status, enrollmentId], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+
+        const wasActive = oldEnrollment.status === 'active' || oldEnrollment.status === 'completed';
+        const isActiveNow = status === 'active' || status === 'completed';
+
+        if (wasActive && !isActiveNow) {
+          db.get(
+            "SELECT e.*, f.title as courseTitle FROM Enrollments e JOIN Formations f ON e.courseId = f.id WHERE e.courseId = ? AND e.status = 'waitlist' ORDER BY e.createdAt ASC LIMIT 1",
+            [oldEnrollment.courseId],
+            (waitlistErr, nextEnrollment) => {
+              if (!waitlistErr && nextEnrollment) {
+                db.run("UPDATE Enrollments SET status = 'active', installmentsPaid = 1 WHERE id = ?", [nextEnrollment.id], (promoErr) => {
+                  if (!promoErr) {
+                    console.log(`[WAITLIST] Étudiant ${nextEnrollment.id} promu à actif pour la formation ${oldEnrollment.courseId} suite à désactivation admin`);
+                    const childName = nextEnrollment.childFirstName ? `${nextEnrollment.childFirstName} ${nextEnrollment.childLastName || ''}`.trim() : null;
+                    sendEmail({
+                      to: nextEnrollment.parentEmail || nextEnrollment.email,
+                      subject: `Une place se libère ! Inscription active - Novatech Vision`,
+                      html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                          <h2 style="color: #10b981;">Bonne nouvelle !</h2>
+                          <p>Bonjour ${nextEnrollment.parentName || 'Parent'},</p>
+                          <p>Une place vient de se libérer pour la formation <strong>${nextEnrollment.courseTitle}</strong>.</p>
+                          <p>L'inscription de votre enfant <strong>${childName || 'Apprenant'}</strong> a été automatiquement activée.</p>
+                          <p>Vous pouvez désormais accéder à son espace de cours en ligne.</p>
+                          <hr style="border: none; border-top: 1px solid #e5e7eb;" />
+                          <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
+                        </div>
+                      `
+                    }).catch(e => console.error("Erreur envoi email promotion:", e.message));
+
+                    const { sendSMS } = require('./smsService');
+                    const smsText = `Bonne nouvelle ! Une place s'est liberee pour ${nextEnrollment.courseTitle}. L'inscription de votre enfant est active. Novatech Vision.`;
+                    sendSMS({ to: nextEnrollment.parentPhone, message: smsText }).catch(err => {
+                      console.error('Erreur envoi SMS promotion:', err.message);
+                    });
+                  }
+                });
+              } else {
+                db.run("UPDATE Formations SET enrolled = max(0, enrolled - 1), status = 'active' WHERE id = ?", [oldEnrollment.courseId]);
+              }
+            }
+          );
+        } else if (!wasActive && isActiveNow) {
+          db.run("UPDATE Formations SET enrolled = enrolled + 1 WHERE id = ?", [oldEnrollment.courseId], (updateErr) => {
+            db.get("SELECT enrolled, maxParticipants FROM Formations WHERE id = ?", [oldEnrollment.courseId], (err, course) => {
+              if (!err && course && course.enrolled >= course.maxParticipants) {
+                db.run("UPDATE Formations SET status = 'full' WHERE id = ?", [oldEnrollment.courseId]);
+              }
+            });
+          });
+        }
+
+        res.json({ success: true });
+      });
     });
   });
 
   router.delete('/payments/:id', (req, res) => {
-    db.run('DELETE FROM Enrollments WHERE id = ?', [req.params.id], function(err) {
+    const enrollmentId = req.params.id;
+    db.get("SELECT courseId, status FROM Enrollments WHERE id = ?", [enrollmentId], (err, enrollment) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ success: true });
+      if (!enrollment) return res.status(404).json({ error: "Inscription introuvable" });
+
+      db.run('DELETE FROM Enrollments WHERE id = ?', [enrollmentId], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        if (enrollment.status !== 'waitlist') {
+          db.get(
+            "SELECT e.*, f.title as courseTitle FROM Enrollments e JOIN Formations f ON e.courseId = f.id WHERE e.courseId = ? AND e.status = 'waitlist' ORDER BY e.createdAt ASC LIMIT 1",
+            [enrollment.courseId],
+            (waitlistErr, nextEnrollment) => {
+              if (!waitlistErr && nextEnrollment) {
+                db.run("UPDATE Enrollments SET status = 'active', installmentsPaid = 1 WHERE id = ?", [nextEnrollment.id], (promoErr) => {
+                  if (!promoErr) {
+                    console.log(`[WAITLIST] Étudiant ${nextEnrollment.id} promu à actif pour la formation ${enrollment.courseId} suite à suppression admin`);
+                    const childName = nextEnrollment.childFirstName ? `${nextEnrollment.childFirstName} ${nextEnrollment.childLastName || ''}`.trim() : null;
+                    sendEmail({
+                      to: nextEnrollment.parentEmail || nextEnrollment.email,
+                      subject: `Une place se libère ! Inscription active - Novatech Vision`,
+                      html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                          <h2 style="color: #10b981;">Bonne nouvelle !</h2>
+                          <p>Bonjour ${nextEnrollment.parentName || 'Parent'},</p>
+                          <p>Une place vient de se libérer pour la formation <strong>${nextEnrollment.courseTitle}</strong>.</p>
+                          <p>L'inscription de votre enfant <strong>${childName || 'Apprenant'}</strong> a été automatiquement activée.</p>
+                          <p>Vous pouvez désormais accéder à son espace de cours en ligne.</p>
+                          <hr style="border: none; border-top: 1px solid #e5e7eb;" />
+                          <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
+                        </div>
+                      `
+                    }).catch(e => console.error("Erreur envoi email promotion:", e.message));
+
+                    const { sendSMS } = require('./smsService');
+                    const smsText = `Bonne nouvelle ! Une place s'est liberee pour ${nextEnrollment.courseTitle}. L'inscription de votre enfant est active. Novatech Vision.`;
+                    sendSMS({ to: nextEnrollment.parentPhone, message: smsText }).catch(err => {
+                      console.error('Erreur envoi SMS promotion:', err.message);
+                    });
+                  }
+                });
+              } else {
+                db.run("UPDATE Formations SET enrolled = max(0, enrolled - 1), status = 'published' WHERE id = ?", [enrollment.courseId]);
+              }
+            }
+          );
+        }
+        res.json({ success: true });
+      });
     });
   });
 
@@ -105,24 +210,31 @@ module.exports = function(db, authenticateToken) {
   });
 
   router.post('/formations', (req, res) => {
-    const { title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull } = req.body;
+    const { title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull,
+            whatsappLink, meetLink, startDate, endDate, location, isOnline } = req.body;
     const query = `
-      INSERT INTO Formations (title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO Formations (title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull,
+                              whatsappLink, meetLink, startDate, endDate, location, isOnline)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    db.run(query, [title, description, category, ageGroup, duration, price, maxParticipants, status || 'published', imageUrl, isFull ? 1 : 0], function(err) {
+    db.run(query, [title, description, category, ageGroup, duration, price, maxParticipants, status || 'published', imageUrl, isFull ? 1 : 0,
+                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', location || '', isOnline ? 1 : 0], function(err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, id: this.lastID });
     });
   });
 
   router.put('/formations/:id', (req, res) => {
-    const { title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull } = req.body;
+    const { title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull,
+            whatsappLink, meetLink, startDate, endDate, location, isOnline } = req.body;
     const query = `
-      UPDATE Formations SET title=?, description=?, category=?, ageGroup=?, duration=?, price=?, maxParticipants=?, status=?, imageUrl=?, isFull=?
+      UPDATE Formations SET title=?, description=?, category=?, ageGroup=?, duration=?, price=?, maxParticipants=?, status=?, imageUrl=?, isFull=?,
+                            whatsappLink=?, meetLink=?, startDate=?, endDate=?, location=?, isOnline=?
       WHERE id=?
     `;
-    db.run(query, [title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull ? 1 : 0, req.params.id], (err) => {
+    db.run(query, [title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull ? 1 : 0,
+                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', location || '', isOnline ? 1 : 0,
+                   req.params.id], (err) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true });
     });
@@ -173,6 +285,19 @@ module.exports = function(db, authenticateToken) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true });
     });
+  });
+
+  // 7. Pages Statiques
+  router.put('/pages/:slug', (req, res) => {
+    const { title, content } = req.body;
+    db.run(
+      "UPDATE StaticPages SET title = ?, content = ?, updatedAt = CURRENT_TIMESTAMP WHERE slug = ?",
+      [title, content, req.params.slug],
+      function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+      }
+    );
   });
 
   // MESSAGES (CONTACT)

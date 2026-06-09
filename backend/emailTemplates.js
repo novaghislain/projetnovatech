@@ -1,4 +1,4 @@
-function enrollmentConfirmation({ firstName, courseTitle, childName }) {
+function enrollmentConfirmation({ firstName, courseTitle, childName, meetLink, whatsappLink }) {
   return {
     subject: `Confirmation d'inscription - ${courseTitle} | Novatech Vision`,
     html: `
@@ -10,10 +10,19 @@ function enrollmentConfirmation({ firstName, courseTitle, childName }) {
         <div style="padding:28px 24px;background:#fff;border:1px solid #e2e8f0;border-top:0;border-radius:0 0 12px 12px">
           <h2 style="color:#1e3a5f;margin:0 0 16px">Inscription confirmée</h2>
           <p>Bonjour <strong>${firstName}</strong>,</p>
-          <p>Votre inscription à la formation <strong>"${courseTitle}"</strong> a bien été prise en compte.</p>
+          <p>Votre inscription à la formation <strong>"${courseTitle}"</strong> a bien été prise en compte et validée.</p>
           ${childName ? `<p><strong>Enfant :</strong> ${childName}</p>` : ''}
-          <p>Un email récapitulatif vous sera envoyé avant le début de la formation. Vous pouvez consulter vos inscriptions depuis votre espace personnel.</p>
-          <a href="http://localhost:5173/mon-espace/inscriptions"
+          
+          ${meetLink || whatsappLink ? `
+            <div style="background:#f8fafc;border-left:4px solid #3b82f6;padding:16px;border-radius:6px;margin:20px 0;">
+              <h3 style="margin:0 0 10px;color:#1e3a5f;font-size:16px;">📚 Liens importants pour le cours en ligne</h3>
+              ${meetLink ? `<p style="margin:4px 0;"><strong>Lien Visioconférence (Google Meet/Zoom) :</strong> <a href="${meetLink}" target="_blank" style="color:#2563eb;text-decoration:underline;">Rejoindre la visioconférence</a></p>` : ''}
+              ${whatsappLink ? `<p style="margin:4px 0;"><strong>Lien du Groupe WhatsApp :</strong> <a href="${whatsappLink}" target="_blank" style="color:#2563eb;text-decoration:underline;">Rejoindre le groupe WhatsApp</a></p>` : ''}
+            </div>
+          ` : ''}
+
+          <p>Vous pouvez consulter vos inscriptions et ressources de cours depuis votre espace personnel.</p>
+          <a href="http://localhost:5173/mon-espace/formations"
              style="display:inline-block;margin-top:16px;padding:12px 24px;background:#1e3a5f;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">
             Voir mes inscriptions
           </a>

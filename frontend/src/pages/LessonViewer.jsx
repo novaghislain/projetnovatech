@@ -31,9 +31,9 @@ const LessonViewer = () => {
         const headers = { 'Authorization': `Bearer ${token}` };
 
         const [courseRes, structRes, progRes] = await Promise.all([
-          fetch(`http://localhost:5001/api/public/formations/${courseId}`),
-          fetch(`http://localhost:5001/api/courses/${courseId}/structure`, { headers }),
-          fetch(`http://localhost:5001/api/progress/courses/${courseId}`, { headers }),
+          fetch(`${API_URL}/api/public/formations/${courseId}`),
+          fetch(`${API_URL}/api/courses/${courseId}/structure`, { headers }),
+          fetch(`${API_URL}/api/progress/courses/${courseId}`, { headers }),
         ]);
 
         if (courseRes.ok) setCourse(await courseRes.json());
@@ -68,7 +68,7 @@ const LessonViewer = () => {
     const fetchQuiz = async () => {
       setQuizLoading(true);
       try {
-        const res = await fetch(`http://localhost:5001/api/quiz/${currentLesson.id}`);
+        const res = await fetch(`${API_URL}/api/quiz/${currentLesson.id}`);
         if (res.ok) {
           const data = await res.json();
           setQuizQuestions(data);
@@ -131,7 +131,7 @@ const LessonViewer = () => {
         setCompletedIds(prev => { const n = new Set(prev); n.delete(currentLesson.id); return n; });
         setProgress(p => ({ ...p, completed: p.completed - 1, percent: p.total > 0 ? Math.round(((p.completed - 1) / p.total) * 100) : 0 }));
       } else {
-        await fetch(`http://localhost:5001/api/progress/lessons/${currentLesson.id}/complete`, {
+        await fetch(`${API_URL}/api/progress/lessons/${currentLesson.id}/complete`, {
           method: 'POST', headers,
           body: JSON.stringify({ courseId: parseInt(courseId) }),
         });
@@ -152,7 +152,7 @@ const LessonViewer = () => {
         questionId: q.id,
         answer: quizAnswers[q.id] ?? -1
       }));
-      const res = await fetch(`http://localhost:5001/api/quiz/${currentLesson.id}/submit`, {
+      const res = await fetch(`${API_URL}/api/quiz/${currentLesson.id}/submit`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ answers }),
@@ -161,7 +161,7 @@ const LessonViewer = () => {
         const result = await res.json();
         setQuizResult(result);
         if (result.passed && !completedIds.has(currentLesson.id)) {
-          await fetch(`http://localhost:5001/api/progress/lessons/${currentLesson.id}/complete`, {
+          await fetch(`${API_URL}/api/progress/lessons/${currentLesson.id}/complete`, {
             method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ courseId: parseInt(courseId) }),
           });

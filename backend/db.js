@@ -186,7 +186,9 @@ db.serialize(() => {
   const enrollCols = [
     "childFirstName TEXT", "childLastName TEXT", "childAge TEXT", 
     "parentName TEXT", "parentPhone TEXT", "parentEmail TEXT", 
-    "address TEXT", "paymentType TEXT"
+    "address TEXT", "paymentType TEXT",
+    "installmentsPaid INTEGER DEFAULT 1",
+    "totalInstallments INTEGER DEFAULT 3"
   ];
   enrollCols.forEach(colDef => {
     db.run(`ALTER TABLE Enrollments ADD COLUMN ${colDef}`, (err) => {
@@ -215,7 +217,9 @@ db.serialize(() => {
     "title TEXT",
     "status TEXT DEFAULT 'En attente'",
     "paymentStatus TEXT DEFAULT 'En attente'",
-    "budget INTEGER DEFAULT 0"
+    "budget INTEGER DEFAULT 0",
+    "transactionId TEXT",
+    "paymentMethod TEXT"
   ];
   adCols.forEach(colDef => {
     db.run(`ALTER TABLE Advertisements ADD COLUMN ${colDef}`, (err) => {
@@ -416,7 +420,128 @@ db.serialize(() => {
     )
   `);
 
-  console.log('Tables initialisées (Users, Enrollments, Advertisements, Modules, Chapters, Lessons, QuizQuestions, Certificates).');
+  // Table StaticPages (pour les pages statiques éditables)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS StaticPages (
+      slug TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `, (err) => {
+    if (!err) {
+      db.get("SELECT COUNT(*) as count FROM StaticPages", (err, row) => {
+        if (!err && row.count === 0) {
+          const insertPage = db.prepare(`INSERT INTO StaticPages (slug, title, content) VALUES (?, ?, ?)`);
+          
+          insertPage.run('apropos', 'À Propos', `# À Propos de Novatech Vision
+
+Novatech Vision est un organisme de formation spécialisé dans l'éducation informatique des enfants et jeunes de **8 à 18 ans**.
+
+## Notre Mission
+Accompagner les jeunes qui souhaitent découvrir le numérique autrement : avec plus de simplicité, de compréhension et de structure. Notre but est de leur faire gagner du temps et de leur éviter les erreurs classiques d'apprentissage.
+
+## Notre Vision
+Faire de Novatech Vision la référence de la formation numérique pour les jeunes en Afrique — un apprentissage humain, clair et accessible qui prépare une génération entière aux défis du monde digital.`);
+
+          insertPage.run('faq', 'FAQ', `# Foire aux Questions
+
+### Quels âges couvrez-vous ?
+Nos programmes ciblent les enfants et jeunes de 8 à 18 ans, répartis en groupes d'âge pour garantir une pédagogie adaptée.
+
+### Comment s'inscrire ?
+Rendez-vous sur la page des formations, choisissez le programme qui vous intéresse et cliquez sur 'S'inscrire'. Le paiement sécurisé validera définitivement votre place.
+
+### Y a-t-il des certificats délivrés ?
+Oui, des attestations de réussite sont délivrées à la fin de toutes nos formations longues pour valoriser les compétences acquises.
+
+### Puis-je payer en plusieurs fois ?
+Oui, vous pouvez opter pour le paiement en 3 mensualités. Le premier tiers est payé à l'inscription, et les suivants directement depuis votre espace apprenant.`);
+
+          insertPage.run('conditions', 'Conditions d\'utilisation', `# Conditions Générales d'Utilisation
+
+Bienvenue sur la plateforme Novatech Vision. En accédant à ce site, vous acceptez nos conditions d'utilisation.
+
+## 1. Services proposés
+Novatech Vision propose des formations en informatique et des espaces publicitaires pour les annonceurs.
+
+## 2. Inscriptions et Paiements
+Les inscriptions aux formations sont fermes après validation du paiement (intégral ou de la première mensualité).
+
+## 3. Propriété intellectuelle
+Tous les contenus pédagogiques partagés sur la plateforme restent la propriété exclusive de Novatech Vision.`);
+
+          insertPage.run('politique', 'Politique de confidentialité', `# Politique de Confidentialité
+
+Chez Novatech Vision, la protection de vos données personnelles est une priorité.
+
+## 1. Collecte des données
+Nous collectons les informations nécessaires à l'inscription (nom, prénom de l'enfant, âge, email et téléphone du parent).
+
+## 2. Utilisation des données
+Vos données sont uniquement utilisées pour le suivi pédagogique, la facturation et l'envoi de notifications liées aux formations.
+
+## 3. Sécurité
+Nous mettons en œuvre des mesures de sécurité pour protéger vos informations contre tout accès non autorisé.`);
+
+          insertPage.run('apropos_en', 'About Us', `# About Novatech Vision
+
+Novatech Vision is a training center specialized in computer education for kids and teens from **8 to 18 years old**.
+
+## Our Mission
+To guide kids and young people who want to discover computers in a different way: with simplicity, understanding, and structure. Our goal is to save them time and help them avoid typical learning mistakes.
+
+## Our Vision
+To make Novatech Vision the reference for IT training for kids and teens in Africa — a human, clear, and accessible learning path preparing an entire generation for the challenges of the digital world.`);
+
+          insertPage.run('faq_en', 'FAQ', `# Frequently Asked Questions
+
+### What ages do you cover?
+Our programs target kids and teens from 8 to 18 years old, divided into age groups to guarantee tailored pedagogy.
+
+### How do I enroll?
+Go to the courses page, choose the program you are interested in and click on 'Enroll'. Safe online payment will confirm your spot.
+
+### Are certificates awarded?
+Yes, certificates of completion are awarded at the end of all our long training programs to highlight the skills acquired.
+
+### Can I pay in installments?
+Yes, you can opt to pay in 3 monthly installments. The first third is paid at registration, and the following ones directly from your student dashboard.`);
+
+          insertPage.run('conditions_en', 'Terms of Service', `# Terms of Service
+
+Welcome to the Novatech Vision platform. By accessing this site, you agree to our terms of service.
+
+## 1. Services Provided
+Novatech Vision offers training courses in computing and advertising spaces for advertisers.
+
+## 2. Registrations and Payments
+Registrations for courses are final after payment validation (full or first installment).
+
+## 3. Intellectual Property
+All pedagogical content shared on the platform remains the exclusive property of Novatech Vision.`);
+
+          insertPage.run('politique_en', 'Privacy Policy', `# Privacy Policy
+
+At Novatech Vision, protecting your personal data is a priority.
+
+## 1. Data Collection
+We collect the necessary registration details (first name, last name, child's age, parent's email and phone number).
+
+## 2. Data Usage
+Your data is solely used for pedagogical tracking, invoicing, and sending course-related notifications.
+
+## 3. Security
+We implement security measures to protect your personal information against unauthorized access.`);
+
+          insertPage.finalize();
+          console.log("StaticPages initiales injectées.");
+        }
+      });
+    }
+  });
+
+  console.log('Tables initialisées (Users, Enrollments, Advertisements, Modules, Chapters, Lessons, QuizQuestions, Certificates, StaticPages).');
 });
 
 module.exports = db;

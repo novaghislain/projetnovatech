@@ -59,20 +59,57 @@ const AdminInscriptions = () => {
     i.title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const exportToCSV = () => {
+    const headers = ["ID Inscription", "Prenom", "Nom", "Email", "Formation", "Montant Paye", "Statut", "Date Inscription"];
+    const rows = filtered.map(insc => [
+      insc.id,
+      insc.firstName || '',
+      insc.lastName || '',
+      insc.email || '',
+      insc.title || '',
+      insc.amount ? `${insc.amount} FCFA` : 'Gratuit',
+      insc.status === 'active' ? 'Actif' : insc.status === 'completed' ? 'Payé' : 'En attente',
+      new Date(insc.createdAt).toLocaleDateString('fr-FR')
+    ]);
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `inscriptions_novatech_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="fade-in">
-      <div className="admin-panel-header">
-        <h3 className="admin-panel-title">Gestion des Inscriptions</h3>
-        <div style={{ position: 'relative', width: '300px' }}>
-          <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
-          <input 
-            type="text" 
-            className="admin-input" 
-            placeholder="Rechercher (nom, formation)..." 
-            style={{ paddingLeft: '2.5rem', marginBottom: 0 }}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <div className="admin-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+        <h3 className="admin-panel-title" style={{ margin: 0 }}>Gestion des Inscriptions</h3>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div style={{ position: 'relative', width: '300px' }}>
+            <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+            <input 
+              type="text" 
+              className="admin-input" 
+              placeholder="Rechercher (nom, formation)..." 
+              style={{ paddingLeft: '2.5rem', marginBottom: 0 }}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button 
+            onClick={exportToCSV}
+            style={{
+              background: '#10b981', color: 'white', border: 'none',
+              padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer',
+              fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Exporter en CSV
+          </button>
         </div>
       </div>
 
