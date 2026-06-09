@@ -26,6 +26,10 @@ db.serialize(() => {
       resetToken TEXT,
       resetTokenExpiry DATETIME,
       refreshToken TEXT,
+      companyName TEXT,
+      parentName TEXT,
+      parentPhone TEXT,
+      bio TEXT,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -55,6 +59,13 @@ db.serialize(() => {
   db.run("ALTER TABLE Users ADD COLUMN status TEXT DEFAULT 'active'", (err) => {
     if (err && !err.message.includes("duplicate column name")) {
       console.log("Migration 'status' sur Users : ignorée ou erreur (", err.message, ")");
+    }
+  });
+
+  // Migration: Ajouter la colonne bio si elle n'existe pas
+  db.run("ALTER TABLE Users ADD COLUMN bio TEXT", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {
+      console.log("Migration 'bio' sur Users : ignorée ou erreur (", err.message, ")");
     }
   });
 

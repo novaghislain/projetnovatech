@@ -83,7 +83,7 @@ app.post('/api/auth/register', async (req, res) => {
 
         const token = jwt.sign({ id: this.lastID, email, role: userRole }, JWT_SECRET, { expiresIn: '7d' });
         res.json({
-          user: { id: this.lastID, firstName, lastName, email, role: userRole },
+          user: { id: this.lastID, firstName, lastName, email, role: userRole, phone: phone || '' },
           token
         });
       }
@@ -113,7 +113,7 @@ app.post('/api/auth/login', (req, res) => {
       if (updateErr) return res.status(500).json({ error: 'Erreur serveur.' });
       
       res.json({
-        user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, avatar: user.avatar, bio: user.bio || '', companyName: user.companyName || '', parentName: user.parentName || '', parentPhone: user.parentPhone || '' },
+        user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, phone: user.phone || '', role: user.role, avatar: user.avatar, bio: user.bio || '', companyName: user.companyName || '', parentName: user.parentName || '', parentPhone: user.parentPhone || '' },
         token,
         refreshToken
       });
@@ -260,15 +260,25 @@ app.get('/api/user/payments', authenticateToken, (req, res) => {
 });
 
 app.put('/api/user/profile', authenticateToken, (req, res) => {
-  const { firstName, lastName, phone, companyName, parentName, parentPhone } = req.body;
+  const { firstName, lastName, phone, companyName, parentName, parentPhone, bio } = req.body;
   if (!firstName || !lastName) {
     return res.status(400).json({ error: "Le prénom et le nom sont requis." });
   }
 
-  db.run(`UPDATE Users SET firstName = ?, lastName = ?, phone = ?, companyName = ?, parentName = ?, parentPhone = ? WHERE id = ?`, 
-    [firstName, lastName, phone || '', companyName || '', parentName || '', parentPhone || '', req.user.id], function(err) {
-    if (err) return res.status(500).json({ error: "Erreur lors de la mise à jour du profil" });
-    res.json({ success: true, firstName, lastName, phone: phone || '', companyName: companyName || '', parentName: parentName || '', parentPhone: parentPhone || '' });
+  db.get(`SELECT * FROM Users WHERE id = ?`, [req.user.id], (err, user) => {
+    if (err || !user) return res.status(500).json({ error: "Utilisateur non trouvé" });
+    
+    const finalPhone = phone !== undefined ? phone : user.phone;
+    const finalCompany = companyName !== undefined ? companyName : user.companyName;
+    const finalParentName = parentName !== undefined ? parentName : user.parentName;
+    const finalParentPhone = parentPhone !== undefined ? parentPhone : user.parentPhone;
+    const finalBio = bio !== undefined ? bio : user.bio;
+
+    db.run(`UPDATE Users SET firstName = ?, lastName = ?, phone = ?, companyName = ?, parentName = ?, parentPhone = ?, bio = ? WHERE id = ?`, 
+      [firstName, lastName, finalPhone || '', finalCompany || '', finalParentName || '', finalParentPhone || '', finalBio || '', req.user.id], function(updateErr) {
+      if (updateErr) return res.status(500).json({ error: "Erreur lors de la mise à jour du profil" });
+      res.json({ success: true, firstName, lastName, phone: finalPhone || '', companyName: finalCompany || '', parentName: finalParentName || '', parentPhone: finalParentPhone || '', bio: finalBio || '' });
+    });
   });
 });
 

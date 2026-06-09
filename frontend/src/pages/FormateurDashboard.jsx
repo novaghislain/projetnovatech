@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { BookOpen, Users, Star, MessageCircle, LogOut, Video, FileText, CheckCircle, Clock, ChevronRight, Plus, Trash2, Edit2, X, Menu, Calendar, PlayCircle, FolderOpen, ChevronDown } from 'lucide-react';
+import { BookOpen, Users, Star, MessageCircle, LogOut, Video, FileText, CheckCircle, Clock, ChevronRight, Plus, Trash2, Edit2, X, Menu, Calendar, PlayCircle, FolderOpen, ChevronDown, Settings } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import './Home.css';
 import './FormateurDashboard.css';
@@ -19,6 +19,7 @@ const localT = {
     nav_questions: "Questions",
     nav_group_msg: "Messagerie Groupée",
     nav_schedule: "Emploi du Temps",
+    nav_settings: "Paramètres",
     logout: "Déconnexion",
     role_trainer: "Formateur Expert",
     welcome_greeting: "Bonjour, {name} 👋",
@@ -135,6 +136,7 @@ const localT = {
     nav_questions: "Questions",
     nav_group_msg: "Group Messaging",
     nav_schedule: "Schedule",
+    nav_settings: "Settings",
     logout: "Logout",
     role_trainer: "Expert Trainer",
     welcome_greeting: "Hello, {name} 👋",
@@ -585,6 +587,12 @@ const FormateurDashboard = () => {
             style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'schedule' ? '#f0f4f8' : 'transparent', color: activeTab === 'schedule' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'schedule' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
           >
             <Calendar size={20} /> {t('nav_schedule')}
+          </button>
+          <button 
+            onClick={() => { window.location.href = '/parametres'; setIsSidebarOpen(false); }}
+            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: 'transparent', color: '#64748b', fontWeight: 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
+          >
+            <Settings size={20} /> {t('nav_settings')}
           </button>
         </nav>
 
