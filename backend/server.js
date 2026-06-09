@@ -12,6 +12,8 @@ const path = require('path');
 const fs = require('fs');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const cron = require('node-cron');
+
 const { sendEmail } = require('./emailService');
 const { paymentReceipt, welcomeEmail, certificateEmail } = require('./emailTemplates');
 const { generateCertificate } = require('./certificateService');
@@ -19,73 +21,22 @@ const { generateCertificate } = require('./certificateService');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// ===== SECURITE : Helmet (XSS, Clickjacking, CSRF Headers) =====
-app.use(helmet({
-  contentSecurityPolicy: false, // désactivé pour compatibilité React + CDN FedaPay
-  crossOriginEmbedderPolicy: false,
-}));
-app.use(helmet.xssFilter());
-app.use(helmet.noSniff());
-app.use(helmet.frameguard({ action: 'SAMEORIGIN' }));
-app.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }));
-
-// ===== LOGS D'ACCES (Morgan) =====
+// Dossiers utiles (Logs, Backups, Uploads)
 const logsDir = path.join(__dirname, 'logs');
-if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
+
+const backupsDir = path.join(__dirname, 'backups');
+if (!fs.existsSync(backupsDir)) fs.mkdirSync(backupsDir);
+
+// Middlewares de Sécurité et Logs
+app.use(helmet({ crossOriginResourcePolicy: false })); // Désactivé partiellement pour laisser passer les images uploads si non hébergées ailleurs
 const accessLogStream = fs.createWriteStream(path.join(logsDir, 'access.log'), { flags: 'a' });
 app.use(morgan('combined', { stream: accessLogStream }));
-app.use(morgan('dev')); // Console lisible en dev
 
-// Middleware
+// Middleware généraux
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// ===== SEO : Sitemap XML dynamique =====
-app.get('/sitemap.xml', (req, res) => {
-  const SITE_URL = process.env.SITE_URL || 'https://novatechvision.com';
-  db.all("SELECT id, title FROM Formations WHERE status IN ('published','active') ORDER BY id DESC", (err, formations) => {
-    const staticUrls = [
-      { loc: `${SITE_URL}/`, priority: '1.0', changefreq: 'weekly' },
-      { loc: `${SITE_URL}/formations`, priority: '0.9', changefreq: 'daily' },
-      { loc: `${SITE_URL}/inscription`, priority: '0.8', changefreq: 'monthly' },
-      { loc: `${SITE_URL}/a-propos`, priority: '0.6', changefreq: 'monthly' },
-      { loc: `${SITE_URL}/contact`, priority: '0.6', changefreq: 'monthly' },
-      { loc: `${SITE_URL}/faq`, priority: '0.5', changefreq: 'monthly' },
-    ];
-    const formationUrls = (formations || []).map(f => ({
-      loc: `${SITE_URL}/formations/${f.id}`,
-      priority: '0.8',
-      changefreq: 'weekly'
-    }));
-    const allUrls = [...staticUrls, ...formationUrls];
-    const lastmod = new Date().toISOString().split('T')[0];
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allUrls.map(u => `  <url>
-    <loc>${u.loc}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>${u.changefreq}</changefreq>
-    <priority>${u.priority}</priority>
-  </url>`).join('\n')}
-</urlset>`;
-    res.header('Content-Type', 'application/xml');
-    res.send(xml);
-  });
-});
-
-// ===== SEO : robots.txt =====
-app.get('/robots.txt', (req, res) => {
-  const SITE_URL = process.env.SITE_URL || 'https://novatechvision.com';
-  res.type('text/plain');
-  res.send(`User-agent: *
-Allow: /
-Disallow: /api/
-Disallow: /admin
-Disallow: /dashboard
-Sitemap: ${SITE_URL}/sitemap.xml`);
-});
-
 
 // Configuration Multer
 const storage = multer.diskStorage({
@@ -155,11 +106,31 @@ app.post('/api/auth/login', (req, res) => {
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return res.status(400).json({ error: 'Identifiants incorrects.' });
 
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({
-      user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, avatar: user.avatar, bio: user.bio || '', companyName: user.companyName || '', parentName: user.parentName || '', parentPhone: user.parentPhone || '' },
-      token
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
+    const refreshToken = crypto.randomBytes(40).toString('hex');
+    
+    db.run(`UPDATE Users SET refreshToken = ? WHERE id = ?`, [refreshToken, user.id], (updateErr) => {
+      if (updateErr) return res.status(500).json({ error: 'Erreur serveur.' });
+      
+      res.json({
+        user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, avatar: user.avatar, bio: user.bio || '', companyName: user.companyName || '', parentName: user.parentName || '', parentPhone: user.parentPhone || '' },
+        token,
+        refreshToken
+      });
     });
+  });
+});
+
+app.post('/api/auth/refresh', (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) return res.status(403).json({ error: 'Refresh token requis.' });
+
+  db.get(`SELECT * FROM Users WHERE refreshToken = ?`, [refreshToken], (err, user) => {
+    if (err) return res.status(500).json({ error: 'Erreur serveur.' });
+    if (!user) return res.status(403).json({ error: 'Refresh token invalide.' });
+
+    const newToken = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token: newToken });
   });
 });
 
@@ -237,7 +208,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
  */
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = (authHeader && authHeader.split(' ')[1]) || req.query.token;
   if (!token) return res.sendStatus(401);
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
@@ -505,8 +476,8 @@ app.get('/api/public/categories', (req, res) => {
   });
 });
 
-app.get('/api/public/formations/:id', (req, res) => {
-  db.get("SELECT * FROM Formations WHERE id = ?", [req.params.id], (err, row) => {
+app.get('/api/public/formations/:idOrSlug', (req, res) => {
+  db.get("SELECT * FROM Formations WHERE id = ? OR slug = ?", [req.params.idOrSlug, req.params.idOrSlug], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!row) return res.status(404).json({ error: "Formation introuvable" });
     res.json(row);
@@ -1241,42 +1212,63 @@ const runCronTasks = () => {
 setTimeout(runCronTasks, 10000);
 setInterval(runCronTasks, 24 * 60 * 60 * 1000);
 
+// ==========================================
+// SAUVEGARDE AUTOMATIQUE DE LA BDD (CRON)
+// ==========================================
+cron.schedule('0 3 * * *', () => { // Tous les jours à 03h00 du matin
+  const dateStr = new Date().toISOString().split('T')[0];
+  const dbPath = path.join(__dirname, 'database.sqlite');
+  const backupPath = path.join(backupsDir, `database-${dateStr}.sqlite`);
+  
+  if (fs.existsSync(dbPath)) {
+    fs.copyFile(dbPath, backupPath, (err) => {
+      if (err) {
+        console.error(`[BACKUP] Erreur de sauvegarde DB :`, err);
+        const errLogStream = fs.createWriteStream(path.join(logsDir, 'error.log'), { flags: 'a' });
+        errLogStream.write(`[${new Date().toISOString()}] Backup Error: ${err.message}\n`);
+        errLogStream.end();
+      } else {
+        console.log(`[BACKUP] Base de données sauvegardée avec succès : ${backupPath}`);
+      }
+    });
+  }
+});
+
+// ==========================================
+// SEO & REFERENCEMENT (SITEMAP XML)
+// ==========================================
+app.get('/api/sitemap.xml', (req, res) => {
+  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  
+  db.all("SELECT id FROM Formations WHERE status IN ('published', 'active')", (err, formations) => {
+    if (err) return res.status(500).send("Erreur génération sitemap");
+    
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+    
+    // Pages statiques
+    xml += `
+  <url><loc>${baseUrl}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>${baseUrl}/formations</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>${baseUrl}/apropos</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>${baseUrl}/contact</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+`;
+
+    // Pages dynamiques (Formations)
+    if (formations) {
+      formations.forEach(f => {
+        xml += `  <url><loc>${baseUrl}/formations/${f.id}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>\n`;
+      });
+    }
+
+    xml += `</urlset>`;
+    
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  });
+});
+
 // Démarrage du serveur
 app.listen(PORT, () => {
   console.log(`Serveur Backend démarré sur http://localhost:${PORT}`);
   console.log(`[En attente des webhooks Kkiapay et FedaPay]`);
 });
-
-// ===== SAUVEGARDE AUTOMATIQUE DB (toutes les 24h) =====
-const backupDB = () => {
-  const backupDir = path.join(__dirname, 'backups');
-  if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
-  const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  const src = path.join(__dirname, 'database.db');
-  const dest = path.join(backupDir, `novatech_backup_${date}.db`);
-  if (fs.existsSync(src)) {
-    fs.copyFile(src, dest, (err) => {
-      if (err) {
-        console.error('[BACKUP] Erreur sauvegarde DB:', err.message);
-      } else {
-        console.log(`[BACKUP] Base de données sauvegardée : ${dest}`);
-        // Supprimer les sauvegardes de plus de 30 jours
-        fs.readdir(backupDir, (e, files) => {
-          if (e) return;
-          const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-          files.forEach(f => {
-            const fp = path.join(backupDir, f);
-            fs.stat(fp, (se, stat) => {
-              if (!se && stat.mtimeMs < cutoff) fs.unlink(fp, () => {});
-            });
-          });
-        });
-      }
-    });
-  } else {
-    console.warn('[BACKUP] Fichier database.db introuvable, backup ignoré.');
-  }
-};
-// Première sauvegarde après 30s, puis toutes les 24h
-setTimeout(backupDB, 30000);
-setInterval(backupDB, 24 * 60 * 60 * 1000);

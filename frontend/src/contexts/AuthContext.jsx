@@ -20,6 +20,58 @@ export const AuthProvider = ({ children }) => {
     else localStorage.removeItem('nv_user');
   }, [user]);
 
+  // Global fetch interceptor for Refresh Tokens
+  useEffect(() => {
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      let response = await originalFetch(...args);
+      
+      if (response.status === 401 || response.status === 403) {
+        // Ignorer les requêtes de login/refresh elles-mêmes pour éviter les boucles infinies
+        const url = typeof args[0] === 'string' ? args[0] : args[0]?.url;
+        if (url && (url.includes('/api/auth/login') || url.includes('/api/auth/refresh'))) {
+          return response;
+        }
+
+        const refreshToken = localStorage.getItem('nv_refreshToken');
+        if (refreshToken) {
+          try {
+            const refreshRes = await originalFetch(`${API_URL}/api/auth/refresh`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refreshToken })
+            });
+            
+            if (refreshRes.ok) {
+              const data = await refreshRes.json();
+              localStorage.setItem('nv_token', data.token);
+              
+              // Retry the original request with new token
+              const [reqUrl, config] = args;
+              const newConfig = { ...config };
+              if (newConfig && newConfig.headers) {
+                newConfig.headers = { ...newConfig.headers, 'Authorization': `Bearer ${data.token}` };
+              }
+              response = await originalFetch(reqUrl, newConfig);
+            } else {
+              // Refresh failed, clear session without redirect to avoid loop
+              setUser(null);
+              localStorage.removeItem('nv_token');
+              localStorage.removeItem('nv_refreshToken');
+            }
+          } catch (e) {
+            console.error("Refresh token error", e);
+          }
+        }
+      }
+      return response;
+    };
+    
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, []);
+
   const login = async ({ email, password }) => {
     // 2. Fetch from Real Backend
     try {
@@ -35,6 +87,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       localStorage.setItem('nv_token', data.token);
+      if (data.refreshToken) {
+        localStorage.setItem('nv_refreshToken', data.refreshToken);
+      }
       setUser(data.user);
       return data.user;
     } catch (err) {
@@ -72,6 +127,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('nv_token');
+    localStorage.removeItem('nv_refreshToken');
     navigate('/');
   };
 

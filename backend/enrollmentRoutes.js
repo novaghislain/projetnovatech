@@ -23,23 +23,23 @@ module.exports = function(db, authenticateToken) {
       const isFull = course.enrolled >= course.maxParticipants;
       const status = isFull ? 'waitlist' : 'active';
       
-      const isMensuel = paymentType === 'mensuel';
-      const actualAmount = isMensuel ? Math.ceil(amount / 3) : amount;
-      const installmentsPaid = isFull ? 0 : 1; // 0 payé si sur liste d'attente
-      const totalInstallments = isMensuel ? 3 : 1;
+      const isMensuel = paymentType === 'mensuel' || paymentType === 'partial';
+      const totalAmount = amount;
+      const amountPaid = isMensuel ? Math.ceil(amount / 2) : amount;
+      const dbPaymentType = isMensuel ? 'partial' : 'full';
 
       // 2. Insérer l'inscription
       const query = `
         INSERT INTO Enrollments (
           userId, courseId, amount, transactionId, paymentMethod, status, 
-          childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address, paymentType,
-          installmentsPaid, totalInstallments
+          childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address, 
+          paymentType, totalAmount, amountPaid
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const params = [
-        userId, courseId, actualAmount, transactionId, paymentMethod, status,
-        childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address, paymentType,
-        installmentsPaid, totalInstallments
+        userId, courseId, amountPaid, transactionId, paymentMethod, status,
+        childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address,
+        dbPaymentType, totalAmount, amountPaid
       ];
 
       db.run(query, params, function(err) {
@@ -98,8 +98,8 @@ module.exports = function(db, authenticateToken) {
   // Route pour l'historique utilisateur (Tableau de Bord)
   router.get('/my-enrollments', authenticateToken, (req, res) => {
     const query = `
-      SELECT e.id, e.amount, e.paymentMethod, e.paymentType, e.status, e.createdAt, 
-             e.childFirstName, e.childLastName, e.rating, e.installmentsPaid, e.totalInstallments,
+      SELECT e.id, e.amount, e.paymentMethod, e.paymentType, e.totalAmount, e.amountPaid, e.status, e.createdAt, e.transactionId,
+             e.childFirstName, e.childLastName, e.rating,
              f.id as courseId, f.title as courseTitle, f.isOnline, f.meetLink, f.whatsappLink, f.imageUrl,
              f.startDate, f.endDate, f.duration, f.sessionDuration, f.isLive, f.liveRoomName, f.price as courseFullPrice
       FROM Enrollments e
@@ -145,30 +145,50 @@ module.exports = function(db, authenticateToken) {
     });
   });
 
-  // Route pour payer la mensualité suivante
+  // Route pour payer le reste de la formation
   router.post('/payments/:id/pay-installment', authenticateToken, (req, res) => {
     const enrollmentId = req.params.id;
     const { transactionId, paymentMethod, amount } = req.body;
 
-    db.get("SELECT installmentsPaid, totalInstallments, amount FROM Enrollments WHERE id = ? AND userId = ?", [enrollmentId, req.user.id], (err, enrollment) => {
+    db.get("SELECT totalAmount, amountPaid, paymentType FROM Enrollments WHERE id = ? AND userId = ?", [enrollmentId, req.user.id], (err, enrollment) => {
       if (err) return res.status(500).json({ error: "Erreur serveur" });
       if (!enrollment) return res.status(404).json({ error: "Inscription introuvable" });
 
-      if (enrollment.installmentsPaid >= enrollment.totalInstallments) {
-        return res.status(400).json({ error: "Toutes les mensualités de cette formation ont déjà été payées." });
+      if (enrollment.amountPaid >= enrollment.totalAmount) {
+        return res.status(400).json({ error: "Cette formation a déjà été entièrement payée." });
       }
 
-      const nextPaidCount = enrollment.installmentsPaid + 1;
-      const nextAmount = enrollment.amount + Number(amount);
+      const nextAmount = enrollment.amountPaid + Number(amount);
+      const newPaymentType = nextAmount >= enrollment.totalAmount ? 'full' : 'partial';
 
       db.run(
-        "UPDATE Enrollments SET installmentsPaid = ?, amount = ?, transactionId = ?, paymentMethod = ? WHERE id = ?",
-        [nextPaidCount, nextAmount, transactionId, paymentMethod, enrollmentId],
+        "UPDATE Enrollments SET amountPaid = ?, amount = ?, paymentType = ?, transactionId = ?, paymentMethod = ? WHERE id = ?",
+        [nextAmount, nextAmount, newPaymentType, transactionId, paymentMethod, enrollmentId],
         function(err) {
           if (err) return res.status(500).json({ error: "Erreur lors de la mise à jour du paiement" });
-          res.json({ success: true, installmentsPaid: nextPaidCount, totalAmount: nextAmount });
+          res.json({ success: true, amountPaid: nextAmount, paymentType: newPaymentType });
         }
       );
+    });
+  });
+
+  // Route pour télécharger la facture
+  router.get('/enrollments/:id/invoice', authenticateToken, (req, res) => {
+    const query = `
+      SELECT e.*, f.title as courseTitle 
+      FROM Enrollments e
+      JOIN Formations f ON e.courseId = f.id
+      WHERE e.id = ? AND e.userId = ?
+    `;
+    db.get(query, [req.params.id, req.user.id], (err, row) => {
+      if (err) return res.status(500).json({ error: "Erreur serveur" });
+      if (!row) return res.status(404).json({ error: "Inscription introuvable ou accès refusé." });
+
+      const { generateInvoice } = require('./invoiceService');
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="facture-novatech-${row.id}.pdf"`);
+      
+      generateInvoice(row, res);
     });
   });
 
@@ -287,7 +307,7 @@ module.exports = function(db, authenticateToken) {
                           <p>Vous pouvez désormais accéder à son espace de cours en ligne.</p>
                           <hr style="border: none; border-top: 1px solid #e5e7eb;" />
                           <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
-                        </div>
+                        </div>`
                     }).catch(e => console.error("Erreur envoi email promotion liste d'attente:", e.message));
 
                     // Envoyer un SMS de notification

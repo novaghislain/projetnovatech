@@ -540,44 +540,7 @@ const PaymentsTab = () => {
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     doc.text(language === 'en' ? "Payment Details" : "Détails du Paiement", 20, 60);
-    
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`Receipt N°: NV-REC-${p.id}-${Date.now().toString(36).toUpperCase()}`, 20, 70);
-    doc.text(language === 'en' ? `Payment date: ${new Date(p.createdAt).toLocaleDateString('en-US')}` : `Date du paiement : ${new Date(p.createdAt).toLocaleDateString('fr-FR')}`, 20, 80);
-    doc.text(language === 'en' ? `Payment method: ${p.paymentMethod || 'Online (FedaPay)'}` : `Méthode de paiement : ${p.paymentMethod || 'En ligne (FedaPay)'}`, 20, 90);
-    
-    doc.setFont("helvetica", "bold");
-    doc.text(language === 'en' ? "Student & Parent Information:" : "Information de l'Apprenant :", 20, 110);
-    doc.setFont("helvetica", "normal");
-    doc.text(language === 'en' ? `Child's name: ${p.childFirstName || ''} ${p.childLastName || ''}` : `Nom de l'enfant : ${p.childFirstName || ''} ${p.childLastName || ''}`, 20, 120);
-    doc.text(language === 'en' ? `Parent / Guardian: ${user?.firstName || ''} ${user?.lastName || ''}` : `Parent / Tuteur : ${user?.firstName || ''} ${user?.lastName || ''}`, 20, 130);
-    doc.text(language === 'en' ? `Contact email: ${user?.email || ''}` : `Email de contact : ${user?.email || ''}`, 20, 140);
-    
-    doc.setFont("helvetica", "bold");
-    doc.text(language === 'en' ? "Course Details:" : "Détails de la Formation :", 20, 160);
-    doc.setFont("helvetica", "normal");
-    doc.text(language === 'en' ? `Course name: ${p.courseTitle || 'IT Training'}` : `Nom du cours : ${p.courseTitle || 'Formation informatique'}`, 20, 170);
-    doc.text(language === 'en' ? `Payment type: ${p.paymentType === 'mensuel' ? 'Monthly (Installments)' : 'Full Payment'}` : `Type de paiement : ${p.paymentType === 'mensuel' ? 'Mensuel (Échéances)' : 'Paiement complet'}`, 20, 180);
-    if (p.paymentType === 'mensuel') {
-      doc.text(language === 'en' ? `Installment progress: ${p.installmentsPaid || 1} / ${p.totalInstallments || 3} paid` : `Progression des échéances : ${p.installmentsPaid || 1} / ${p.totalInstallments || 3} payées`, 20, 190);
-    }
-    
-    // Total Table block
-    doc.setFillColor(241, 245, 249);
-    doc.rect(20, 210, 170, 30, 'F');
-    
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text(language === 'en' ? "Total Paid:" : "Total Payé :", 30, 228);
-    doc.text(`${p.amount?.toLocaleString()} FCFA`, 140, 228);
-    
-    // Footer
-    doc.setFontSize(8);
-    doc.setTextColor(148, 163, 184);
-    doc.text("Novatech Vision - Cotonou, Bénin - contact@novatechvision.com", 105, 280, null, null, "center");
-    
-    doc.save(`receipt-novatech-enroll-${p.id}.pdf`);
+    window.open(`${API_URL}/api/enroll/enrollments/${p.id}/invoice?token=${token}`, '_blank');
   };
 
   const handleInstallmentSuccess = async (transactionId) => {
@@ -627,17 +590,17 @@ const PaymentsTab = () => {
           </thead>
           <tbody>
             {payments.filter(p => p.status !== 'waitlist').map(p => {
-              const isMensuel = p.paymentType === 'mensuel';
-              const needsPayment = isMensuel && (p.installmentsPaid < p.totalInstallments);
+              const isMensuel = p.paymentType === 'partial';
+              const needsPayment = isMensuel && (p.amountPaid < p.totalAmount);
               return (
                 <tr key={p.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '1rem' }}>{new Date(p.createdAt).toLocaleDateString()}</td>
                   <td style={{ padding: '1rem', fontWeight: 500 }}>{p.courseTitle || 'Formation'}</td>
-                  <td style={{ padding: '1rem' }}>{isMensuel ? (language === 'en' ? 'Monthly' : 'Mensuel') : (language === 'en' ? 'Full' : 'Complet')}</td>
+                  <td style={{ padding: '1rem' }}>{isMensuel ? (language === 'en' ? 'Partial' : 'Partiel') : (language === 'en' ? 'Full' : 'Complet')}</td>
                   <td style={{ padding: '1rem' }}>
-                    {isMensuel ? `${p.installmentsPaid || 1} / ${p.totalInstallments || 3}` : '1 / 1'}
+                    {isMensuel ? `50%` : '100%'}
                   </td>
-                  <td style={{ padding: '1rem' }}>{p.amount || 0} FCFA</td>
+                  <td style={{ padding: '1rem' }}>{p.amountPaid || 0} FCFA</td>
                   <td style={{ padding: '1rem' }}>
                     <span style={{ 
                       background: needsPayment ? '#fef3c7' : '#dcfce7', 
@@ -685,18 +648,18 @@ const PaymentsTab = () => {
             <h3 style={{ margin: '0 0 1rem 0', color: '#1A1A2E' }}>{t('dash_installment_modal_title')}</h3>
             <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
               {language === 'en' 
-                ? `You are about to pay installment ${payingEnrollment.installmentsPaid + 1} / ${payingEnrollment.totalInstallments} for the course "${payingEnrollment.courseTitle}".` 
-                : `Vous vous apprêtez à payer l'échéance ${payingEnrollment.installmentsPaid + 1} / ${payingEnrollment.totalInstallments} pour la formation "${payingEnrollment.courseTitle}".`}
+                ? `You are about to pay the remaining balance for the course "${payingEnrollment.courseTitle}".` 
+                : `Vous vous apprêtez à payer le reste à payer pour la formation "${payingEnrollment.courseTitle}".`}
             </p>
             <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                 <span>{t('dash_installment_amount')}</span>
-                <strong>{Math.ceil((payingEnrollment.courseFullPrice || payingEnrollment.amount * 3) / 3)?.toLocaleString()} FCFA</strong>
+                <strong>{(payingEnrollment.totalAmount - payingEnrollment.amountPaid)?.toLocaleString()} FCFA</strong>
               </div>
             </div>
             <FedapayWidget 
-              amount={Math.ceil((payingEnrollment.courseFullPrice || payingEnrollment.amount * 3) / 3)}
-              description={`Mensualité ${payingEnrollment.installmentsPaid + 1} - ${payingEnrollment.courseTitle}`}
+              amount={payingEnrollment.totalAmount - payingEnrollment.amountPaid}
+              description={`Reste à payer - ${payingEnrollment.courseTitle}`}
               customerInfo={{
                 email: user?.email,
                 firstName: user?.firstName,

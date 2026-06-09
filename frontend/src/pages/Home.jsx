@@ -139,7 +139,7 @@ const Home = () => {
               <div className="sidebar-card-content">
                 <h3 className="sidebar-card-title">{t('hero_ai_title')}</h3>
                 <p className="sidebar-card-subtitle">{t('hero_ai_subtitle')}</p>
-                <Link to={language === 'en' ? '/en/courses/2' : '/formations/2'} className="sidebar-card-btn-outline">
+                <Link to={language === 'en' ? '/en/courses/decouverte-de-l-ia' : '/formations/decouverte-de-l-ia'} className="sidebar-card-btn-outline">
                   {t('hero_ai_btn')}
                 </Link>
               </div>

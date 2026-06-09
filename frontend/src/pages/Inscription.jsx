@@ -283,8 +283,8 @@ const Inscription = () => {
                     {t('ins_payment_desc')}
                   </p>
                   <FedapayWidget 
-                    amount={formData.paymentType === 'mensuel' ? Math.ceil(course.price / 3) : course.price} 
-                    description={`${language === 'en' ? 'Enrollment:' : 'Inscription:'} ${course.title} ${formData.paymentType === 'mensuel' ? (language === 'en' ? '(Installment 1/3)' : '(Mensualité 1/3)') : (language === 'en' ? '(Full payment)' : '(Paiement complet)')}`}
+                    amount={formData.paymentType === 'mensuel' ? Math.ceil(course.price / 2) : course.price} 
+                    description={`${language === 'en' ? 'Enrollment:' : 'Inscription:'} ${course.title} ${formData.paymentType === 'mensuel' ? (language === 'en' ? '(Installment 1/2)' : '(1ère tranche 50%)') : (language === 'en' ? '(Full payment)' : '(Paiement complet)')}`}
                     customerInfo={{
                       email: formData.parentEmail,
                       firstName: formData.parentName,

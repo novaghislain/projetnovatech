@@ -19,9 +19,13 @@ db.serialize(() => {
       lastName TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
       phone TEXT,
-      password TEXT,
+      password TEXT NOT NULL,
       role TEXT DEFAULT 'apprenant',
       avatar TEXT,
+      status TEXT DEFAULT 'active',
+      resetToken TEXT,
+      resetTokenExpiry DATETIME,
+      refreshToken TEXT,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -85,6 +89,7 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS Formations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
+      slug TEXT,
       description TEXT,
       category TEXT,
       ageGroup TEXT,
@@ -146,6 +151,9 @@ db.serialize(() => {
       userId INTEGER,
       courseId INTEGER,
       amount INTEGER,
+      paymentType TEXT DEFAULT 'full',
+      totalAmount INTEGER DEFAULT 0,
+      amountPaid INTEGER DEFAULT 0,
       transactionId TEXT,
       paymentMethod TEXT,
       status TEXT DEFAULT 'active',

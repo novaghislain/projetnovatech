@@ -198,7 +198,7 @@ const InscriptionFormation = () => {
                     <div className="formation-card-foot">
                       <strong>{f.price ? f.price.toLocaleString() + ' FCFA' : t('courses_free')}</strong>
                       <div className="formation-card-actions">
-                        <Link to={language === 'en' ? `/en/courses/${f.id}` : `/formations/${f.id}`} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+                        <Link to={language === 'en' ? `/en/courses/${f.slug || f.id}` : `/formations/${f.slug || f.id}`} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
                           {t('details')}
                         </Link>
                         <button 
