@@ -17,13 +17,25 @@ const Navbar = () => {
 
   const handleToggleLanguage = () => {
     const currentPath = location.pathname;
-    const pathMappings = {
+
+    // Check Dashboard routes - they do not change URL
+    if (currentPath.startsWith('/mon-espace') || 
+        currentPath.startsWith('/admin') || 
+        currentPath.startsWith('/formateur') || 
+        currentPath.startsWith('/annonceur') ||
+        currentPath === '/inscription') {
+      toggleLanguage();
+      return;
+    }
+
+    let nextPath = null;
+
+    // Exact paths
+    const exactMappings = {
       '/': '/en',
       '/fr': '/en',
       '/formations': '/en/courses',
       '/fr/formations': '/en/courses',
-      '/inscription': '/en/enroll',
-      '/fr/inscription': '/en/enroll',
       '/a-propos': '/en/about',
       '/fr/a-propos': '/en/about',
       '/contact': '/en/contact',
@@ -60,17 +72,24 @@ const Navbar = () => {
       '/en/forgot-password': '/fr/mot-de-passe-oublie'
     };
 
-    let nextPath = pathMappings[currentPath] || null;
-    if (!nextPath) {
-      if (currentPath.startsWith('/formations/') || currentPath.startsWith('/fr/formations/')) {
+    if (exactMappings[currentPath]) {
+      nextPath = exactMappings[currentPath];
+    } else {
+      // Dynamic paths
+      if (currentPath.startsWith('/en/courses/')) {
+        nextPath = currentPath.replace('/en/courses', '/fr/formations');
+      } else if (currentPath.startsWith('/formations/') || currentPath.startsWith('/fr/formations/')) {
         const id = currentPath.split('/').pop();
         nextPath = `/en/courses/${id}`;
-      } else if (currentPath.startsWith('/en/courses/')) {
-        const id = currentPath.split('/').pop();
-        nextPath = `/fr/formations/${id}`;
+      } else if (currentPath.startsWith('/en/')) {
+        nextPath = currentPath.replace('/en/', '/fr/');
+      } else {
+        nextPath = '/en' + currentPath.replace('/fr', '');
       }
     }
 
+    // Since LanguageRouteWatcher watches the URL prefix to set language, 
+    // we only need to navigate. But just in case, we also update state so it's instant.
     toggleLanguage();
     if (nextPath) {
       navigate(nextPath);

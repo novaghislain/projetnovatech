@@ -223,6 +223,17 @@
 /* =============================
    À PROPOS PAGE
    ============================= */
+.dynamic-apropos-container {
+  padding: 4rem 2rem 5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+@media (max-width: 900px) {
+  .dynamic-apropos-container {
+    padding: 2rem 1rem 3rem;
+  }
+}
+
 .apropos-intro {
   background: #fff;
   padding: 3.5rem 0;
@@ -474,6 +485,7 @@
   .apropos-mv-inner { grid-template-columns: 1fr; gap: 2rem; }
   .valeurs-grid { grid-template-columns: 1fr; gap: 1rem; }
   .form-row-2 { grid-template-columns: 1fr; }
+  .markdown-body { padding: 1.5rem !important; }
 }
 
 /* Hero Section */

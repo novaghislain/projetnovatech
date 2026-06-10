@@ -282,17 +282,24 @@ const Inscription = () => {
                   <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
                     {t('ins_payment_desc')}
                   </p>
-                  <FedapayWidget 
-                    amount={formData.paymentType === 'mensuel' ? Math.ceil(course.price / 2) : course.price} 
-                    description={`${language === 'en' ? 'Enrollment:' : 'Inscription:'} ${course.title} ${formData.paymentType === 'mensuel' ? (language === 'en' ? '(Installment 1/2)' : '(1ère tranche 50%)') : (language === 'en' ? '(Full payment)' : '(Paiement complet)')}`}
-                    customerInfo={{
-                      email: formData.parentEmail,
-                      firstName: formData.parentName,
-                      lastName: "",
-                      phone: formData.parentPhone
-                    }}
-                    onSuccess={handlePaymentComplete}
-                  />
+                  
+                  {(!course.price || course.price === 0) ? (
+                    <button className="btn btn-primary" onClick={() => processEnrollment()} disabled={submitLoading} style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}>
+                      {submitLoading ? t('loading') : (language === 'en' ? 'Confirm Free Enrollment' : "Confirmer l'inscription gratuite")}
+                    </button>
+                  ) : (
+                    <FedapayWidget 
+                      amount={formData.paymentType === 'mensuel' ? Math.ceil(course.price / 2) : course.price} 
+                      description={`${language === 'en' ? 'Enrollment:' : 'Inscription:'} ${course.title} ${formData.paymentType === 'mensuel' ? (language === 'en' ? '(Installment 1/2)' : '(1ère tranche 50%)') : (language === 'en' ? '(Full payment)' : '(Paiement complet)')}`}
+                      customerInfo={{
+                        email: formData.parentEmail,
+                        firstName: formData.parentName,
+                        lastName: "",
+                        phone: formData.parentPhone
+                      }}
+                      onSuccess={handlePaymentComplete}
+                    />
+                  )}
                 </div>
               )}
             </div>

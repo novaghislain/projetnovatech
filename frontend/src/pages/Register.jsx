@@ -44,7 +44,11 @@ const Register = () => {
         navigate('/inscription', { state: { formationId: location.state.formationId } });
         return;
       }
-      const dest = location.state?.from || '/mon-espace';
+      if (location.state?.from) {
+        navigate(location.state.from);
+        return;
+      }
+      const dest = '/mon-espace';
       navigate(dest);
     } catch (err) {
       setError(err.message || "Erreur lors de l'inscription");

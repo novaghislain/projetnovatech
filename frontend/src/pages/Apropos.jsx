@@ -58,7 +58,11 @@ const Apropos = () => {
             <p className="page-top-desc">{language === 'en' ? 'Discover our mission, values, and commitments.' : 'Découvrez notre mission, nos valeurs et nos engagements.'}</p>
           </div>
         </div>
-        <section className="container" style={{ padding: '4rem 2rem 5rem', maxWidth: '800px', margin: '0 auto' }}>
+        <section className="container dynamic-apropos-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '4rem', alignItems: 'center', marginBottom: '4rem' }}>
+          <div style={{ borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(15,52,96,0.15)', backgroundColor: '#f8fafc', position: 'relative' }}>
+            <div style={{ position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px', border: '3px solid var(--color-accent)', borderRadius: '24px', zIndex: 0 }}></div>
+            <img src="/image1.png" alt="Novatech Vision" style={{ width: '100%', height: '100%', maxHeight: '600px', objectFit: 'cover', objectPosition: 'top center', display: 'block', position: 'relative', zIndex: 1 }} />
+          </div>
           <div 
             className="markdown-body"
             style={{

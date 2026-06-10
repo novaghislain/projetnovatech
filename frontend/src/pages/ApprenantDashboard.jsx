@@ -69,15 +69,20 @@ const ApprenantDashboard = () => {
     <div className="admin-layout" style={{ minHeight: '100vh', display: 'flex', backgroundColor: '#f8fafc' }}>
       
       {/* MOBILE HEADER */}
-      <div className="mobile-admin-header" style={{ display: 'none', justifyContent: 'space-between', padding: '1rem', background: '#1A1A2E', color: 'white' }}>
-        <img src="/4x.png" alt="Logo" style={{ height: '30px' }} />
-        <button onClick={() => setMobileMenuOpen(true)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+      <div className="admin-mobile-header">
+        <img src="/4x.png" alt="Logo" style={{ height: '30px', cursor: 'pointer' }} onClick={() => navigate('/')} />
+        <button onClick={() => setMobileMenuOpen(true)} className="admin-mobile-menu-btn">
           <Menu size={24} />
         </button>
       </div>
 
+      {/* OVERLAY */}
+      {mobileMenuOpen && (
+        <div className="admin-sidebar-overlay" onClick={() => setMobileMenuOpen(false)}></div>
+      )}
+
       {/* SIDEBAR */}
-      <div className={`admin-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{ 
+      <div className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{ 
         width: '260px', background: '#1A1A2E', color: 'white', display: 'flex', flexDirection: 'column',
         boxShadow: '4px 0 20px rgba(0,0,0,0.1)', zIndex: 100
       }}>
@@ -171,7 +176,7 @@ const OverviewTab = ({ enrollments }) => {
 
   return (
     <div className="fade-in">
-      <div style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, #0F3460 100%)', color: 'white', padding: '2.5rem', borderRadius: '16px', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 8px 32px rgba(15, 52, 96, 0.2)' }}>
+      <div style={{ background: 'linear-gradient(135deg, #1A1A2E 0%, #0F3460 100%)', color: 'white', padding: '2.5rem', borderRadius: '16px', marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', gap: '1.5rem', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 8px 32px rgba(15, 52, 96, 0.2)' }}>
         <div>
           <h1 style={{ margin: '0 0 0.5rem 0', fontSize: '2.2rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.5px' }}>{t('dash_welcome')} {user?.firstName} 👋</h1>
           <p style={{ margin: 0, opacity: 0.75, fontSize: '0.95rem', color: '#e2e8f0' }}>

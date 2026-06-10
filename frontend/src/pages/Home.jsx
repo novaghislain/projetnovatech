@@ -159,7 +159,6 @@ const Home = () => {
         <div className="container">
           <div className="presentation-content" style={{ display: 'flex', gap: '4rem', alignItems: 'center' }}>
             <div className="presentation-text" style={{ flex: 1 }}>
-              <div className="section-eyebrow">{t('about_eyebrow')}</div>
               <h2 className="section-title">{t('about_title')}</h2>
               <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '1.05rem', lineHeight: 1.7 }}>
                 {t('about_desc1')}
@@ -203,12 +202,11 @@ const Home = () => {
       <section className="featured-courses-section section-padding" style={{ backgroundColor: 'var(--color-white)' }}>
         <div className="container">
           <div className="text-center">
-            <div className="section-eyebrow">{t('courses_eyebrow')}</div>
             <h2 className="section-title">{t('courses_title')}</h2>
             <p className="section-subtitle" style={{ margin: '0 auto 3rem' }}>{t('courses_subtitle')}</p>
           </div>
 
-          <div className="courses-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+          <div className="courses-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
             {featuredCourses.map((course, i) => (
               <div className="course-card" key={i} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-light)', transition: 'all 0.3s ease', display: 'flex', flexDirection: 'column' }}>
                 <div className="course-card-img" style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
@@ -225,8 +223,8 @@ const Home = () => {
                   </div>
                   <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1.2rem' }}>
                     <div>
-                      <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                        {course.isFull || course.status === 'full' ? t('courses_full') : `${course.maxParticipants - course.enrolled} ${t('courses_remaining')}`}
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                        {course.isFull || course.status === 'full' ? t('courses_full') : `Places: ${course.enrolled || 0}/${course.maxParticipants || 15}`}
                       </span>
                       <strong style={{ fontSize: '1.1rem', color: 'var(--color-primary)', fontFamily: 'var(--font-heading)' }}>
                         {course.price ? course.price.toLocaleString() + ' FCFA' : t('courses_free')}
@@ -268,7 +266,6 @@ const Home = () => {
       <section className="why-us-section section-padding" style={{ backgroundColor: 'var(--color-bg-alt)' }}>
         <div className="container">
           <div className="text-center">
-            <div className="section-eyebrow">{t('why_eyebrow')}</div>
             <h2 className="section-title">{t('why_title')}</h2>
             <p className="section-subtitle" style={{ margin: '0 auto 3rem' }}>{t('why_subtitle')}</p>
           </div>

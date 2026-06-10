@@ -67,7 +67,7 @@ module.exports = function(db, authenticateToken) {
   // 3. Paiements / Inscriptions
   router.get('/payments', (req, res) => {
     const query = `
-      SELECT e.id, e.id as transactionId, e.amount, e.paymentMethod, e.createdAt, e.status, 
+      SELECT e.id, e.id as transactionId, e.amountPaid as amount, e.totalAmount, e.paymentMethod, e.paymentType, e.createdAt, e.status, 
              u.firstName, u.lastName, u.email,
              f.title
       FROM Enrollments e

@@ -19,6 +19,10 @@ const Login = () => {
         navigate('/inscription', { state: { formationId: location.state.formationId }, replace: true });
         return;
       }
+      if (location.state?.from) {
+        navigate(location.state.from, { replace: true });
+        return;
+      }
       const role = auth.user.role;
       if (role === 'admin') navigate('/admin', { replace: true });
       else if (role === 'formateur') navigate('/formateur', { replace: true });
@@ -33,9 +37,13 @@ const Login = () => {
     try {
       const loggedUser = await auth.login({ email, password });
       
-      // if reservation intent exists, route to inscription payment page
+      // Route based on intent
       if (location.state?.formationId && loggedUser.role === 'apprenant') {
         navigate('/inscription', { state: { formationId: location.state.formationId } });
+        return;
+      }
+      if (location.state?.from) {
+        navigate(location.state.from);
         return;
       }
 

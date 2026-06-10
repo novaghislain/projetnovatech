@@ -534,7 +534,7 @@ const FormateurDashboard = () => {
           <h2 style={{ fontSize: '1.5rem', color: '#0f172a', fontWeight: 800, margin: 0, cursor: 'pointer' }} onClick={() => window.location.href = '/'}>Espace<br/><span style={{ color: '#0F3460' }}>Formateur</span></h2>
         </div>
         
-        <nav style={{ padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+        <nav style={{ padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, overflowY: 'auto' }}>
           <button 
             onClick={() => { setActiveTab('overview'); setIsSidebarOpen(false); }}
             style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'overview' ? '#f0f4f8' : 'transparent', color: activeTab === 'overview' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'overview' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}

@@ -67,8 +67,8 @@ const AdminInscriptions = () => {
       insc.lastName || '',
       insc.email || '',
       insc.title || '',
-      insc.amount ? `${insc.amount} FCFA` : 'Gratuit',
-      insc.status === 'active' ? 'Actif' : insc.status === 'completed' ? 'Payé' : 'En attente',
+      insc.amount ? `${insc.amount} / ${insc.totalAmount || insc.amount} FCFA` : 'Gratuit',
+      insc.status === 'active' ? 'Actif' : insc.status === 'waitlist' ? 'Liste d\'attente' : 'Inconnu',
       new Date(insc.createdAt).toLocaleDateString('fr-FR')
     ]);
 
@@ -139,30 +139,14 @@ const AdminInscriptions = () => {
                   </td>
                   <td>{insc.title}</td>
                   <td>{new Date(insc.createdAt).toLocaleDateString('fr-FR')}</td>
-                  <td>{insc.amount ? `${insc.amount} FCFA` : 'Gratuit'}</td>
+                  <td>{insc.amount ? (insc.totalAmount ? `${insc.amount} / ${insc.totalAmount} FCFA` : `${insc.amount} FCFA`) : 'Gratuit'}</td>
                   <td>
-                    <span className={`admin-badge ${insc.status === 'active' ? 'success' : insc.status === 'completed' ? 'success' : 'warning'}`}>
-                      {insc.status === 'active' ? 'Actif' : insc.status === 'completed' ? 'Payé' : 'En attente'}
+                    <span className={`admin-badge ${insc.status === 'active' ? 'success' : 'warning'}`}>
+                      {insc.status === 'active' ? 'Actif' : insc.status === 'waitlist' ? 'Liste d\'attente' : insc.status}
                     </span>
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button 
-                        className="admin-btn admin-btn-outline" 
-                        title="Valider"
-                        style={{ padding: '0.3rem 0.5rem', borderColor: '#10b981', color: '#10b981' }}
-                        onClick={() => handleStatusChange(insc.id, 'completed')}
-                      >
-                        <CheckCircle size={16} />
-                      </button>
-                      <button 
-                        className="admin-btn admin-btn-outline" 
-                        title="Refuser/Annuler"
-                        style={{ padding: '0.3rem 0.5rem', borderColor: '#f59e0b', color: '#f59e0b' }}
-                        onClick={() => handleStatusChange(insc.id, 'failed')}
-                      >
-                        <XCircle size={16} />
-                      </button>
                       <button 
                         className="admin-btn admin-btn-outline" 
                         title="Supprimer"

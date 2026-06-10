@@ -571,20 +571,32 @@ const AnnonceurDashboard = () => {
 
       {/* Main Content */}
       <main className="admin-main" style={{ background: '#f8fafc' }}>
-        <header className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '1.5rem 2rem', borderBottom: '1px solid #e2e8f0' }}>
-          <div>
-            <h1 style={{ fontSize: '1.8rem', color: '#0f172a', margin: '0 0 0.2rem 0', fontWeight: 800 }}>
+        <header className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', background: '#fff', padding: '1.5rem 2rem', borderBottom: '1px solid #e2e8f0' }}>
+          <div style={{ flex: '1 1 200px' }}>
+            <h1 style={{ fontSize: '1.5rem', color: '#0f172a', margin: '0 0 0.2rem 0', fontWeight: 800 }}>
               {activeTab === 'overview' && t('nav_dashboard')}
               {activeTab === 'campaigns' && t('nav_ads')}
               {activeTab === 'billing' && t('nav_billing')}
               {activeTab === 'stats' && t('nav_stats')}
               {activeTab === 'account' && t('nav_account')}
             </h1>
-            <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>{t('header_desc')}</p>
+            <p style={{ margin: 0, color: '#64748b', fontSize: '0.85rem' }}>{t('header_desc')}</p>
           </div>
-          <button onClick={() => setShowCreateModal(true)} style={{ background: 'linear-gradient(135deg, #0F3460, #1A1A2E)', color: '#fff', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(15, 52, 96, 0.3)', transition: 'transform 0.2s' }}>
-            <PlusCircle size={18} /> {t('btn_create_ad')}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button onClick={() => setShowCreateModal(true)} style={{ background: 'linear-gradient(135deg, #0F3460, #1A1A2E)', color: '#fff', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '10px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(15, 52, 96, 0.3)', transition: 'transform 0.2s', fontSize: '0.9rem' }}>
+              <PlusCircle size={16} /> <span>{t('btn_create_ad')}</span>
+            </button>
+            <div className="admin-header-user" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <span className="admin-user-name hide-on-mobile" style={{ fontWeight: 600, color: '#0f172a' }}>{user?.firstName || 'Annonceur'}</span>
+              <div className="admin-avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden', background: 'linear-gradient(135deg, #1A1A2E, #0F3460)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'A'
+                )}
+              </div>
+            </div>
+          </div>
         </header>
 
         <div className="admin-content-scroll">

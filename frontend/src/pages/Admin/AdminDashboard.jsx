@@ -197,11 +197,11 @@ const AdminDashboard = () => {
           </div>
           <div className="admin-header-user">
             <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#333' }}>{user?.firstName || 'Admin'} {user?.lastName || ''}</span>
-            <div className="admin-avatar" style={{ overflow: 'hidden' }}>
+            <div className="admin-avatar" style={{ overflow: 'hidden', background: 'linear-gradient(135deg, #1A1A2E, #0F3460)', color: '#fff' }}>
               {user?.avatar ? (
                 <img src={user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'AD'
+                user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'A'
               )}
             </div>
           </div>
