@@ -5,7 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import {
   Monitor, Shield, Code2, BrainCircuit, UserCheck,
   GraduationCap, BookOpen, FlaskConical, Award, Clock, ArrowRight,
-  Send, Mail, Phone, MapPin
+  Send, Mail, Phone, MapPin, Calendar
 } from 'lucide-react';
 import AdBanner from '../components/AdBanner';
 import './Home.css';
@@ -123,7 +123,7 @@ const Home = () => {
             {/* Inscription CTA card */}
             <div className="sidebar-card sidebar-card--cta">
               <div className="sidebar-card-header">
-                <Clock size={24} />
+                <Calendar size={24} />
                 <div>
                   <h3 className="sidebar-card-title">{t('hero_card_title')}</h3>
                   <p className="sidebar-card-subtitle">{t('hero_card_subtitle')}</p>
