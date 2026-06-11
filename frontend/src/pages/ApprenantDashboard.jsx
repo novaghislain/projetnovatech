@@ -69,82 +69,45 @@ const ApprenantDashboard = () => {
     <div className="admin-layout" style={{ minHeight: '100vh', display: 'flex', backgroundColor: '#f8fafc' }}>
       
       {/* MOBILE HEADER */}
-      <div className="admin-mobile-header">
+      <div className="mobile-header">
         <img src="/4x.png" alt="Logo" style={{ height: '30px', cursor: 'pointer' }} onClick={() => navigate('/')} />
-        <button onClick={() => setMobileMenuOpen(true)} className="admin-mobile-menu-btn">
+        <button onClick={() => setMobileMenuOpen(true)} className="mobile-menu-btn">
           <Menu size={24} />
         </button>
       </div>
 
       {/* OVERLAY */}
       {mobileMenuOpen && (
-        <div className="admin-sidebar-overlay" onClick={() => setMobileMenuOpen(false)}></div>
+        <div className="sidebar-overlay" onClick={() => setMobileMenuOpen(false)}></div>
       )}
 
       {/* SIDEBAR */}
-      <div className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{ 
-        width: '260px', background: '#1A1A2E', color: 'white', display: 'flex', flexDirection: 'column',
-        boxShadow: '4px 0 20px rgba(0,0,0,0.1)', zIndex: 100
-      }}>
-        {mobileMenuOpen && (
-          <button onClick={() => setMobileMenuOpen(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
-            <X size={24} />
-          </button>
-        )}
-        
-        <div style={{ padding: '1.5rem 1.5rem 1rem' }}>
-          <img src="/4x.png" alt="Novatech Vision" style={{ height: '40px' }} />
+      <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`}>
+        <div className="sidebar-logo">
+          <img src="/4x.png" alt="Novatech Vision" onClick={() => navigate('/')} />
         </div>
-
-        <nav style={{ padding: '1.5rem 1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className="sidebar-nav-wrap">
           {navItems.map(item => (
-            <Link 
-              key={item.id} 
+            <Link
+              key={item.id}
               to={item.path}
               onClick={() => setMobileMenuOpen(false)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1rem',
-                borderRadius: '8px', textDecoration: 'none', transition: 'all 0.2s',
-                background: activeTab === item.id ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
-                color: activeTab === item.id ? '#60a5fa' : 'rgba(255,255,255,0.7)',
-                borderLeft: activeTab === item.id ? '3px solid #3b82f6' : '3px solid transparent'
-              }}
+              className={`menu-item ${activeTab === item.id ? 'active' : ''}`}
+              title={item.label}
             >
-              <item.icon size={20} />
-              <span style={{ fontWeight: 500 }}>{item.label}</span>
+              <item.icon size={22} />
+              <span className="menu-text">{item.label}</span>
             </Link>
           ))}
-        </nav>
-
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          {/* Bloc profil en bas */}
-          <div style={{ padding: '1.2rem 1.2rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1rem', flexShrink: 0 }}>
-              {user?.avatar
-                ? <img src={user.avatar} alt="avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                : user?.firstName?.[0] || 'A'}
-            </div>
-            <div style={{ overflow: 'hidden' }}>
-              <div style={{ fontWeight: 600, fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.firstName} {user?.lastName}</div>
-              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.55)' }}>Espace Apprenant</div>
-            </div>
-          </div>
-          {/* Déconnexion */}
-          <div style={{ padding: '0 1rem 1.2rem' }}>
-            <button onClick={handleLogout} style={{
-              display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.7rem 1rem',
-              width: '100%', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
-              color: '#ef4444', cursor: 'pointer', borderRadius: '8px', transition: 'all 0.2s'
-            }}>
-              <LogOut size={18} />
-              <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>Déconnexion</span>
-            </button>
-          </div>
         </div>
-      </div>
+        <div className="sidebar-logout" onClick={handleLogout} title="Déconnexion">
+          <LogOut size={20} />
+          <span className="menu-text">Déconnexion</span>
+        </div>
+      </aside>
 
       {/* MAIN CONTENT AREA */}
-      <div style={{ flex: 1, height: '100vh', overflowY: 'auto' }}>
+      <main className="main-content" style={{ maxHeight: '100vh', overflowY: 'auto' }}>
         <div style={{ padding: '2rem 3rem', maxWidth: '1200px', margin: '0 auto' }}>
           <Routes>
             <Route path="/" element={<OverviewTab enrollments={enrollments} />} />
@@ -155,7 +118,7 @@ const ApprenantDashboard = () => {
             <Route path="/devenir-formateur" element={<BecomeFormateurTab />} />
           </Routes>
         </div>
-      </div>
+      </main>
 
     </div>
   );

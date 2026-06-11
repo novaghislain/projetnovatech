@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Megaphone, MousePointerClick, Eye, LogOut, BarChart2, PlusCircle, 
@@ -224,6 +224,39 @@ const AnnonceurDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [payingAd, setPayingAd] = useState(null);
+
+  // ── Sliding indicator sidebar ──
+  const navRef = useRef(null);
+  const itemRefs = useRef({});
+  const [indicatorStyle, setIndicatorStyle] = useState({ top: 0, height: 50 });
+
+  const updateIndicator = useCallback((tab) => {
+    const el = itemRefs.current[tab];
+    const wrap = navRef.current;
+    if (el && wrap) {
+      const wrapRect = wrap.getBoundingClientRect();
+      const itemRect = el.getBoundingClientRect();
+      setIndicatorStyle({
+        top: itemRect.top - wrapRect.top,
+        height: itemRect.height,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    updateIndicator(activeTab);
+  }, [activeTab, updateIndicator]);
+
+  useEffect(() => {
+    const handleResize = () => updateIndicator(activeTab);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [activeTab, updateIndicator]);
+
+  const setActiveTabAndSlide = (tab) => {
+    setActiveTab(tab);
+    requestAnimationFrame(() => updateIndicator(tab));
+  };
 
   // Data states
   const [stats, setStats] = useState({ activeAds: 0, expiredAds: 0, totalViews: 0, totalClicks: 0, totalSpent: 0, nextExpiring: null });
@@ -504,30 +537,28 @@ const AnnonceurDashboard = () => {
   return (
     <div className="admin-layout">
       {/* MOBILE HEADER */}
-      <div className="admin-mobile-header">
+      <div className="mobile-header">
         <img src="/4x.png" alt="Novatech Vision" style={{ height: '30px', cursor: 'pointer' }} onClick={() => window.location.href = '/'} />
-        <button className="admin-mobile-menu-btn" onClick={() => setMobileMenuOpen(true)}>
+        <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(true)}>
           <Menu size={24} />
         </button>
       </div>
 
       {/* OVERLAY */}
       {mobileMenuOpen && (
-        <div className="admin-sidebar-overlay" onClick={() => setMobileMenuOpen(false)}></div>
+        <div className="sidebar-overlay" onClick={() => setMobileMenuOpen(false)}></div>
       )}
 
-      {/* Sidebar */}
-      <aside className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{ background: '#0f172a' }}>
-        <div className="admin-sidebar-header">
-          <div className="admin-logo" style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-            <img src="/4x.png" alt="Novatech Vision Logo" style={{ height: '35px', cursor: 'pointer' }} onClick={() => window.location.href = '/'} />
-          </div>
-          <button className="admin-mobile-close-btn" onClick={() => setMobileMenuOpen(false)}>
-            <X size={24} />
-          </button>
+      {/* SIDEBAR */}
+      <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`}>
+        <div className="sidebar-logo">
+          <img src="/4x.png" alt="Novatech Vision" onClick={() => window.location.href = '/'} />
         </div>
-
-        <nav className="admin-nav" style={{ flex: 1, padding: '3rem 1rem 1.5rem 1rem' }}>
+        <div className="sidebar-nav-wrap" ref={navRef}>
+          <div className="sidebar-indicator" style={{
+            top: `${indicatorStyle.top}px`,
+            height: `${indicatorStyle.height}px`,
+          }} />
           {[
             { id: 'overview', icon: LayoutDashboard, label: t('nav_dashboard') },
             { id: 'campaigns', icon: Megaphone, label: t('nav_ads') },
@@ -535,71 +566,51 @@ const AnnonceurDashboard = () => {
             { id: 'stats', icon: BarChart2, label: t('nav_stats') },
             { id: 'account', icon: User, label: t('nav_account') }
           ].map(item => (
-            <button
+            <div
               key={item.id}
-              onClick={() => { setActiveTab(item.id); setMobileMenuOpen(false); }}
-              style={{
-                padding: '1rem 1.2rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px',
-                background: activeTab === item.id ? 'rgba(15, 52, 96, 0.1)' : 'transparent',
-                color: activeTab === item.id ? '#0F3460' : '#94a3b8',
-                fontWeight: activeTab === item.id ? 600 : 500,
-                border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', marginBottom: '0.5rem',
-                transition: 'all 0.2s ease'
-              }}
+              ref={el => { if (el) itemRefs.current[item.id] = el; }}
+              className={`menu-item ${activeTab === item.id ? 'active' : ''}`}
+              onClick={() => { setActiveTabAndSlide(item.id); setMobileMenuOpen(false); }}
+              title={item.label}
             >
-              <item.icon size={20} />
-              {item.label}
-            </button>
+              <item.icon size={22} />
+              <span className="menu-text">{item.label}</span>
+            </div>
           ))}
-        </nav>
-
-        <div style={{ padding: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'linear-gradient(135deg, #0a2240, #0F3460)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800 }}>
-              <User size={24} />
-            </div>
-            <div>
-              <div style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.9rem' }}>{user?.firstName || 'Annonceur'}</div>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{t('role_advertiser')}</div>
-            </div>
-          </div>
-          <button onClick={logout} style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: '#f8fafc', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s hover:bg-white/10' }}>
-            <LogOut size={18} /> {t('logout')}
-          </button>
+        </div>
+        <div className="sidebar-logout" onClick={logout} title={t('logout')}>
+          <LogOut size={20} />
+          <span className="menu-text">{t('logout')}</span>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="admin-main" style={{ background: '#f8fafc' }}>
-        <header className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', background: '#fff', padding: '1.5rem 2rem', borderBottom: '1px solid #e2e8f0' }}>
-          <div style={{ flex: '1 1 200px' }}>
-            <h1 style={{ fontSize: '1.5rem', color: '#0f172a', margin: '0 0 0.2rem 0', fontWeight: 800 }}>
+      {/* MAIN CONTENT */}
+      <main className="main-content" style={{ background: '#f8fafc' }}>
+        <div className="top-header">
+          <div className="top-header-left">
+            <h1>
               {activeTab === 'overview' && t('nav_dashboard')}
               {activeTab === 'campaigns' && t('nav_ads')}
               {activeTab === 'billing' && t('nav_billing')}
               {activeTab === 'stats' && t('nav_stats')}
               {activeTab === 'account' && t('nav_account')}
             </h1>
-            <p style={{ margin: 0, color: '#64748b', fontSize: '0.85rem' }}>{t('header_desc')}</p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <button onClick={() => setShowCreateModal(true)} style={{ background: 'linear-gradient(135deg, #0F3460, #1A1A2E)', color: '#fff', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '10px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(15, 52, 96, 0.3)', transition: 'transform 0.2s', fontSize: '0.9rem' }}>
+          <div className="top-header-right">
+            <button onClick={() => setShowCreateModal(true)} className="btn btn-primary" style={{ background: 'linear-gradient(135deg, #0F3460, #1A1A2E)', boxShadow: '0 4px 15px rgba(15, 52, 96, 0.3)' }}>
               <PlusCircle size={16} /> <span>{t('btn_create_ad')}</span>
             </button>
-            <div className="admin-header-user" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-              <span className="admin-user-name hide-on-mobile" style={{ fontWeight: 600, color: '#0f172a' }}>{user?.firstName || 'Annonceur'}</span>
-              <div className="admin-avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden', background: 'linear-gradient(135deg, #1A1A2E, #0F3460)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                {user?.avatar ? (
-                  <img src={user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'A'
-                )}
-              </div>
+            <div className="user-avatar" title={user?.firstName}>
+              {user?.avatar ? (
+                <img src={user.avatar} alt="Avatar" />
+              ) : (
+                user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'A'
+              )}
             </div>
           </div>
-        </header>
+        </div>
 
-        <div className="admin-content-scroll">
+        <div className="admin-content-area">
         {/* --- OVERVIEW TAB --- */}
         {activeTab === 'overview' && (
           <div className="fade-in">

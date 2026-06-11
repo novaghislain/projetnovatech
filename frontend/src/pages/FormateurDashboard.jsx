@@ -1,9 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, Users, Star, MessageCircle, LogOut, Video, FileText, CheckCircle, Clock, ChevronRight, Plus, Trash2, Edit2, X, Menu, Calendar, PlayCircle, FolderOpen, ChevronDown, Settings } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import './Home.css';
 import './FormateurDashboard.css';
+import './Admin/AdminDashboard.css';
 import { API_URL } from '../config';
 
 const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Débutant', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', location: '', isOnline: false, meetLink: '', whatsappLink: '', imageUrl: '', sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
@@ -282,7 +283,40 @@ const FormateurDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLiveModal, setShowLiveModal] = useState(false);
-  
+
+  // ── Sliding indicator sidebar ──
+  const navRef = useRef(null);
+  const itemRefs = useRef({});
+  const [indicatorStyle, setIndicatorStyle] = useState({ top: 0, height: 50 });
+
+  const updateIndicator = useCallback((tab) => {
+    const el = itemRefs.current[tab];
+    const wrap = navRef.current;
+    if (el && wrap) {
+      const wrapRect = wrap.getBoundingClientRect();
+      const itemRect = el.getBoundingClientRect();
+      setIndicatorStyle({
+        top: itemRect.top - wrapRect.top,
+        height: itemRect.height,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    updateIndicator(activeTab);
+  }, [activeTab, updateIndicator]);
+
+  useEffect(() => {
+    const handleResize = () => updateIndicator(activeTab);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [activeTab, updateIndicator]);
+
+  const setActiveTabAndSlide = (tab) => {
+    setActiveTab(tab);
+    requestAnimationFrame(() => updateIndicator(tab));
+  };
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -516,99 +550,58 @@ const FormateurDashboard = () => {
       <div className="formateur-layout">
       
       {/* MOBILE HEADER */}
-      <div className="formateur-mobile-header">
+      <div className="mobile-header">
         <h2 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 800, margin: 0, cursor: 'pointer' }} onClick={() => window.location.href = '/'}>{t('sidebar_title')}</h2>
-        <button className="formateur-mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
-          <Menu size={24} color="#fff" />
+        <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
+          <Menu size={24} />
         </button>
       </div>
 
       {/* OVERLAY */}
       {isSidebarOpen && (
-        <div className="formateur-sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>
+        <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>
       )}
 
       {/* SIDEBAR */}
-      <aside className={`formateur-sidebar ${isSidebarOpen ? 'open' : ''}`}>
-        <div className="formateur-sidebar-header" style={{ padding: '2rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1.5rem', color: '#0f172a', fontWeight: 800, margin: 0, cursor: 'pointer' }} onClick={() => window.location.href = '/'}>Espace<br/><span style={{ color: '#0F3460' }}>Formateur</span></h2>
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-logo">
+          <img src="/4x.png" alt="Novatech Vision" onClick={() => window.location.href = '/'} />
         </div>
-        
-        <nav style={{ padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, overflowY: 'auto' }}>
-          <button 
-            onClick={() => { setActiveTab('overview'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'overview' ? '#f0f4f8' : 'transparent', color: activeTab === 'overview' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'overview' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
-          >
-            <BookOpen size={20} /> {t('nav_overview')}
-          </button>
-          <button 
-            onClick={() => { setActiveTab('courses'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'courses' ? '#f0f4f8' : 'transparent', color: activeTab === 'courses' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'courses' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
-          >
-            <Video size={20} /> {t('nav_my_courses')}
-          </button>
-          <button 
-            onClick={() => { setActiveTab('students'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'students' ? '#f0f4f8' : 'transparent', color: activeTab === 'students' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'students' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
-          >
-            <Users size={20} /> {t('nav_students')}
-          </button>
-          <button 
-            onClick={() => { setActiveTab('manage'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'manage' ? '#f0f4f8' : 'transparent', color: activeTab === 'manage' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'manage' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
-          >
-            <Plus size={20} /> {t('nav_manage')}
-          </button>
-          <button 
-            onClick={() => { setActiveTab('content'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'content' ? '#f0f4f8' : 'transparent', color: activeTab === 'content' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'content' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
-          >
-            <PlayCircle size={20} /> {t('nav_content')}
-          </button>
-          <button 
-            onClick={() => { setActiveTab('messages'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'messages' ? '#f0f4f8' : 'transparent', color: activeTab === 'messages' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'messages' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
-          >
-            <MessageCircle size={20} /> {t('nav_questions')} 
-            {questions.filter(q => q.status === 'pending').length > 0 && (
-              <span style={{ background: '#ef4444', color: '#fff', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '50px', marginLeft: 'auto' }}>
-                {questions.filter(q => q.status === 'pending').length}
-              </span>
-            )}
-          </button>
-          <button 
-            onClick={() => { setActiveTab('groupMessage'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'groupMessage' ? '#f0f4f8' : 'transparent', color: activeTab === 'groupMessage' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'groupMessage' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
-          >
-            <MessageCircle size={20} /> {t('nav_group_msg')}
-          </button>
-          <button 
-            onClick={() => { setActiveTab('schedule'); setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: activeTab === 'schedule' ? '#f0f4f8' : 'transparent', color: activeTab === 'schedule' ? '#0F3460' : '#64748b', fontWeight: activeTab === 'schedule' ? 700 : 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
-          >
-            <Calendar size={20} /> {t('nav_schedule')}
-          </button>
-          <button 
-            onClick={() => { window.location.href = '/parametres'; setIsSidebarOpen(false); }}
-            style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', borderRadius: '12px', background: 'transparent', color: '#64748b', fontWeight: 500, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.2s' }}
-          >
-            <Settings size={20} /> {t('nav_settings')}
-          </button>
-        </nav>
-
-        <div style={{ padding: '1.5rem', borderTop: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'linear-gradient(135deg, #1A1A2E, #0F3460)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800 }}>
-              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+        <div className="sidebar-nav-wrap" ref={navRef}>
+          <div className="sidebar-indicator" style={{
+            top: `${indicatorStyle.top}px`,
+            height: `${indicatorStyle.height}px`,
+          }} />
+          {[
+            { id: 'overview', icon: BookOpen, label: t('nav_overview') },
+            { id: 'courses', icon: Video, label: t('nav_my_courses') },
+            { id: 'students', icon: Users, label: t('nav_students') },
+            { id: 'manage', icon: Plus, label: t('nav_manage') },
+            { id: 'content', icon: PlayCircle, label: t('nav_content') },
+            { id: 'messages', icon: MessageCircle, label: t('nav_questions') },
+            { id: 'groupMessage', icon: MessageCircle, label: t('nav_group_msg') },
+            { id: 'schedule', icon: Calendar, label: t('nav_schedule') },
+          ].map(item => (
+            <div
+              key={item.id}
+              ref={el => { if (el) itemRefs.current[item.id] = el; }}
+              className={`menu-item ${activeTab === item.id ? 'active' : ''}`}
+              onClick={() => { setActiveTabAndSlide(item.id); setIsSidebarOpen(false); }}
+              title={item.label}
+            >
+              <item.icon size={22} />
+              <span className="menu-text">{item.label}</span>
+              {item.id === 'messages' && questions.filter(q => q.status === 'pending').length > 0 && (
+                <span style={{ background: '#ef4444', color: '#fff', fontSize: '0.65rem', padding: '1px 7px', borderRadius: '50px', marginLeft: 'auto' }}>
+                  {questions.filter(q => q.status === 'pending').length}
+                </span>
+              )}
             </div>
-            <div>
-              <div style={{ fontWeight: 700, color: '#0f172a' }}>{user?.firstName}</div>
-              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{t('role_trainer')}</div>
-            </div>
-          </div>
-          <button onClick={logout} style={{ width: '100%', padding: '0.8rem', background: '#fff1f2', color: '#e11d48', border: '1px solid #ffe4e6', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 600, cursor: 'pointer' }}>
-            <LogOut size={18} /> {t('logout')}
-          </button>
+          ))}
+        </div>
+        <div className="sidebar-logout" onClick={logout} title={t('logout')}>
+          <LogOut size={20} />
+          <span className="menu-text">{t('logout')}</span>
         </div>
       </aside>
 
