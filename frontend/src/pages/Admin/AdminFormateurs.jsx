@@ -116,36 +116,32 @@ const AdminFormateurs = () => {
       <div className="admin-panel">
         <div className="admin-panel-header">
           <h3 className="admin-panel-title">Équipe des Formateurs</h3>
-          <button className="admin-btn" onClick={() => handleOpen()}>
+          <button className="btn btn-primary" onClick={() => handleOpen()}>
             <Plus size={18} /> Ajouter un Formateur
           </button>
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#888' }}>Chargement...</div>
+          <div className="empty-state">Chargement...</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem', padding: '1rem 0' }}>
+          <div className="module-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {formateurs.length === 0 ? (
-              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: '#888', background: '#f9f9fb', borderRadius: '12px' }}>
+              <div className="empty-state" style={{ gridColumn: '1/-1', background: 'var(--background)', borderRadius: '12px' }}>
                 Aucun formateur enregistré. Ajoutez-en un !
               </div>
             ) : formateurs.map(f => (
-              <div key={f.id} style={{
-                background: '#fff',
-                borderRadius: '16px',
-                border: '1px solid #e8ecf0',
+              <div key={f.id} className="admin-panel" style={{
                 padding: '1.5rem',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                marginBottom: 0,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '1rem',
-                transition: 'box-shadow 0.2s',
               }}>
                 {/* Avatar + Nom */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div className="action-group">
                   <div style={{
                     width: '56px', height: '56px', borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #1A1A2E, #4285f4)',
+                    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: '#fff', fontWeight: 800, fontSize: '1.3rem', overflow: 'hidden', flexShrink: 0
                   }}>
@@ -155,76 +151,52 @@ const AdminFormateurs = () => {
                     }
                   </div>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#1a1a2e' }}>
+                    <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--dark)' }}>
                       {f.prenom} {f.nom}
                     </div>
-                    <div style={{
-                      display: 'inline-block', padding: '0.2rem 0.7rem',
-                      borderRadius: '50px', fontSize: '0.75rem', fontWeight: 600,
-                      background: f.status === 'actif' ? '#dcfce7' : '#fee2e2',
-                      color: f.status === 'actif' ? '#15803d' : '#dc2626',
-                      marginTop: '0.2rem'
-                    }}>
-                      {f.status === 'actif' ? '● Actif' : '● Inactif'}
+                    <div className={`admin-badge ${f.status === 'actif' ? 'success' : 'danger'}`} style={{ marginTop: '0.2rem' }}>
+                      ● {f.status === 'actif' ? 'Actif' : 'Inactif'}
                     </div>
                   </div>
                 </div>
 
                 {/* Spécialité */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4285f4', fontWeight: 600, fontSize: '0.9rem' }}>
+                <div className="lesson-icon" style={{ fontSize: '0.9rem' }}>
                   <BookOpen size={15} />
                   <span>{f.specialite || 'Non définie'}</span>
                 </div>
 
                 {/* Infos contact */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: '#666' }}>
-                  {f.email && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Mail size={14} /> {f.email}
-                    </div>
-                  )}
-                  {f.telephone && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Phone size={14} /> {f.telephone}
-                    </div>
-                  )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: '#6B7280' }}>
+                  {f.email && <div className="lesson-icon" style={{ fontSize: '0.85rem' }}><Mail size={14} /> {f.email}</div>}
+                  {f.telephone && <div className="lesson-icon" style={{ fontSize: '0.85rem' }}><Phone size={14} /> {f.telephone}</div>}
                 </div>
 
                 {/* Bio */}
                 {f.bio && (
-                  <p style={{ fontSize: '0.85rem', color: '#555', lineHeight: 1.5, margin: 0, borderTop: '1px solid #f0f0f0', paddingTop: '0.75rem' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text)', lineHeight: 1.5, margin: 0, borderTop: '1px solid var(--gray)', paddingTop: '0.75rem' }}>
                     {f.bio.length > 120 ? f.bio.slice(0, 120) + '…' : f.bio}
                   </p>
                 )}
 
                 {/* Actions */}
-                <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid #f0f0f0', paddingTop: '0.75rem' }}>
+                <div className="action-group" style={{ borderTop: '1px solid var(--gray)', paddingTop: '0.75rem' }}>
                   <button
                     onClick={() => handleToggleStatus(f)}
+                    className="btn btn-outline"
                     style={{
-                      flex: 1, padding: '0.5rem', borderRadius: '8px', border: '1px solid',
-                      cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
-                      background: f.status === 'actif' ? '#fff' : '#f0fdf4',
-                      borderColor: f.status === 'actif' ? '#fca5a5' : '#86efac',
-                      color: f.status === 'actif' ? '#dc2626' : '#16a34a',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem'
+                      flex: 1, fontSize: '0.8rem',
+                      borderColor: f.status === 'actif' ? 'var(--danger)' : '#86efac',
+                      color: f.status === 'actif' ? 'var(--danger)' : '#16a34a',
                     }}
                   >
                     {f.status === 'actif' ? <XCircle size={14} /> : <CheckCircle size={14} />}
                     {f.status === 'actif' ? 'Désactiver' : 'Activer'}
                   </button>
-                  <button
-                    onClick={() => handleOpen(f)}
-                    style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', color: '#555' }}
-                    title="Modifier"
-                  >
+                  <button onClick={() => handleOpen(f)} className="btn btn-outline" style={{ padding: '0.4rem 0.6rem' }} title="Modifier">
                     <Edit size={15} />
                   </button>
-                  <button
-                    onClick={() => setDeleteConfirm(f.id)}
-                    style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #fca5a5', background: '#fff7f7', cursor: 'pointer', color: '#dc2626' }}
-                    title="Supprimer"
-                  >
+                  <button onClick={() => setDeleteConfirm(f.id)} className="btn btn-outline" style={{ padding: '0.4rem 0.6rem', borderColor: 'var(--danger)', color: 'var(--danger)' }} title="Supprimer">
                     <Trash2 size={15} />
                   </button>
                 </div>
@@ -322,7 +294,7 @@ const AdminFormateurs = () => {
                     onChange={e => setFormData({ ...formData, photo: e.target.value })}
                     placeholder="https://... ou /photo.jpg"
                   />
-                  <button className="admin-btn admin-btn-outline" onClick={() => document.getElementById('formateurImageUpload').click()} type="button">Uploader</button>
+                  <button className="btn btn-outline" onClick={() => document.getElementById('formateurImageUpload').click()} type="button">Uploader</button>
                   <input type="file" id="formateurImageUpload" style={{ display: 'none' }} accept="image/*" onChange={handleImageUpload} />
                 </div>
               </div>
@@ -339,8 +311,8 @@ const AdminFormateurs = () => {
 
             </div>
             <div className="admin-modal-footer">
-              <button className="admin-btn admin-btn-outline" onClick={() => setIsModalOpen(false)}>Annuler</button>
-              <button className="admin-btn" onClick={handleSave} disabled={saving}>
+              <button className="btn btn-outline" onClick={() => setIsModalOpen(false)}>Annuler</button>
+              <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
                 {saving ? 'Enregistrement...' : (formData.id ? 'Mettre à jour' : 'Ajouter')}
               </button>
             </div>
@@ -360,8 +332,8 @@ const AdminFormateurs = () => {
               <p>Cette action est <strong>irréversible</strong>. Le formateur sera définitivement supprimé.</p>
             </div>
             <div className="admin-modal-footer">
-              <button className="admin-btn admin-btn-outline" onClick={() => setDeleteConfirm(null)}>Annuler</button>
-              <button className="admin-btn" style={{ background: '#dc2626', borderColor: '#dc2626' }} onClick={() => handleDelete(deleteConfirm)}>
+              <button className="btn btn-outline" onClick={() => setDeleteConfirm(null)}>Annuler</button>
+              <button className="btn btn-primary" style={{ background: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => handleDelete(deleteConfirm)}>
                 Supprimer
               </button>
             </div>

@@ -346,6 +346,33 @@ const unlockCourseForUser = (customerInfo, courseId, amount, transactionId, paym
           (err) => {
             if (err) return reject(err);
             console.log(`[SUCCÈS] Formation ${courseId} débloquée pour l'utilisateur ${customerInfo.email}`);
+
+            // Envoyer l'événement Purchase à Meta Pixel (côté serveur)
+            try {
+              db.get("SELECT pixelId, isActive FROM PixelSettings WHERE id = 1", (pixErr, settings) => {
+                if (!pixErr && settings && settings.isActive && settings.pixelId) {
+                  axios.post(`https://graph.facebook.com/v22.0/${settings.pixelId}/events`, {
+                    data: [{
+                      event_name: 'Purchase',
+                      event_time: Math.floor(Date.now() / 1000),
+                      action_source: 'website',
+                      user_data: {
+                        em: Buffer.from(customerInfo.email || '').toString('base64'),
+                      },
+                      custom_data: {
+                        value: amount || 25000,
+                        currency: 'XOF',
+                        transaction_id: transactionId,
+                        content_name: courseId ? `Formation #${courseId}` : 'Formation',
+                      }
+                    }],
+                    access_token: `${settings.pixelId}|`
+                  }).catch(() => {/* Silencieux */});
+                  console.log(`[META-PIXEL] Purchase event sent for ${transactionId}`);
+                }
+              });
+            } catch (pixErr) {/* Silencieux */}
+
             resolve();
           }
         );
@@ -516,6 +543,34 @@ app.get('/api/public/pages/:slug', (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!row) return res.status(404).json({ error: "Page statique introuvable" });
     res.json(row);
+  });
+});
+
+/**
+ * ROUTE: Meta Pixel — Configuration publique (pour injection frontend)
+ * Accessible sans authentification. Renvoie uniquement les infos nécessaires au tracking.
+ */
+app.get('/api/public/meta-pixel', (req, res) => {
+  db.get("SELECT pixelId, isActive FROM PixelSettings WHERE id = 1", (err, settings) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const result = {
+      isActive: settings ? !!settings.isActive : false,
+      pixelId: settings ? settings.pixelId : '',
+      customEvents: [],
+    };
+
+    if (result.isActive) {
+      // Charger les événements personnalisés actifs
+      db.all("SELECT eventName, cssSelector, actionType, isActive FROM PixelCustomEvents WHERE isActive = 1", (err2, events) => {
+        if (!err2 && events) {
+          result.customEvents = events;
+        }
+        res.json(result);
+      });
+    } else {
+      res.json(result);
+    }
   });
 });
 
@@ -886,6 +941,9 @@ app.get('/api/user/application-status', authenticateToken, (req, res) => {
 
 // --- ADMIN ROUTES ---
 app.use('/api/admin', require('./adminRoutes')(db, authenticateToken));
+
+// Meta Pixel Routes
+app.use('/api/admin/meta-pixel', require('./metaPixelRoutes')(db, authenticateToken));
 
 // Formateur & Annonceur Routes
 app.use('/api/formateur', require('./formateurRoutes')(db, authenticateToken));

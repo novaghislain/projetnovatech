@@ -83,7 +83,7 @@ const AdminCandidatures = () => {
     }
   };
 
-  if (loading) return <div style={{ padding: '2rem' }}>Chargement des candidatures...</div>;
+  if (loading) return <div className="empty-state" style={{ padding: '2rem' }}>Chargement des candidatures...</div>;
 
   return (
     <div className="fade-in">
@@ -111,11 +111,7 @@ const AdminCandidatures = () => {
                     <div style={{ fontWeight: 600 }}>{c.firstName} {c.lastName}</div>
                     <div style={{ fontSize: '0.85rem', color: '#666' }}>{c.email}</div>
                   </td>
-                  <td>
-                    <span style={{ backgroundColor: '#f1f5f9', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600, color: '#334155' }}>
-                      {c.specialite}
-                    </span>
-                  </td>
+                  <td><span className="info-chip">{c.specialite}</span></td>
                   <td>
                     <div style={{ maxWidth: '300px', fontSize: '0.85rem', color: '#475569', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {c.bio}
@@ -123,41 +119,31 @@ const AdminCandidatures = () => {
                   </td>
                   <td>{new Date(c.createdAt).toLocaleDateString()}</td>
                   <td>
-                    {c.status === 'pending' && <span style={{ color: '#d97706', fontWeight: 600, fontSize: '0.85rem' }}>⏳ En attente</span>}
-                    {c.status === 'approved' && <span style={{ color: '#10b981', fontWeight: 600, fontSize: '0.85rem' }}>✅ Approuvé</span>}
-                    {c.status === 'rejected' && <span style={{ color: '#ef4444', fontWeight: 600, fontSize: '0.85rem' }}>❌ Rejeté</span>}
+                    <span className={`admin-badge ${c.status === 'approved' ? 'success' : c.status === 'rejected' ? 'danger' : 'warning'}`}>
+                      {c.status === 'pending' ? 'En attente' : c.status === 'approved' ? 'Approuvé' : 'Rejeté'}
+                    </span>
                   </td>
                   <td>
-                    {c.status === 'pending' && (
-                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <button 
-                          onClick={() => handleApprove(c.id)}
-                          style={{ padding: '0.4rem 0.6rem', background: '#ecfdf5', color: '#10b981', border: '1px solid #10b981', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: 600 }}
-                        >
-                          <CheckCircle size={14} /> Approuver
-                        </button>
-                        <button 
-                          onClick={() => handleReject(c.id)}
-                          style={{ padding: '0.4rem 0.6rem', background: '#fef2f2', color: '#ef4444', border: '1px solid #ef4444', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: 600 }}
-                        >
-                          <XCircle size={14} /> Rejeter
-                        </button>
-                      </div>
-                    )}
-                    <button 
-                      onClick={() => handleDelete(c.id)}
-                      style={{ padding: '0.4rem 0.6rem', background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: 600 }}
-                      title="Supprimer définitivement"
-                    >
-                      <Trash2 size={16} /> Supprimer
-                    </button>
+                    <div className="action-group">
+                      {c.status === 'pending' && (
+                        <>
+                          <button className="btn btn-primary" style={{ padding: '0.3rem 0.7rem', fontSize: '0.8rem' }} onClick={() => handleApprove(c.id)}>
+                            <CheckCircle size={14} /> Approuver
+                          </button>
+                          <button className="btn btn-outline" style={{ padding: '0.3rem 0.7rem', fontSize: '0.8rem', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => handleReject(c.id)}>
+                            <XCircle size={14} /> Rejeter
+                          </button>
+                        </>
+                      )}
+                      <button className="btn btn-outline" style={{ padding: '0.3rem 0.7rem', fontSize: '0.8rem', color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => handleDelete(c.id)} title="Supprimer définitivement">
+                        <Trash2 size={14} /> Supprimer
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
               {candidatures.length === 0 && (
-                <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>Aucune candidature trouvée.</td>
-                </tr>
+                <tr><td colSpan="6" className="empty-state">Aucune candidature trouvée.</td></tr>
               )}
             </tbody>
           </table>

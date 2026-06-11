@@ -24,6 +24,7 @@ import Parametres from './pages/Parametres';
 import Testimonials from './pages/Testimonials';
 import LessonViewer from './pages/LessonViewer';
 import CertificateVerify from './pages/CertificateVerify';
+import MetaPixel from './components/MetaPixel';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -60,7 +61,9 @@ const AppLayout = () => {
 
   if (isDashboard) {
     return (
-      <Routes>
+      <>
+        <MetaPixel />
+        <Routes>
         <Route path="/admin/*" element={
           <ProtectedRoute allowedRoles={['admin']}>
             <AdminDashboard />
@@ -102,11 +105,13 @@ const AppLayout = () => {
           </ProtectedRoute>
         } />
       </Routes>
+      </>
     );
   }
 
   return (
     <div className="app">
+      <MetaPixel />
       <Navbar />
       <main className="main-content">
         <Routes>

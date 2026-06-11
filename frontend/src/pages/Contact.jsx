@@ -21,6 +21,8 @@ const Contact = () => {
       if (res.ok) {
         setStatus('success');
         setFormData({ name: '', email: '', body: '' });
+        // Déclencher l'événement Meta Pixel Lead
+        try { if (window.fbq) window.fbq('track', 'Lead'); } catch(e) {}
       } else {
         setStatus('error');
       }

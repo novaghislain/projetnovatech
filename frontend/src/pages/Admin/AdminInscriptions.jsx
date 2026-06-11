@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, UserCheck, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Download, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '../../config';
 
@@ -7,6 +7,8 @@ const AdminInscriptions = () => {
   const [inscriptions, setInscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterFormation, setFilterFormation] = useState('all');
 
   useEffect(() => {
     fetchInscriptions();
@@ -27,18 +29,6 @@ const AdminInscriptions = () => {
     }
   };
 
-  const handleStatusChange = async (id, newStatus) => {
-    try {
-      const token = localStorage.getItem('nv_token');
-      await axios.put(`${API_URL}/api/admin/payments/${id}/status`, { status: newStatus }, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      fetchInscriptions();
-    } catch (err) {
-      alert("Erreur lors de la mise à jour : " + err.message);
-    }
-  };
-
   const handleDelete = async (id) => {
     if(window.confirm('Voulez-vous vraiment supprimer cet apprenant ?')) {
       try {
@@ -53,11 +43,26 @@ const AdminInscriptions = () => {
     }
   };
 
-  const filtered = inscriptions.filter(i => 
-    i.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    i.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    i.title?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Extract unique formations for filter
+  const formations = [...new Set(inscriptions.map(i => i.title || i.courseTitle || ''))].filter(Boolean).sort();
+
+  const filtered = inscriptions.filter(i => {
+    const matchesSearch =
+      i.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      i.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      i.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (i.title || i.courseTitle || '')?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (filterStatus === 'active') return matchesSearch && i.status === 'active';
+    if (filterStatus === 'waitlist') return matchesSearch && (i.status === 'waitlist' || i.status === 'pending');
+    if (filterStatus === 'inactive') return matchesSearch && i.status !== 'active' && i.status !== 'waitlist' && i.status !== 'pending';
+
+    if (filterFormation !== 'all') {
+      return matchesSearch && (i.title === filterFormation || i.courseTitle === filterFormation);
+    }
+
+    return matchesSearch;
+  });
 
   const exportToCSV = () => {
     const headers = ["ID Inscription", "Prenom", "Nom", "Email", "Formation", "Montant Paye", "Statut", "Date Inscription"];
@@ -85,83 +90,86 @@ const AdminInscriptions = () => {
 
   return (
     <div className="fade-in">
-      <div className="admin-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
-        <h3 className="admin-panel-title" style={{ margin: 0 }}>Gestion des Inscriptions</h3>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <div style={{ position: 'relative', width: '300px' }}>
-            <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
-            <input 
-              type="text" 
-              className="admin-input" 
-              placeholder="Rechercher (nom, formation)..." 
-              style={{ paddingLeft: '2.5rem', marginBottom: 0 }}
+      <div className="admin-panel">
+        <div className="admin-panel-header">
+          <h3 className="admin-panel-title">Gestion des Inscriptions</h3>
+          <button className="btn btn-primary" onClick={exportToCSV}>
+            <Download size={16} /> Exporter CSV
+          </button>
+        </div>
+
+        {/* Stats row */}
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+          <span className="admin-badge success">{inscriptions.filter(i => i.status === 'active').length} actif(s)</span>
+          <span className="admin-badge warning">{inscriptions.filter(i => i.status === 'waitlist' || i.status === 'pending').length} en attente</span>
+          <span className="admin-badge neutral">{filtered.length} affiché(s)</span>
+        </div>
+
+        <div className="filter-bar">
+          <div className="search-wrap">
+            <Search size={18} />
+            <input
+              type="text"
+              placeholder="Rechercher (nom, formation, email)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button 
-            onClick={exportToCSV}
-            style={{
-              background: '#10b981', color: 'white', border: 'none',
-              padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer',
-              fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            Exporter en CSV
-          </button>
+          <select className="form-control" style={{ width: '180px', marginBottom: 0 }} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+            <option value="all">Tous les statuts</option>
+            <option value="active">Actifs</option>
+            <option value="waitlist">En attente</option>
+            <option value="inactive">Inactifs</option>
+          </select>
+          <select className="form-control" style={{ width: '220px', marginBottom: 0 }} value={filterFormation} onChange={(e) => setFilterFormation(e.target.value)}>
+            <option value="all">Toutes formations</option>
+            {formations.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
         </div>
-      </div>
 
-      <div className="admin-table-wrapper">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Apprenant</th>
-              <th>Formation</th>
-              <th>Date d'inscription</th>
-              <th>Montant Payé</th>
-              <th>Statut Inscription</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan="6" style={{textAlign: 'center', padding: '2rem'}}>Chargement...</td></tr>
-            ) : filtered.length === 0 ? (
-              <tr><td colSpan="6" style={{textAlign: 'center', padding: '2rem'}}>Aucune inscription trouvée.</td></tr>
-            ) : (
-              filtered.map(insc => (
-                <tr key={insc.id}>
-                  <td>
-                    <div style={{ fontWeight: 600 }}>{insc.firstName} {insc.lastName}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#666' }}>{insc.email}</div>
-                  </td>
-                  <td>{insc.title}</td>
-                  <td>{new Date(insc.createdAt).toLocaleDateString('fr-FR')}</td>
-                  <td>{insc.amount ? (insc.totalAmount ? `${insc.amount} / ${insc.totalAmount} FCFA` : `${insc.amount} FCFA`) : 'Gratuit'}</td>
-                  <td>
-                    <span className={`admin-badge ${insc.status === 'active' ? 'success' : 'warning'}`}>
-                      {insc.status === 'active' ? 'Actif' : insc.status === 'waitlist' ? 'Liste d\'attente' : insc.status}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button 
-                        className="admin-btn admin-btn-outline" 
-                        title="Supprimer"
-                        style={{ padding: '0.3rem 0.5rem', borderColor: '#ef4444', color: '#ef4444' }}
-                        onClick={() => handleDelete(insc.id)}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        <div className="admin-table-wrapper">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Apprenant</th>
+                <th>Formation</th>
+                <th>Date d'inscription</th>
+                <th>Montant Payé</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan="6" className="empty-state">Chargement...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan="6" className="empty-state">Aucune inscription trouvée.</td></tr>
+              ) : (
+                filtered.map(insc => (
+                  <tr key={insc.id}>
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{insc.firstName} {insc.lastName}</div>
+                      <div className="admin-badge neutral" style={{ fontSize: '0.75rem', marginTop: '0.2rem' }}>{insc.email}</div>
+                    </td>
+                    <td>{insc.title}</td>
+                    <td>{new Date(insc.createdAt).toLocaleDateString('fr-FR')}</td>
+                    <td>{insc.amount ? (insc.totalAmount ? `${insc.amount} / ${insc.totalAmount} FCFA` : `${insc.amount} FCFA`) : 'Gratuit'}</td>
+                    <td>
+                      <span className={`admin-badge ${insc.status === 'active' ? 'success' : 'warning'}`}>
+                        {insc.status === 'active' ? 'Actif' : insc.status === 'waitlist' ? 'Liste d\'attente' : insc.status}
+                      </span>
+                    </td>
+                    <td>
+                      <button className="btn btn-danger" title="Supprimer" onClick={() => handleDelete(insc.id)}>
+                        <Trash2 size={14} />
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

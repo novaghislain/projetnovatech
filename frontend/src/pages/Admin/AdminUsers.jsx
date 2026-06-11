@@ -116,27 +116,19 @@ const AdminUsers = () => {
           <h3 className="admin-panel-title">Gestion des Utilisateurs</h3>
         </div>
 
-        {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
+        {error && <div className="notif-bar error">{error}</div>}
 
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div className="form-control" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '300px', margin: 0 }}>
-            <Search size={18} color="#888" />
-            <input 
-              type="text" 
-              placeholder="Rechercher un utilisateur (nom, email)..." 
-              style={{ border: 'none', outline: 'none', width: '100%' }}
+        <div className="filter-bar">
+          <div className="search-wrap">
+            <Search size={18} />
+            <input
+              type="text"
+              placeholder="Rechercher un utilisateur (nom, email)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button 
-            onClick={exportToCSV}
-            style={{
-              background: '#10b981', color: 'white', border: 'none',
-              padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer',
-              fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem'
-            }}
-          >
+          <button className="btn btn-outline" onClick={exportToCSV} style={{ color: '#10B981', borderColor: '#10B981' }}>
             Exporter en CSV
           </button>
         </div>
@@ -155,7 +147,7 @@ const AdminUsers = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="6" style={{ textAlign: 'center' }}>Chargement...</td></tr>
+                <tr><td colSpan="6" className="empty-state">Chargement...</td></tr>
               ) : filteredUsers.map(user => (
                 <tr key={user.id}>
                   <td style={{ fontWeight: 600 }}>
@@ -187,25 +179,25 @@ const AdminUsers = () => {
                     )}
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div className="action-group">
                       {user.status === 'blocked' ? (
-                        <button className="admin-btn admin-btn-outline" style={{ color: '#16a34a', borderColor: '#16a34a', padding: '0.3rem 0.5rem' }} onClick={() => handleStatusChange(user.id, 'active')} title="Débloquer">
+                        <button className="btn btn-outline" style={{ color: '#16a34a', borderColor: '#16a34a', padding: '0.3rem 0.5rem' }} onClick={() => handleStatusChange(user.id, 'active')} title="Débloquer">
                           <UserCheck size={16} />
                         </button>
                       ) : (
-                        <button className="admin-btn admin-btn-outline" style={{ color: '#dc2626', borderColor: '#dc2626', padding: '0.3rem 0.5rem' }} onClick={() => handleStatusChange(user.id, 'blocked')} title="Bloquer">
+                        <button className="btn btn-outline" style={{ color: 'var(--danger)', borderColor: 'var(--danger)', padding: '0.3rem 0.5rem' }} onClick={() => handleStatusChange(user.id, 'blocked')} title="Bloquer">
                           <UserX size={16} />
                         </button>
                       )}
-                      <button className="admin-btn admin-btn-outline" style={{ color: '#7f1d1d', borderColor: '#7f1d1d', padding: '0.3rem 0.5rem' }} onClick={() => handleDeleteUser(user.id)} title="Supprimer définitivement">
-                        <Trash2 size={16} />
+                      <button className="btn btn-danger" onClick={() => handleDeleteUser(user.id)} title="Supprimer définitivement">
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </td>
                 </tr>
               ))}
               {!loading && filteredUsers.length === 0 && (
-                <tr><td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Aucun utilisateur trouvé.</td></tr>
+                <tr><td colSpan="6" className="empty-state">Aucun utilisateur trouvé.</td></tr>
               )}
             </tbody>
           </table>

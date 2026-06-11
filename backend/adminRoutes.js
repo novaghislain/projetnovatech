@@ -249,7 +249,107 @@ module.exports = function(db, authenticateToken) {
     });
   });
 
-  // 5. Testimonials (Témoignages)
+  // 5. Categories CRUD
+  router.get('/categories', (req, res) => {
+    db.all("SELECT c.*, (SELECT COUNT(*) FROM Formations WHERE category = c.name AND status != 'draft') as courseCount FROM Categories c ORDER BY c.name ASC", (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    });
+  });
+
+  router.post('/categories', (req, res) => {
+    const { name, description } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: 'Le nom est requis.' });
+    const slug = name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    db.run("INSERT INTO Categories (name, slug, description) VALUES (?, ?, ?)",
+      [name.trim(), slug, description || ''],
+      function(err) {
+        if (err) {
+          if (err.message.includes('UNIQUE')) return res.status(400).json({ error: 'Cette catégorie existe déjà.' });
+          return res.status(500).json({ error: err.message });
+        }
+        res.json({ success: true, id: this.lastID });
+      }
+    );
+  });
+
+  router.put('/categories/:id', (req, res) => {
+    const { name, description } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: 'Le nom est requis.' });
+    const slug = name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    db.run("UPDATE Categories SET name=?, slug=?, description=? WHERE id=?",
+      [name.trim(), slug, description || '', req.params.id],
+      (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+      }
+    );
+  });
+
+  router.delete('/categories/:id', (req, res) => {
+    const catId = req.params.id;
+    db.get("SELECT name FROM Categories WHERE id = ?", [catId], (err, cat) => {
+      if (err || !cat) return res.status(404).json({ error: 'Catégorie introuvable.' });
+      db.get("SELECT COUNT(*) as count FROM Formations WHERE category = ? AND status != 'draft'", [cat.name], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (row.count > 0) return res.status(400).json({ error: `Impossible de supprimer : ${row.count} formation(s) utilisent cette catégorie.` });
+        db.run("DELETE FROM Categories WHERE id = ?", [catId], (err) => {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({ success: true });
+        });
+      });
+    });
+  });
+
+  // 6. Sessions CRUD
+  router.get('/sessions', (req, res) => {
+    const query = `
+      SELECT s.*, f.title as formationTitle
+      FROM Sessions s
+      JOIN Formations f ON s.formationId = f.id
+      ORDER BY s.startDate DESC
+    `;
+    db.all(query, (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    });
+  });
+
+  router.post('/sessions', (req, res) => {
+    const { formationId, startDate, endDate, maxPlaces, status } = req.body;
+    if (!formationId || !startDate || !endDate) {
+      return res.status(400).json({ error: 'Formation, date de début et date de fin requis.' });
+    }
+    db.run(
+      `INSERT INTO Sessions (formationId, startDate, endDate, maxPlaces, status) VALUES (?, ?, ?, ?, ?)`,
+      [formationId, startDate, endDate, maxPlaces || 20, status || 'planifiee'],
+      function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, id: this.lastID });
+      }
+    );
+  });
+
+  router.put('/sessions/:id', (req, res) => {
+    const { formationId, startDate, endDate, maxPlaces, status } = req.body;
+    db.run(
+      `UPDATE Sessions SET formationId=?, startDate=?, endDate=?, maxPlaces=?, status=? WHERE id=?`,
+      [formationId, startDate, endDate, maxPlaces, status, req.params.id],
+      (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+      }
+    );
+  });
+
+  router.delete('/sessions/:id', (req, res) => {
+    db.run("DELETE FROM Sessions WHERE id = ?", [req.params.id], (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true });
+    });
+  });
+
+  // 7. Testimonials (Témoignages)
   router.post('/testimonials', (req, res) => {
     const { authorName, age, courseName, comment, rating, avatar } = req.body;
     db.run(

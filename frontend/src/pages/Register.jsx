@@ -40,6 +40,8 @@ const Register = () => {
     setLoading(true);
     try {
       await auth.register({ firstName, email, password });
+      // Déclencher l'événement Meta Pixel CompleteRegistration
+      try { if (window.fbq) window.fbq('track', 'CompleteRegistration'); } catch(e) {}
       if (location.state?.formationId) {
         navigate('/inscription', { state: { formationId: location.state.formationId } });
         return;

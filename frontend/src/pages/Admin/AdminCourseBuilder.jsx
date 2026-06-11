@@ -192,61 +192,59 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
     }
   };
 
-  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Chargement du programme...</div>;
+  if (loading) return <div className="empty-state">Chargement du programme...</div>;
 
   return (
     <div className="fade-in">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <button className="admin-btn admin-btn-outline" onClick={onBack} style={{ padding: '0.4rem 0.8rem' }}>
-          <ArrowLeft size={18} /> Retour
-        </button>
-        <h2 style={{ margin: 0, color: 'var(--color-primary)' }}>Constructeur de Cours : {formationTitle}</h2>
+      <div className="filter-bar" style={{ marginBottom: '1.5rem' }}>
+        <div className="action-group">
+          <button className="btn btn-outline" onClick={onBack} style={{ padding: '0.4rem 0.8rem' }}>
+            <ArrowLeft size={18} /> Retour
+          </button>
+          <h3 style={{ margin: 0, color: 'var(--dark)' }}>Constructeur : {formationTitle}</h3>
+        </div>
       </div>
 
       <div className="admin-panel">
         <div className="admin-panel-header">
           <h3 className="admin-panel-title">Programme de la formation</h3>
-          <button className="admin-btn" onClick={() => openModal('module')}>
+          <button className="btn btn-primary" onClick={() => openModal('module')}>
             <Plus size={18} /> Ajouter un Module
           </button>
         </div>
 
         {structure.length === 0 ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: '#888' }}>
+          <div className="empty-state" style={{ padding: '3rem' }}>
             Aucun module n'a été créé pour cette formation. Commencez par ajouter un module !
           </div>
         ) : (
-          <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="module-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {structure.map((mod, modIdx) => (
-              <div key={mod.id} style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-white)', overflow: 'hidden' }}>
+              <div key={mod.id} className="module-card">
                 {/* MODULE HEADER */}
-                <div style={{ background: 'var(--color-bg-alt)', padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)' }}>
-                  <div style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: '1.1rem' }}>
-                    Module {mod.orderIndex + 1}: {mod.title}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="module-header">
+                  <div className="module-title">Module {mod.orderIndex + 1}: {mod.title}</div>
+                  <div className="action-group">
                     <button className="icon-btn" title="Modifier Module" onClick={() => openModal('module', null, mod)}><Edit2 size={16} /></button>
-                    <button className="icon-btn" title="Supprimer Module" onClick={() => handleDelete('module', mod.id)} style={{ color: 'var(--color-alert)' }}><Trash2 size={16} /></button>
-                    <button className="admin-btn" style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }} onClick={() => openModal('chapter', mod.id)}>
+                    <button className="icon-btn" title="Supprimer Module" onClick={() => handleDelete('module', mod.id)} style={{ color: 'var(--danger)' }}><Trash2 size={16} /></button>
+                    <button className="btn btn-primary" style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }} onClick={() => openModal('chapter', mod.id)}>
                       <Plus size={14} /> Chapitre
                     </button>
                   </div>
                 </div>
 
                 {/* CHAPTERS */}
-                <div style={{ padding: '1rem' }}>
+                <div className="module-body">
                   {mod.chapters && mod.chapters.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      {mod.chapters.map((chap, chapIdx) => (
-                        <div key={chap.id} style={{ border: '1px solid #e0e0e0', borderRadius: '8px', padding: '1rem' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <div style={{ fontWeight: 600, color: 'var(--color-secondary)' }}>
-                              Chapitre {chap.orderIndex + 1}: {chap.title}
-                            </div>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      {mod.chapters.map((chap) => (
+                        <div key={chap.id} className="chapter-card">
+                          <div className="chapter-header">
+                            <div className="chapter-title">Chapitre {chap.orderIndex + 1}: {chap.title}</div>
+                            <div className="action-group">
                               <button className="icon-btn" title="Modifier Chapitre" onClick={() => openModal('chapter', mod.id, chap)}><Edit2 size={14} /></button>
-                              <button className="icon-btn" title="Supprimer Chapitre" onClick={() => handleDelete('chapter', chap.id)} style={{ color: 'var(--color-alert)' }}><Trash2 size={14} /></button>
-                              <button className="admin-btn admin-btn-outline" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }} onClick={() => openModal('lesson', chap.id)}>
+                              <button className="icon-btn" title="Supprimer Chapitre" onClick={() => handleDelete('chapter', chap.id)} style={{ color: 'var(--danger)' }}><Trash2 size={14} /></button>
+                              <button className="btn btn-outline" style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }} onClick={() => openModal('lesson', chap.id)}>
                                 <Plus size={14} /> Leçon
                               </button>
                             </div>
@@ -254,29 +252,31 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
 
                           {/* LESSONS */}
                           {chap.lessons && chap.lessons.length > 0 ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingLeft: '1rem', borderLeft: '2px solid var(--color-border)' }}>
+                            <div className="lesson-list">
                               {chap.lessons.map(lesson => (
-                                <div key={lesson.id} style={{ background: '#f9f9f9', padding: '0.6rem 1rem', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
-                                    {lesson.type === 'video' ? <Video size={16} color="var(--color-accent)" /> : <FileText size={16} color="var(--color-accent)" />}
+                                <div key={lesson.id} className="lesson-item">
+                                  <div className="lesson-icon">
+                                    {lesson.type === 'video' ? <Video size={15} /> : <FileText size={15} />}
                                     <span>{lesson.title}</span>
                                   </div>
-                                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button className="icon-btn" style={{ padding: '0.2rem' }} onClick={() => openModal('lesson', chap.id, lesson)}><Edit2 size={14} /></button>
-                                    <button className="icon-btn" style={{ padding: '0.2rem', color: 'var(--color-alert)' }} onClick={() => handleDelete('lesson', lesson.id)}><Trash2 size={14} /></button>
-                                    <button className="icon-btn" style={{ padding: '0.2rem', color: '#8b5cf6' }} onClick={() => openQuizModal(lesson.id)} title="Gérer le quiz"><HelpCircle size={14} /></button>
+                                  <div className="action-group">
+                                    <button className="icon-btn" onClick={() => openModal('lesson', chap.id, lesson)}><Edit2 size={14} /></button>
+                                    <button className="icon-btn" style={{ color: 'var(--danger)' }} onClick={() => handleDelete('lesson', lesson.id)}><Trash2 size={14} /></button>
+                                    <button className="icon-btn" style={{ color: 'var(--primary)' }} onClick={() => openQuizModal(lesson.id)} title="Gérer le quiz"><HelpCircle size={14} /></button>
                                   </div>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <div style={{ fontSize: '0.85rem', color: '#888', fontStyle: 'italic', paddingLeft: '1rem' }}>Aucune leçon dans ce chapitre.</div>
+                            <div className="empty-state" style={{ textAlign: 'left', padding: '0.5rem 0 0 1rem', fontSize: '0.85rem' }}>
+                              Aucune leçon dans ce chapitre.
+                            </div>
                           )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div style={{ fontSize: '0.9rem', color: '#888', fontStyle: 'italic', textAlign: 'center', padding: '1rem' }}>
+                    <div className="empty-state" style={{ padding: '1rem' }}>
                       Aucun chapitre dans ce module.
                     </div>
                   )}
@@ -324,8 +324,8 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
               )}
             </div>
             <div className="admin-modal-footer">
-              <button className="admin-btn admin-btn-outline" onClick={() => setModalOpen(false)}>Annuler</button>
-              <button className="admin-btn" onClick={handleSave}>Enregistrer</button>
+              <button className="btn btn-outline" onClick={() => setModalOpen(false)}>Annuler</button>
+              <button className="btn btn-primary" onClick={handleSave}>Enregistrer</button>
             </div>
           </div>
         </div>
@@ -351,7 +351,7 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
                   {quizQuestions.map((q, qi) => (
                     <div key={q.id} style={{ marginBottom: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                        <strong style={{ fontSize: '0.9rem', color: '#1A1A2E' }}>Q{qi + 1}: {q.question}</strong>
+                        <strong style={{ fontSize: '0.9rem', color: '#0F3460' }}>Q{qi + 1}: {q.question}</strong>
                         <div style={{ display: 'flex', gap: '0.3rem' }}>
                           <button className="icon-btn" onClick={() => editQuestion(q)}><Edit2 size={14} /></button>
                           <button className="icon-btn" style={{ color: '#ef4444' }} onClick={() => deleteQuestion(q.id)}><Trash2 size={14} /></button>
@@ -367,7 +367,7 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
                       </div>
                     </div>
                   ))}
-                  <button className="admin-btn" onClick={addQuestion} style={{ marginTop: '0.5rem' }}>
+                  <button className="btn btn-primary" onClick={addQuestion} style={{ marginTop: '0.5rem' }}>
                     <Plus size={16} /> Ajouter une question
                   </button>
                 </>
@@ -403,13 +403,13 @@ const AdminCourseBuilder = ({ formationId, formationTitle, onBack }) => {
                         )}
                       </div>
                     ))}
-                    <button className="admin-btn admin-btn-outline" onClick={addOption} style={{ fontSize: '0.85rem', marginTop: '0.3rem' }}>
+                    <button className="btn btn-outline" onClick={addOption} style={{ fontSize: '0.85rem', marginTop: '0.3rem' }}>
                       <Plus size={14} /> Ajouter une option
                     </button>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                    <button className="admin-btn admin-btn-outline" onClick={() => setQuizFormOpen(false)}>Annuler</button>
-                    <button className="admin-btn" onClick={saveQuestion}>
+                  <div className="action-group" style={{ marginTop: '1rem' }}>
+                    <button className="btn btn-outline" onClick={() => setQuizFormOpen(false)}>Annuler</button>
+                    <button className="btn btn-primary" onClick={saveQuestion}>
                       {editingQuestion ? 'Enregistrer' : 'Ajouter la question'}
                     </button>
                   </div>

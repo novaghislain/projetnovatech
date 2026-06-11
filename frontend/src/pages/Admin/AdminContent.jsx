@@ -173,27 +173,24 @@ const AdminContent = () => {
     <div className="fade-in">
       
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        <button 
-          className={`admin-btn ${activeTab === 'testimonials' ? '' : 'admin-btn-outline'}`}
+      <div className="tab-nav">
+        <button
+          className={`tab-btn ${activeTab === 'testimonials' ? 'active' : ''}`}
           onClick={() => setActiveTab('testimonials')}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <MessageSquare size={18} /> Témoignages
         </button>
-        <button 
-          className={`admin-btn ${activeTab === 'gallery' ? '' : 'admin-btn-outline'}`}
+        <button
+          className={`tab-btn ${activeTab === 'gallery' ? 'active' : ''}`}
           onClick={() => setActiveTab('gallery')}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <ImageIcon size={18} /> Galerie Photos
         </button>
-        <button 
-          className={`admin-btn ${activeTab === 'staticPages' ? '' : 'admin-btn-outline'}`}
+        <button
+          className={`tab-btn ${activeTab === 'staticPages' ? 'active' : ''}`}
           onClick={() => setActiveTab('staticPages')}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          <Edit size={18} /> Pages Statiques (Markdown)
+          <Edit size={18} /> Pages Statiques
         </button>
       </div>
 
@@ -201,7 +198,7 @@ const AdminContent = () => {
         <div className="admin-panel fade-in">
           <div className="admin-panel-header">
             <h3 className="admin-panel-title">Témoignages</h3>
-            <button className="admin-btn" onClick={() => setShowTestimonialModal(true)}>
+            <button className="btn btn-primary" onClick={() => setShowTestimonialModal(true)}>
               <Plus size={18} /> Ajouter un Témoignage
             </button>
           </div>
@@ -219,7 +216,7 @@ const AdminContent = () => {
               </thead>
               <tbody>
                 {testimonials.length === 0 ? (
-                  <tr><td colSpan="6" style={{textAlign: 'center', padding: '2rem'}}>Aucun témoignage.</td></tr>
+                  <tr><td colSpan="6" className="empty-state">Aucun témoignage.</td></tr>
                 ) : testimonials.map(t => (
                   <tr key={t.id}>
                     <td style={{ fontWeight: 600 }}>{t.authorName}</td>
@@ -228,7 +225,7 @@ const AdminContent = () => {
                     <td>{'⭐'.repeat(t.rating)}</td>
                     <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.comment}</td>
                     <td>
-                      <button className="admin-btn admin-btn-outline" style={{ color: '#e74c3c', borderColor: '#e74c3c', padding: '0.3rem 0.5rem' }} onClick={() => deleteTestimonial(t.id)}>
+                      <button className="btn btn-outline" style={{ color: '#e74c3c', borderColor: '#e74c3c', padding: '0.3rem 0.5rem' }} onClick={() => deleteTestimonial(t.id)}>
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -244,7 +241,7 @@ const AdminContent = () => {
         <div className="admin-panel fade-in">
           <div className="admin-panel-header">
             <h3 className="admin-panel-title">Galerie Photos</h3>
-            <button className="admin-btn" onClick={() => setShowGalleryModal(true)}>
+            <button className="btn btn-primary" onClick={() => setShowGalleryModal(true)}>
               <Plus size={18} /> Ajouter une Image
             </button>
           </div>
@@ -313,9 +310,9 @@ const AdminContent = () => {
                 </div>
               </div>
               
-              <div className="admin-modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-                <button type="button" className="admin-btn admin-btn-outline" onClick={() => setShowTestimonialModal(false)}>Annuler</button>
-                <button type="submit" className="admin-btn admin-btn-primary">Enregistrer le témoignage</button>
+              <div className="admin-modal-footer">
+                <button type="button" className="btn btn-outline" onClick={() => setShowTestimonialModal(false)}>Annuler</button>
+                <button type="submit" className="btn btn-primary">Enregistrer le témoignage</button>
               </div>
             </form>
           </div>
@@ -353,9 +350,9 @@ const AdminContent = () => {
                 </div>
               </div>
               
-              <div className="admin-modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-                <button type="button" className="admin-btn admin-btn-outline" onClick={() => setShowGalleryModal(false)}>Annuler</button>
-                <button type="submit" className="admin-btn admin-btn-primary">Ajouter l'image</button>
+              <div className="admin-modal-footer">
+                <button type="button" className="btn btn-outline" onClick={() => setShowGalleryModal(false)}>Annuler</button>
+                <button type="submit" className="btn btn-primary">Ajouter l'image</button>
               </div>
             </form>
           </div>
@@ -383,7 +380,7 @@ const AdminContent = () => {
           </div>
 
           {pageLoading ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#888' }}>Chargement du contenu...</div>
+            <div className="empty-state" style={{ padding: '3rem' }}>Chargement du contenu...</div>
           ) : (
             <form onSubmit={handleSavePage} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div className="form-group">
@@ -399,36 +396,22 @@ const AdminContent = () => {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', borderBottom: '1px solid #ddd', gap: '1rem', marginBottom: '1rem' }}>
-                  <button 
+                <div className="tab-nav" style={{ borderBottom: '1px solid var(--gray)', paddingBottom: 0, marginBottom: '1rem' }}>
+                  <button
                     type="button"
-                    style={{
-                      padding: '0.5rem 1rem',
-                      border: 'none',
-                      borderBottom: editorTab === 'edit' ? '2px solid var(--color-accent)' : 'none',
-                      background: 'none',
-                      cursor: 'pointer',
-                      fontWeight: editorTab === 'edit' ? 600 : 400,
-                      color: editorTab === 'edit' ? 'var(--color-accent)' : '#666'
-                    }}
+                    className={`tab-btn ${editorTab === 'edit' ? 'active' : ''}`}
                     onClick={() => setEditorTab('edit')}
+                    style={{ borderBottom: 'none', borderRadius: 0 }}
                   >
-                    Éditeur Markdown / Côte à côte
+                    Éditeur Markdown
                   </button>
-                  <button 
+                  <button
                     type="button"
-                    style={{
-                      padding: '0.5rem 1rem',
-                      border: 'none',
-                      borderBottom: editorTab === 'preview' ? '2px solid var(--color-accent)' : 'none',
-                      background: 'none',
-                      cursor: 'pointer',
-                      fontWeight: editorTab === 'preview' ? 600 : 400,
-                      color: editorTab === 'preview' ? 'var(--color-accent)' : '#666'
-                    }}
+                    className={`tab-btn ${editorTab === 'preview' ? 'active' : ''}`}
                     onClick={() => setEditorTab('preview')}
+                    style={{ borderBottom: 'none', borderRadius: 0 }}
                   >
-                    Aperçu HTML seul
+                    Aperçu HTML
                   </button>
                 </div>
 
@@ -478,8 +461,8 @@ const AdminContent = () => {
                 )}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                <button type="submit" className="admin-btn admin-btn-primary">
+              <div className="action-group" style={{ justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <button type="submit" className="btn btn-primary">
                   Enregistrer les modifications
                 </button>
               </div>

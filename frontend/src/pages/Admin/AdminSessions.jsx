@@ -1,28 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Calendar, Users, X, Clock } from 'lucide-react';
-
-const mockFormationsList = [
-  { id: 1, title: 'Initiation à la Programmation' },
-  { id: 2, title: 'Découverte de l\'IA' },
-  { id: 3, title: 'Bureautique Avancée' },
-];
-
-const initialSessions = [
-  { id: 1, formationId: 1, formationTitle: 'Initiation à la Programmation', startDate: '2026-07-01', endDate: '2026-07-28', maxPlaces: 20, enrolled: 15, status: 'ouverte' },
-  { id: 2, formationId: 2, formationTitle: 'Découverte de l\'IA', startDate: '2026-06-15', endDate: '2026-07-30', maxPlaces: 20, enrolled: 20, status: 'complet' },
-  { id: 3, formationId: 1, formationTitle: 'Initiation à la Programmation', startDate: '2026-08-01', endDate: '2026-08-28', maxPlaces: 20, enrolled: 0, status: 'planifiée' },
-];
+import { API_URL } from '../../config';
 
 const AdminSessions = () => {
-  const [sessions, setSessions] = useState(initialSessions);
+  const [sessions, setSessions] = useState([]);
+  const [formations, setFormations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filterFormation, setFilterFormation] = useState('All');
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  
+  const [saving, setSaving] = useState(false);
+
   const [formData, setFormData] = useState({
-    id: null, formationId: mockFormationsList[0].id, startDate: '', endDate: '', maxPlaces: ''
+    id: null, formationId: '', startDate: '', endDate: '', maxPlaces: '', status: 'planifiee'
   });
+
+  const getHeaders = () => {
+    const token = localStorage.getItem('nv_token');
+    return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+  };
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('nv_token');
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      const [fRes, sRes] = await Promise.all([
+        fetch(`${API_URL}/api/admin/formations`, { headers }),
+        fetch(`${API_URL}/api/admin/sessions`, { headers })
+      ]);
+
+      if (fRes.ok) {
+        const fData = await fRes.json();
+        setFormations(fData);
+      }
+      if (sRes.ok) {
+        setSessions(await sRes.json());
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const filteredSessions = sessions.filter(s => {
     return filterFormation === 'All' || s.formationId.toString() === filterFormation;
@@ -32,26 +58,51 @@ const AdminSessions = () => {
     if (session) {
       setFormData(session);
     } else {
-      setFormData({ id: null, formationId: mockFormationsList[0].id, startDate: '', endDate: '', maxPlaces: '' });
+      setFormData({
+        id: null, formationId: formations.length > 0 ? formations[0].id : '',
+        startDate: '', endDate: '', maxPlaces: '', status: 'planifiee'
+      });
     }
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
-    const formationTitle = mockFormationsList.find(f => f.id.toString() === formData.formationId.toString())?.title;
-    
-    if (formData.id) {
-      setSessions(sessions.map(s => s.id === formData.id ? { ...s, ...formData, formationTitle } : s));
-    } else {
-      const newId = Math.max(0, ...sessions.map(s => s.id)) + 1;
-      setSessions([...sessions, { ...formData, id: newId, enrolled: 0, status: 'planifiée', formationTitle }]);
+  const handleSave = async () => {
+    if (!formData.startDate || !formData.endDate || !formData.maxPlaces) return;
+    setSaving(true);
+    try {
+      const method = formData.id ? 'PUT' : 'POST';
+      const url = formData.id
+        ? `${API_URL}/api/admin/sessions/${formData.id}`
+        : `${API_URL}/api/admin/sessions`;
+
+      const res = await fetch(url, {
+        method,
+        headers: getHeaders(),
+        body: JSON.stringify(formData)
+      });
+
+      if (!res.ok) throw new Error("Erreur lors de l'enregistrement");
+      await fetchData();
+      setIsModalOpen(false);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSaving(false);
     }
-    setIsModalOpen(false);
   };
 
-  const handleDelete = (id) => {
-    setSessions(sessions.filter(s => s.id !== id));
-    setDeleteConfirm(null);
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/admin/sessions/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('nv_token')}` }
+      });
+      if (!res.ok) throw new Error("Erreur lors de la suppression");
+      await fetchData();
+      setDeleteConfirm(null);
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   return (
@@ -59,15 +110,16 @@ const AdminSessions = () => {
       <div className="admin-panel">
         <div className="admin-panel-header">
           <h3 className="admin-panel-title">Gestion des Sessions</h3>
-          <button className="admin-btn" onClick={() => handleOpenModal()}><Plus size={18} /> Nouvelle Session</button>
+          <button className="btn btn-primary" onClick={() => handleOpenModal()}><Plus size={18} /> Nouvelle Session</button>
         </div>
         
         {/* FILTERS */}
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="filter-bar">
           <select className="form-control" style={{ width: '300px' }} value={filterFormation} onChange={(e) => setFilterFormation(e.target.value)}>
             <option value="All">Toutes les formations</option>
-            {mockFormationsList.map(f => <option key={f.id} value={f.id}>{f.title}</option>)}
+            {formations.map(f => <option key={f.id} value={f.id}>{f.title}</option>)}
           </select>
+          <span className="admin-badge neutral">{filteredSessions.length} session(s)</span>
         </div>
 
         <div className="admin-table-wrapper">
@@ -82,7 +134,9 @@ const AdminSessions = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredSessions.map(s => (
+              {loading ? (
+                <tr><td colSpan="5" className="empty-state">Chargement...</td></tr>
+              ) : filteredSessions.map(s => (
                 <tr key={s.id}>
                   <td style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{s.formationTitle}</td>
                   <td>
@@ -95,20 +149,20 @@ const AdminSessions = () => {
                     </span>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="admin-btn admin-btn-outline" style={{ padding: '0.3rem 0.5rem' }} onClick={() => handleOpenModal(s)}>
+                    <div className="action-group">
+                      <button className="btn btn-outline" style={{ padding: '0.3rem 0.5rem' }} onClick={() => handleOpenModal(s)}>
                         <Edit size={16} />
                       </button>
-                      <button className="admin-btn admin-btn-outline" style={{ padding: '0.3rem 0.5rem', color: '#ff4d4f', borderColor: '#ff4d4f' }} onClick={() => setDeleteConfirm(s.id)}>
-                        <Trash2 size={16} />
+                      <button className="btn btn-danger" onClick={() => setDeleteConfirm(s.id)}>
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {filteredSessions.length === 0 && (
+              {!loading && filteredSessions.length === 0 && (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Aucune session trouvée.</td>
+                  <td colSpan="5" className="empty-state">Aucune session trouvée.</td>
                 </tr>
               )}
             </tbody>
@@ -128,7 +182,7 @@ const AdminSessions = () => {
               <div className="form-group">
                 <label>Formation rattachée *</label>
                 <select className="form-control" value={formData.formationId} onChange={(e) => setFormData({...formData, formationId: e.target.value})}>
-                  {mockFormationsList.map(f => <option key={f.id} value={f.id}>{f.title}</option>)}
+                  {formations.map(f => <option key={f.id} value={f.id}>{f.title}</option>)}
                 </select>
               </div>
               <div className="form-row">
@@ -145,10 +199,20 @@ const AdminSessions = () => {
                 <label>Nombre de places maximal *</label>
                 <input type="number" className="form-control" value={formData.maxPlaces} onChange={(e) => setFormData({...formData, maxPlaces: e.target.value})} />
               </div>
+              <div className="form-group">
+                <label>Statut</label>
+                <select className="form-control" value={formData.status || 'planifiee'} onChange={(e) => setFormData({...formData, status: e.target.value})}>
+                  <option value="planifiee">Planifiée</option>
+                  <option value="ouverte">Ouverte</option>
+                  <option value="complet">Complète</option>
+                </select>
+              </div>
             </div>
             <div className="admin-modal-footer">
-              <button className="admin-btn admin-btn-outline" onClick={() => setIsModalOpen(false)}>Annuler</button>
-              <button className="admin-btn" onClick={handleSave} disabled={!formData.startDate || !formData.endDate || !formData.maxPlaces}>Enregistrer</button>
+              <button className="btn btn-outline" onClick={() => setIsModalOpen(false)}>Annuler</button>
+              <button className="btn btn-primary" onClick={handleSave} disabled={saving || !formData.startDate || !formData.endDate || !formData.maxPlaces}>
+                {saving ? 'Enregistrement...' : 'Enregistrer'}
+              </button>
             </div>
           </div>
         </div>
@@ -165,8 +229,8 @@ const AdminSessions = () => {
               <p>Voulez-vous vraiment supprimer cette session ? Cette action annulera les inscriptions éventuelles.</p>
             </div>
             <div className="admin-modal-footer" style={{ borderTop: 'none' }}>
-              <button className="admin-btn admin-btn-outline" onClick={() => setDeleteConfirm(null)}>Annuler</button>
-              <button className="admin-btn" style={{ background: '#ff4d4f' }} onClick={() => handleDelete(deleteConfirm)}>Oui, supprimer</button>
+              <button className="btn btn-outline" onClick={() => setDeleteConfirm(null)}>Annuler</button>
+              <button className="btn btn-primary" style={{ background: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => handleDelete(deleteConfirm)}>Oui, supprimer</button>
             </div>
           </div>
         </div>

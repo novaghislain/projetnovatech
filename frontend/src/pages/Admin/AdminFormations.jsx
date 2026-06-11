@@ -149,25 +149,27 @@ const AdminFormations = () => {
       <div className="admin-panel">
         <div className="admin-panel-header">
           <h3 className="admin-panel-title">Liste des Formations</h3>
-          <button className="admin-btn" onClick={() => handleOpenModal()}><Plus size={18} /> Nouvelle Formation</button>
+          <button className="btn btn-primary" onClick={() => handleOpenModal()}><Plus size={18} /> Nouvelle Formation</button>
         </div>
         
         {/* FILTERS */}
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-          <div className="form-control" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '300px' }}>
-            <Search size={18} color="#888" />
-            <input 
-              type="text" 
-              placeholder="Rechercher une formation..." 
-              style={{ border: 'none', outline: 'none', width: '100%' }}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="filter-bar">
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <div className="search-wrap" style={{ width: '250px' }}>
+              <Search size={18} />
+              <input
+                type="text"
+                placeholder="Rechercher une formation..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <select className="form-control" style={{ width: '200px', marginBottom: 0 }} value={filterCat} onChange={(e) => setFilterCat(e.target.value)}>
+              <option value="All">Toutes les catégories</option>
+              {mockCategories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <span className="admin-badge neutral">{filteredFormations.length} formation(s)</span>
           </div>
-          <select className="form-control" style={{ width: '250px' }} value={filterCat} onChange={(e) => setFilterCat(e.target.value)}>
-            <option value="All">Toutes les catégories</option>
-            {mockCategories.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
         </div>
 
         <div className="admin-table-wrapper">
@@ -207,14 +209,14 @@ const AdminFormations = () => {
                     </span>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="admin-btn admin-btn-outline" style={{ padding: '0.3rem 0.5rem', color: 'var(--color-secondary)', borderColor: 'var(--color-secondary)' }} title="Gérer le programme (Cours)" onClick={() => setBuilderFormation({ id: f.id, title: f.title })}>
+                    <div className="action-group">
+                      <button className="btn btn-outline" style={{ padding: '0.3rem 0.5rem', color: 'var(--primary)', borderColor: 'var(--primary)' }} title="Gérer le programme (Cours)" onClick={() => setBuilderFormation({ id: f.id, title: f.title })}>
                         <BookOpen size={16} />
                       </button>
                       {/* Quick publish/unpublish toggle */}
                       <button
-                        className="admin-btn admin-btn-outline"
-                        style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700,
+                        className="btn btn-outline"
+                        style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem',
                           color: f.status === 'published' ? '#d97706' : '#16a34a',
                           borderColor: f.status === 'published' ? '#d97706' : '#16a34a'
                         }}
@@ -232,25 +234,18 @@ const AdminFormations = () => {
                       >
                         {f.status === 'published' ? '⏸ Brouillon' : '▶ Publier'}
                       </button>
-                      <button className="admin-btn admin-btn-outline" style={{ padding: '0.3rem 0.5rem' }} title="Modifier les infos" onClick={() => handleOpenModal(f)}>
+                      <button className="btn btn-outline" style={{ padding: '0.3rem 0.5rem' }} title="Modifier les infos" onClick={() => handleOpenModal(f)}>
                         <Edit size={16} />
                       </button>
-                      <button 
-                        className="admin-btn admin-btn-outline" 
-                        style={{ padding: '0.3rem 0.5rem', color: '#ff4d4f', borderColor: '#ff4d4f' }} 
-                        title="Supprimer la formation"
-                        onClick={() => setDeleteConfirm(f.id)}
-                      >
-                        <Trash2 size={16} />
+                      <button className="btn btn-danger" title="Supprimer la formation" onClick={() => setDeleteConfirm(f.id)}>
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </td>
                 </tr>
               ))}
               {!loading && filteredFormations.length === 0 && (
-                <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>Aucune formation trouvée.</td>
-                </tr>
+                <tr><td colSpan="6" className="empty-state">Aucune formation trouvée.</td></tr>
               )}
             </tbody>
           </table>
@@ -332,7 +327,7 @@ const AdminFormations = () => {
                 <label>Image de couverture (URL ou /image.jpg)</label>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <input type="text" className="form-control" placeholder="URL de l'image" value={formData.imageUrl || ''} onChange={e => setFormData({...formData, imageUrl: e.target.value})} />
-                  <button className="admin-btn admin-btn-outline" onClick={() => document.getElementById('imageUpload').click()}><ImageIcon size={16} /> Uploader</button>
+                  <button className="btn btn-outline" onClick={() => document.getElementById('imageUpload').click()}><ImageIcon size={16} /> Uploader</button>
                   <input type="file" id="imageUpload" style={{ display: 'none' }} accept="image/*" onChange={handleImageUpload} />
                 </div>
               </div>
@@ -391,8 +386,8 @@ const AdminFormations = () => {
               </div>
             </div>
             <div className="admin-modal-footer">
-              <button className="admin-btn admin-btn-outline" onClick={() => setIsModalOpen(false)}>Annuler</button>
-              <button className="admin-btn" onClick={handleSave}>Enregistrer la formation</button>
+              <button className="btn btn-outline" onClick={() => setIsModalOpen(false)}>Annuler</button>
+              <button className="btn btn-primary" onClick={handleSave}>Enregistrer la formation</button>
             </div>
           </div>
         </div>
@@ -412,8 +407,8 @@ const AdminFormations = () => {
               <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.5rem' }}>Attention : S'il y a des inscrits à cette formation, il est recommandé de l'archiver plutôt que de la supprimer.</p>
             </div>
             <div className="admin-modal-footer" style={{ borderTop: 'none' }}>
-              <button className="admin-btn admin-btn-outline" onClick={() => setDeleteConfirm(null)}>Annuler</button>
-              <button className="admin-btn" style={{ background: '#ff4d4f' }} onClick={() => handleDelete(deleteConfirm)}>Oui, supprimer</button>
+              <button className="btn btn-outline" onClick={() => setDeleteConfirm(null)}>Annuler</button>
+              <button className="btn btn-primary" style={{ background: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => handleDelete(deleteConfirm)}>Oui, supprimer</button>
             </div>
           </div>
         </div>
