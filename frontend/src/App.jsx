@@ -103,8 +103,8 @@ const AppLayout = () => {
           <Route path="/fr" element={<Home />} />
           <Route path="/galerie" element={<Galerie />} />
           <Route path="/fr/galerie" element={<Galerie />} />
-          <Route path="/temoignages" element={<Testimonials />} />
-          <Route path="/fr/temoignages" element={<Testimonials />} />
+          <Route path="/temoignages" element={<Navigate to="/galerie" replace />} />
+          <Route path="/fr/temoignages" element={<Navigate to="/fr/galerie" replace />} />
           <Route path="/a-propos" element={<Apropos />} />
           <Route path="/fr/a-propos" element={<Apropos />} />
           <Route path="/contact" element={<Contact />} />
@@ -132,7 +132,7 @@ const AppLayout = () => {
           {/* English routes */}
           <Route path="/en" element={<Home />} />
           <Route path="/en/gallery" element={<Galerie />} />
-          <Route path="/en/testimonials" element={<Testimonials />} />
+          <Route path="/en/testimonials" element={<Navigate to="/en/gallery" replace />} />
           <Route path="/en/about" element={<Apropos />} />
           <Route path="/en/contact" element={<Contact />} />
           <Route path="/en/faq" element={<FAQ />} />

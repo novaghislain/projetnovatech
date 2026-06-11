@@ -40,7 +40,12 @@ const Inscription = () => {
     transactionId: location.state?.transactionId || null
   });
 
-  const isPhysicalCourse = course && (course.format === 'physique' || (course.format === 'masse' && course.locationMode === 'physique'));
+  const isPhysicalCourse = course && course.format && (
+    course.format.toLowerCase() === 'physique' || 
+    course.format.toLowerCase() === 'présentiel' || 
+    course.format.toLowerCase() === 'presentiel' || 
+    (course.format.toLowerCase() === 'masse' && course.locationMode && course.locationMode.toLowerCase() === 'physique')
+  );
   const [physicalSuccess, setPhysicalSuccess] = useState(false);
 
   const fetchFormations = async () => {
@@ -232,7 +237,13 @@ const Inscription = () => {
                           <p style={{ color: '#9a3412', marginBottom: '1.5rem' }}>
                             {t('ins_full_desc')}
                           </p>
-                          <button className="btn btn-primary" onClick={() => setStep(2)} style={{ width: '100%' }}>
+                          <button className="btn btn-primary" onClick={async () => {
+                            if (isPhysicalCourse) {
+                              await processEnrollment('waitlist');
+                            } else {
+                              setStep(2);
+                            }
+                          }} style={{ width: '100%' }}>
                             {language === 'en' ? 'Join Waitlist (Free)' : "Rejoindre la liste d'attente (Gratuit)"}
                           </button>
                         </div>
@@ -269,7 +280,13 @@ const Inscription = () => {
                               {language === 'en' ? 'Fill contact details first' : 'Remplissez vos informations d\'abord'}
                             </button>
                           ) : (!course.price || course.price === 0) ? (
-                            <button className="btn btn-primary" onClick={() => setStep(2)} style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}>
+                            <button className="btn btn-primary" onClick={async () => {
+                              if (isPhysicalCourse) {
+                                await processEnrollment('Gratuit');
+                              } else {
+                                setStep(2);
+                              }
+                            }} style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}>
                               {language === 'en' ? 'Confirm Free Enrollment' : "Confirmer l'inscription gratuite"}
                             </button>
                           ) : (

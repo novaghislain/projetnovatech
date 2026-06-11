@@ -90,26 +90,26 @@ module.exports = function(db, authenticateToken) {
         // Email de confirmation (ne pas bloquer la réponse)
         const childName = childFirstName ? `${childFirstName} ${childLastName || ''}`.trim() : null;
         const emailData = enrollmentConfirmation({
-          firstName: parentName || req.user.firstName,
+          firstName: parentName || req.user?.firstName || guestFirstName || 'Apprenant',
           courseTitle: course.title,
           childName,
           meetLink: course.meetLink,
           whatsappLink: course.whatsappLink
         });
-        sendEmail({ to: parentEmail || req.user.email, ...emailData }).catch(err => {
+        sendEmail({ to: parentEmail || req.user?.email || guestEmail, ...emailData }).catch(err => {
           console.error('Erreur envoi email confirmation:', err.message);
         });
 
         // SMS de confirmation
         const { sendSMS } = require('./smsService');
         if (status === 'active') {
-          const smsText = `Bonjour ${parentName || req.user.firstName}, l'inscription de votre enfant a la formation ${course.title} est confirmee. Accedez a votre espace apprenant !`;
-          sendSMS({ to: parentPhone || req.user.phone, message: smsText }).catch(err => {
+          const smsText = `Bonjour ${parentName || req.user?.firstName || guestFirstName || 'Apprenant'}, l'inscription de votre enfant a la formation ${course.title} est confirmee. Accedez a votre espace apprenant !`;
+          sendSMS({ to: parentPhone || req.user?.phone || guestPhone, message: smsText }).catch(err => {
             console.error('Erreur envoi SMS confirmation:', err.message);
           });
         } else if (status === 'waitlist') {
-          const smsText = `Bonjour ${parentName || req.user.firstName}, la formation ${course.title} etant complete, vous avez ete ajoute(e) a la liste d'attente. Novatech Vision.`;
-          sendSMS({ to: parentPhone || req.user.phone, message: smsText }).catch(err => {
+          const smsText = `Bonjour ${parentName || req.user?.firstName || guestFirstName || 'Apprenant'}, la formation ${course.title} etant complete, vous avez ete ajoute(e) a la liste d'attente. Novatech Vision.`;
+          sendSMS({ to: parentPhone || req.user?.phone || guestPhone, message: smsText }).catch(err => {
             console.error('Erreur envoi SMS liste d\'attente:', err.message);
           });
         }

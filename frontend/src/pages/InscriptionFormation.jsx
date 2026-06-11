@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Clock, Users, ShieldCheck, Search, Filter } from 'lucide-react';
+import { Clock, Users, ShieldCheck, Search, Filter, MapPin, Layers } from 'lucide-react';
 
 import { useLanguage } from '../contexts/LanguageContext';
 import './Home.css';
@@ -29,6 +29,17 @@ const InscriptionFormation = () => {
     'Design': language === 'en' ? 'Design' : 'Design',
     'Robotique': language === 'en' ? 'Robotics' : 'Robotique',
     'Autre': language === 'en' ? 'Other' : 'Autre'
+  };
+
+  const getFormatDisplay = (f) => {
+    if (f.format === 'physique' || f.format === 'présentiel') {
+      return `Présentiel ${f.location ? '(' + f.location + ')' : ''}`;
+    } else if (f.format === 'en_ligne' || f.format === 'hybride') {
+      return 'En ligne';
+    } else if (f.format === 'masse') {
+      return `Camp / Masse ${f.location ? '(' + f.location + ')' : ''}`;
+    }
+    return f.isOnline ? 'En ligne' : (f.location || 'Présentiel');
   };
 
   const fetchFormations = useCallback(async () => {
@@ -161,9 +172,11 @@ const InscriptionFormation = () => {
                     {isFull && <div className="formation-card-complet">{t('courses_full').toUpperCase()}</div>}
                   </div>
                   <div className="formation-card-body">
-                    <div className="formation-card-meta">
-                      <span><Clock size={16} /> {f.duration?.replace('semaines', language === 'en' ? 'weeks' : 'semaines')}</span>
-                      <span><Users size={16} /> {f.ageGroup?.replace('ans', language === 'en' ? 'years old' : 'ans').replace('Tous âges', language === 'en' ? 'All ages' : 'Tous âges')}</span>
+                    <div className="formation-card-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', color: '#64748b', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Clock size={16} /> {f.duration?.replace('semaines', language === 'en' ? 'weeks' : 'semaines')}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Users size={16} /> {f.ageGroup?.replace('ans', language === 'en' ? 'years old' : 'ans').replace('Tous âges', language === 'en' ? 'All ages' : 'Tous âges')}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><MapPin size={16} /> {getFormatDisplay(f)}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Layers size={16} /> {f.level || 'Tous niveaux'}</span>
                     </div>
                     <h3>{f.title}</h3>
                     <p>{f.description}</p>

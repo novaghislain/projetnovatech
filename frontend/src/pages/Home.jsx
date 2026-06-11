@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Monitor, Shield, Code2, BrainCircuit, UserCheck,
   GraduationCap, BookOpen, FlaskConical, Award, Clock, ArrowRight,
-  Send, Mail, Phone, MapPin, Calendar
+  Send, Mail, Phone, MapPin, Calendar, Layers
 } from 'lucide-react';
 
 import './Home.css';
@@ -13,6 +14,7 @@ import { API_URL, getImageUrl } from '../config';
 
 const Home = () => {
   const { t, language } = useLanguage();
+  const auth = useAuth();
 
   const programs = [
     { icon: <Monitor size={26} />, label: t('program_office') },
@@ -31,12 +33,23 @@ const Home = () => {
     { icon: <Clock size={32} />, title: t('why_feat6_title'), desc: t('why_feat6_desc') },
   ];
 
-  const stats = [
+  const [stats, setStats] = useState([
     { value: '500+', label: t('stats_students') },
-    { value: '15+', label: t('stats_courses') },
+    { value: '10+', label: t('stats_courses') },
     { value: '98%', label: t('stats_satisfaction') },
-    { value: '10', label: t('stats_experts') },
-  ];
+    { value: '15+', label: t('stats_experts') }
+  ]);
+
+  const getFormatDisplay = (f) => {
+    if (f.format === 'physique' || f.format === 'présentiel') {
+      return `Présentiel ${f.location ? '(' + f.location + ')' : ''}`;
+    } else if (f.format === 'en_ligne' || f.format === 'hybride') {
+      return 'En ligne';
+    } else if (f.format === 'masse') {
+      return `Masse ${f.location ? '(' + f.location + ')' : ''}`;
+    }
+    return f.isOnline ? 'En ligne' : (f.location || 'Présentiel');
+  };
 
   const [featuredCourses, setFeaturedCourses] = useState([]);
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', body: '' });
@@ -219,9 +232,11 @@ const Home = () => {
                 </div>
                 <div className="course-card-content" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>{course.title}</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '1.2rem' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><UserCheck size={16} /> {course.ageGroup}</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '1.2rem' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Clock size={16} /> {course.duration}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><UserCheck size={16} /> {course.ageGroup}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><MapPin size={16} /> {getFormatDisplay(course)}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Layers size={16} /> {course.level || 'Tous niveaux'}</span>
                   </div>
                   <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1.2rem' }}>
                     <div>

@@ -99,8 +99,13 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(400).json({ error: 'Email et mot de passe requis.' });
   }
 
+  console.log("Login attempt:", email.toLowerCase());
   db.get(`SELECT * FROM Users WHERE email = ?`, [email.toLowerCase()], async (err, user) => {
-    if (err) return res.status(500).json({ error: 'Erreur serveur.' });
+    console.log("DB GET result:", { err, userFound: !!user });
+    if (err) {
+      console.error("Login DB GET Error:", err);
+      return res.status(500).json({ error: 'Erreur serveur.' });
+    }
     if (!user) return res.status(400).json({ error: 'Identifiants incorrects.' });
 
     const isValid = await bcrypt.compare(password, user.password);
@@ -110,7 +115,10 @@ app.post('/api/auth/login', (req, res) => {
     const refreshToken = crypto.randomBytes(40).toString('hex');
     
     db.run(`UPDATE Users SET refreshToken = ? WHERE id = ?`, [refreshToken, user.id], (updateErr) => {
-      if (updateErr) return res.status(500).json({ error: 'Erreur serveur.' });
+      if (updateErr) {
+        console.error("Login DB UPDATE Error:", updateErr);
+        return res.status(500).json({ error: 'Erreur serveur.' });
+      }
       
       res.json({
         user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, phone: user.phone || '', role: user.role, avatar: user.avatar, bio: user.bio || '', companyName: user.companyName || '', parentName: user.parentName || '', parentPhone: user.parentPhone || '' },

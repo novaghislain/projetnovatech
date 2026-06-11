@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 import './Galerie.css';
 import { API_URL } from '../config';
+import Testimonials from './Testimonials';
 
 const translateGalleryTag = (tag, lang) => {
   if (lang !== 'en') return tag;
@@ -91,11 +92,11 @@ const Galerie = () => {
       {/* ── Header ── */}
       <div className="page-top-bar">
         <div className="container">
-          <h1>{language === 'en' ? 'Photo Gallery' : 'Galerie Photo'}</h1>
+          <h1>{language === 'en' ? 'Gallery & Testimonials' : 'Galerie & Témoignages'}</h1>
           <p className="page-top-desc">
             {language === 'en' 
-              ? 'Discover our training sessions, workshops, and events in pictures.'
-              : 'Découvrez nos sessions de formation, ateliers et événements en images.'}
+              ? 'Discover our training sessions, workshops, and events in pictures, and read what our learners have to say.'
+              : 'Découvrez nos sessions de formation, ateliers et événements en images, et lisez ce que nos apprenants en disent.'}
           </p>
         </div>
       </div>
@@ -186,6 +187,9 @@ const Galerie = () => {
           </button>
         </div>
       )}
+
+      {/* ── Testimonials Section ── */}
+      <Testimonials />
     </div>
   );
 };

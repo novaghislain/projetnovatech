@@ -139,8 +139,7 @@ const Navbar = () => {
             {!isLoggedIn ? (
               <>
                 <Link to="/a-propos" onClick={closeAll}>{t('nav_about')}</Link>
-                <Link to="/galerie" onClick={closeAll}>{t('nav_gallery')}</Link>
-                <Link to="/temoignages" onClick={closeAll}>{t('nav_testimonials')}</Link>
+                <Link to="/galerie" onClick={closeAll}>{t('nav_gallery')} & {t('nav_testimonials')}</Link>
               </>
             ) : (
               <>
