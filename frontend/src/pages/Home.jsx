@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import { translateCategory, translateDuration, translateAgeGroup, translateLevel, translateTitle, translateDescription } from '../utils/translator';
 import {
   Monitor, Shield, Code2, BrainCircuit, UserCheck,
   GraduationCap, BookOpen, FlaskConical, Award, Clock, ArrowRight,
@@ -11,6 +12,7 @@ import {
 
 import './Home.css';
 import { API_URL, getImageUrl } from '../config';
+import CourseImageSlider from '../components/CourseImageSlider';
 
 const Home = () => {
   const { t, language } = useLanguage();
@@ -223,28 +225,28 @@ const Home = () => {
             {featuredCourses.map((course, i) => (
               <div className="course-card" key={i} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-light)', transition: 'all 0.3s ease', display: 'flex', flexDirection: 'column' }}>
                 <div className="course-card-img" style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
-                  <img src={getImageUrl(course.imageUrl) || '/10x.jpg'} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#f8fafc' }} />
+                  <CourseImageSlider formation={course} height="180px" />
                   {course.category && (
-                    <div style={{ position: 'absolute', top: '15px', right: '15px', backgroundColor: 'var(--color-white)', padding: '0.4rem 0.8rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', boxShadow: 'var(--shadow-sm)' }}>
-                      {course.category}
+                    <div style={{ position: 'absolute', top: '15px', right: '15px', backgroundColor: 'var(--color-white)', padding: '0.4rem 0.8rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', boxShadow: 'var(--shadow-sm)', zIndex: 2 }}>
+                      {translateCategory(course.category, language)}
                     </div>
                   )}
                 </div>
                 <div className="course-card-content" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>{course.title}</h3>
+                  <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>{translateTitle(course.title, language)}</h3>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '1.2rem' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Clock size={16} /> {course.duration}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><UserCheck size={16} /> {course.ageGroup}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Clock size={16} /> {translateDuration(course.duration, language)}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><UserCheck size={16} /> {translateAgeGroup(course.ageGroup, language)}</span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><MapPin size={16} /> {getFormatDisplay(course)}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Layers size={16} /> {course.level || 'Tous niveaux'}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Layers size={16} /> {translateLevel(course.level, language) || t('fd_all_levels')}</span>
                   </div>
                   <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1.2rem' }}>
                     <div>
                       <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>
-                        {course.isFull || course.status === 'full' ? t('courses_full') : `Places: ${course.enrolled || 0}/${course.maxParticipants || 15}`}
+                        {course.isFull || course.status === 'full' ? t('courses_full') : `${language === 'en' ? 'Spots' : 'Places'}: ${course.enrolled || 0}/${course.maxParticipants || 15}`}
                       </span>
                       <strong style={{ fontSize: '1.1rem', color: 'var(--color-primary)', fontFamily: 'var(--font-heading)' }}>
-                        {course.price ? course.price.toLocaleString() + ' FCFA' : t('courses_free')}
+                        {course.price ? `${course.price.toLocaleString(language === 'en' ? 'en-US' : 'fr-FR')} FCFA` : t('courses_free')}
                       </strong>
                     </div>
                     <Link to={language === 'en' ? '/en/enroll' : '/inscription'} state={{ formationId: course.id }} className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>

@@ -381,10 +381,10 @@ module.exports = function(db, authenticateToken) {
 
   // 7. Testimonials (Témoignages)
   router.post('/testimonials', (req, res) => {
-    const { authorName, age, courseName, comment, rating, avatar } = req.body;
+    const { authorName, age, courseName, comment, rating, avatar, mediaUrl, mediaType } = req.body;
     db.run(
-      "INSERT INTO Testimonials (authorName, age, courseName, comment, rating, avatar) VALUES (?, ?, ?, ?, ?, ?)",
-      [authorName, age, courseName, comment, rating || 5, avatar || '/2x.png'],
+      "INSERT INTO Testimonials (authorName, age, courseName, comment, rating, avatar, mediaUrl, mediaType) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [authorName, age, courseName, comment, rating || 5, avatar || '/2x.png', mediaUrl || '', mediaType || 'none'],
       function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true, id: this.lastID });

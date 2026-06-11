@@ -108,24 +108,30 @@ app.post('/api/auth/login', (req, res) => {
     }
     if (!user) return res.status(400).json({ error: 'Identifiants incorrects.' });
 
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) return res.status(400).json({ error: 'Identifiants incorrects.' });
+    try {
+      console.log("Comparing password for user", user.id);
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) return res.status(400).json({ error: 'Identifiants incorrects.' });
 
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
-    const refreshToken = crypto.randomBytes(40).toString('hex');
-    
-    db.run(`UPDATE Users SET refreshToken = ? WHERE id = ?`, [refreshToken, user.id], (updateErr) => {
-      if (updateErr) {
-        console.error("Login DB UPDATE Error:", updateErr);
-        return res.status(500).json({ error: 'Erreur serveur.' });
-      }
+      const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
+      const refreshToken = crypto.randomBytes(40).toString('hex');
       
-      res.json({
-        user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, phone: user.phone || '', role: user.role, avatar: user.avatar, bio: user.bio || '', companyName: user.companyName || '', parentName: user.parentName || '', parentPhone: user.parentPhone || '' },
-        token,
-        refreshToken
+      db.run(`UPDATE Users SET refreshToken = ? WHERE id = ?`, [refreshToken, user.id], (updateErr) => {
+        if (updateErr) {
+          console.error("Login DB UPDATE Error:", updateErr);
+          return res.status(500).json({ error: 'Erreur serveur.' });
+        }
+        
+        res.json({
+          user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, phone: user.phone || '', role: user.role, avatar: user.avatar, bio: user.bio || '', companyName: user.companyName || '', parentName: user.parentName || '', parentPhone: user.parentPhone || '' },
+          token,
+          refreshToken
+        });
       });
-    });
+    } catch (error) {
+      console.error("Login bcrypt/JWT error:", error);
+      res.status(500).json({ error: "Erreur interne de connexion" });
+    }
   });
 });
 

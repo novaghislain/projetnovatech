@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Clock, Users, Calendar, CheckCircle2, ShieldCheck, ArrowLeft, AlertCircle } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
+import { Clock, Users, Calendar, CheckCircle2, ShieldCheck, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { translateCategory, translateDuration, translateAgeGroup, translateLevel, translateTitle, translateDescription } from '../utils/translator';
 
 import './Home.css';
-import { API_URL } from '../config';
+import { API_URL, getImageUrl } from '../config';
 
 const FormationDetails = () => {
   const { id } = useParams();
   const auth = useAuth();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -16,6 +19,7 @@ const FormationDetails = () => {
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchFormation = async () => {
@@ -40,13 +44,42 @@ const FormationDetails = () => {
     fetchFormation();
   }, [id]);
 
-  if (loading) return <div style={{ textAlign: 'center', padding: '5rem' }}>Chargement...</div>;
+  const images = useMemo(() => {
+    if (!formation) return ['/10x.jpg'];
+    let urls = [];
+    if (formation.imageUrls) {
+      try {
+        urls = typeof formation.imageUrls === 'string' ? JSON.parse(formation.imageUrls) : formation.imageUrls;
+      } catch(e) {}
+    }
+    if (urls.length === 0 && formation.imageUrl) {
+      urls = [formation.imageUrl];
+    }
+    if (urls.length === 0) {
+      urls = ['/10x.jpg'];
+    }
+    return urls.map(getImageUrl);
+  }, [formation]);
+
+  useEffect(() => {
+    if (images.length > 1) {
+      const timer = setInterval(() => {
+        setCurrentImageIndex(prev => (prev + 1) % images.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [images.length]);
+
+  const nextImage = () => setCurrentImageIndex(prev => (prev + 1) % images.length);
+  const prevImage = () => setCurrentImageIndex(prev => (prev - 1 + images.length) % images.length);
+
+  if (loading) return <div style={{ textAlign: 'center', padding: '5rem' }}>{language === 'en' ? 'Loading...' : 'Chargement...'}</div>;
 
   if (error || !formation) return (
     <div className="container section-padding" style={{ textAlign: 'center', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-      <h2 style={{ color: 'var(--color-primary)' }}>Formation introuvable</h2>
-      <p style={{ color: 'var(--color-text-muted)' }}>La formation que vous cherchez n'existe pas ou a été retirée.</p>
-      <Link to="/" className="btn btn-primary" style={{ marginTop: '1rem' }}>Retour à l'accueil</Link>
+      <h2 style={{ color: 'var(--color-primary)' }}>{language === 'en' ? 'Course not found' : 'Formation introuvable'}</h2>
+      <p style={{ color: 'var(--color-text-muted)' }}>{language === 'en' ? 'The course you are looking for does not exist or has been removed.' : 'La formation que vous cherchez n\'existe pas ou a été retirée.'}</p>
+      <Link to="/" className="btn btn-primary" style={{ marginTop: '1rem' }}>{language === 'en' ? 'Back to Home' : 'Retour à l\'accueil'}</Link>
     </div>
   );
 
@@ -56,13 +89,13 @@ const FormationDetails = () => {
 
   const getFormatDisplay = () => {
     if (formation.format === 'physique' || formation.format === 'présentiel') {
-      return `Présentiel ${formation.location ? '(' + formation.location + ')' : ''}`;
+      return (language === 'en' ? 'In-person ' : 'Présentiel ') + (formation.location ? '(' + formation.location + ')' : '');
     } else if (formation.format === 'en_ligne' || formation.format === 'hybride') {
-      return 'En ligne (Google Meet / WhatsApp)';
+      return language === 'en' ? 'Online (Google Meet / WhatsApp)' : 'En ligne (Google Meet / WhatsApp)';
     } else if (formation.format === 'masse') {
-      return `Camp de vacance / Masse ${formation.location ? '(' + formation.location + ')' : ''}`;
+      return (language === 'en' ? 'Vacation Camp / Mass ' : 'Camp de vacance / Masse ') + (formation.location ? '(' + formation.location + ')' : '');
     }
-    return formation.isOnline ? 'En ligne' : (formation.location || 'Présentiel');
+    return formation.isOnline ? (language === 'en' ? 'Online' : 'En ligne') : (formation.location || (language === 'en' ? 'In-person' : 'Présentiel'));
   };
 
   const handleEnrollClick = () => {
@@ -73,21 +106,47 @@ const FormationDetails = () => {
     <div className="page-transition" style={{ backgroundColor: 'var(--color-bg-light)', minHeight: '100vh', paddingBottom: '4rem' }}>
       
       {/* HERO BANNER */}
-      <div style={{ position: 'relative', height: '450px', width: '100%' }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${formation.imageUrl || '/10x.jpg'})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(16, 24, 40, 0.95) 0%, rgba(16, 24, 40, 0.6) 50%, rgba(16, 24, 40, 0.2) 100%)' }} />
-        </div>
-        <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', color: 'white', paddingTop: '4rem' }}>
+      <div style={{ position: 'relative', height: '450px', width: '100%', backgroundColor: 'var(--color-primary)', overflow: 'hidden' }}>
+        {images.map((img, idx) => (
+          <div key={idx} style={{ 
+            position: 'absolute', inset: 0, 
+            backgroundImage: `url(${img})`, 
+            backgroundSize: 'cover', 
+            backgroundPosition: 'center', 
+            backgroundColor: 'var(--color-primary)',
+            opacity: currentImageIndex === idx ? 1 : 0,
+            transition: 'opacity 1s ease-in-out',
+            zIndex: 1
+          }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(16, 24, 40, 0.8) 0%, rgba(16, 24, 40, 0.5) 50%, rgba(16, 24, 40, 0.1) 100%)' }} />
+          </div>
+        ))}
+        {images.length > 1 && (
+          <>
+            <button onClick={prevImage} style={{ position: 'absolute', top: '50%', left: '20px', transform: 'translateY(-50%)', zIndex: 10, background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <ChevronLeft size={24} />
+            </button>
+            <button onClick={nextImage} style={{ position: 'absolute', top: '50%', right: '20px', transform: 'translateY(-50%)', zIndex: 10, background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <ChevronRight size={24} />
+            </button>
+            <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', gap: '8px' }}>
+              {images.map((_, idx) => (
+                <div key={idx} onClick={() => setCurrentImageIndex(idx)} style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: currentImageIndex === idx ? 'var(--color-accent)' : 'rgba(255,255,255,0.5)', cursor: 'pointer', transition: 'background-color 0.3s' }} />
+              ))}
+            </div>
+          </>
+        )}
+        <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', color: 'white', paddingTop: '4rem', zIndex: 2 }}>
           <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.8)', textDecoration: 'none', marginBottom: '2rem', fontWeight: 600, transition: 'color 0.2s' }}>
-            <ArrowLeft size={18} /> Retour aux formations
+            <ArrowLeft size={18} /> {t('fd_back')}
           </Link>
           <div style={{ display: 'inline-block', backgroundColor: 'var(--color-accent)', color: 'white', padding: '0.5rem 1.2rem', borderRadius: '30px', fontSize: '0.9rem', fontWeight: 700, marginBottom: '1.5rem', width: 'fit-content', boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
-            {formation.category}
+            {translateCategory(formation.category, language)}
           </div>
-          <h1 style={{ fontSize: '3.5rem', margin: '0 0 1.5rem 0', maxWidth: '800px', lineHeight: 1.1, fontWeight: 800 }}>{formation.title}</h1>
+          <h1 style={{ fontSize: '3.5rem', margin: '0 0 1.5rem 0', maxWidth: '800px', lineHeight: 1.1, fontWeight: 800 }}>{translateTitle(formation.title, language)}</h1>
           <div style={{ display: 'flex', gap: '2.5rem', fontSize: '1.15rem', opacity: 0.95, fontWeight: 500 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}><Clock size={22} color="var(--color-accent)" /> {formation.duration}</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}><Users size={22} color="var(--color-accent)" /> {formation.ageGroup}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}><Clock size={22} color="var(--color-accent)" /> {translateDuration(formation.duration, language)}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}><Users size={22} color="var(--color-accent)" /> {translateAgeGroup(formation.ageGroup, language)}</span>
           </div>
         </div>
       </div>
@@ -98,38 +157,38 @@ const FormationDetails = () => {
           
           {/* LEFT CONTENT */}
           <div style={{ backgroundColor: 'var(--color-white)', padding: '3rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
-            <h2 style={{ fontSize: '1.8rem', color: 'var(--color-primary)', marginBottom: '1.5rem' }}>À propos de cette formation</h2>
+            <h2 style={{ fontSize: '1.8rem', color: 'var(--color-primary)', marginBottom: '1.5rem' }}>{t('fd_about')}</h2>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem', lineHeight: 1.8, marginBottom: '2.5rem', whiteSpace: 'pre-line' }}>
-              {formation.description || "Cette formation est spécialement conçue pour vous permettre de maîtriser de nouvelles compétences pratiques, étape par étape."}
+              {translateDescription(formation.description, language) || t('fd_default_desc')}
             </p>
 
-            <h3 style={{ fontSize: '1.4rem', color: 'var(--color-primary)', marginBottom: '1.5rem' }}>Détails pratiques</h3>
+            <h3 style={{ fontSize: '1.4rem', color: 'var(--color-primary)', marginBottom: '1.5rem' }}>{t('fd_practical')}</h3>
             <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: '1rem', marginBottom: '3rem' }}>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', color: 'var(--color-text-muted)', fontSize: '1.05rem', lineHeight: 1.5 }}>
                 <CheckCircle2 size={24} color="var(--color-accent)" style={{ flexShrink: 0 }} />
-                <span>Niveau : <strong>{formation.level || 'Tous niveaux'}</strong></span>
+                <span>{t('fd_level')} <strong>{translateLevel(formation.level, language) || t('fd_all_levels')}</strong></span>
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', color: 'var(--color-text-muted)', fontSize: '1.05rem', lineHeight: 1.5 }}>
                 <CheckCircle2 size={24} color="var(--color-accent)" style={{ flexShrink: 0 }} />
-                <span>Format : <strong>{getFormatDisplay()}</strong></span>
+                <span>{t('fd_format')} <strong>{getFormatDisplay()}</strong></span>
               </li>
               {formation.sessionsPerWeek && (
                 <li style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', color: 'var(--color-text-muted)', fontSize: '1.05rem', lineHeight: 1.5 }}>
                   <CheckCircle2 size={24} color="var(--color-accent)" style={{ flexShrink: 0 }} />
-                  <span>Rythme : <strong>{formation.sessionsPerWeek} séances par semaine</strong> ({formation.sessionDuration})</span>
+                  <span>{t('fd_pace')} <strong>{formation.sessionsPerWeek} {t('fd_sessions_week')}</strong> ({formation.sessionDuration})</span>
                 </li>
               )}
             </ul>
 
             {modules && modules.length > 0 && (
               <div style={{ marginTop: '4rem' }}>
-                <h3 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', marginBottom: '1.5rem' }}>Programme de la formation</h3>
+                <h3 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', marginBottom: '1.5rem' }}>{t('fd_curriculum')}</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {modules.map((m, i) => (
                     <details key={m.id} style={{ backgroundColor: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                       <summary style={{ padding: '1.2rem 1.5rem', fontWeight: 600, color: 'var(--color-primary)', cursor: 'pointer', listStyle: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'white' }}>
-                        <span style={{ fontSize: '1.1rem' }}>Module {i + 1} : {m.title}</span>
-                        <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500, backgroundColor: '#f1f5f9', padding: '0.3rem 0.8rem', borderRadius: '20px' }}>{m.chapters?.length || 0} chapitres</span>
+                        <span style={{ fontSize: '1.1rem' }}>{t('fd_module')} {i + 1} : {m.title}</span>
+                        <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500, backgroundColor: '#f1f5f9', padding: '0.3rem 0.8rem', borderRadius: '20px' }}>{m.chapters?.length || 0} {t('fd_chapters')}</span>
                       </summary>
                       <div style={{ padding: '0 1.5rem 1.5rem 1.5rem', backgroundColor: 'white' }}>
                         {m.chapters?.map((c, j) => (
@@ -141,7 +200,7 @@ const FormationDetails = () => {
                               <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '1.05rem', color: '#334155' }}>{c.title}</h4>
                               {c.lessons && c.lessons.length > 0 && (
                                 <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
-                                  {c.lessons.length} leçon(s) au programme
+                                  {c.lessons.length} {t('fd_lessons')}
                                 </p>
                               )}
                             </div>
@@ -159,17 +218,17 @@ const FormationDetails = () => {
           <aside style={{ position: 'sticky', top: '2rem' }}>
             <div style={{ backgroundColor: 'var(--color-white)', padding: '2.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--color-border)', marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem', marginBottom: '1rem' }}>
-                <span style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--color-primary)', lineHeight: 1 }}>{formation.price?.toLocaleString()} FCFA</span>
+                <span style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--color-primary)', lineHeight: 1 }}>{formation.price?.toLocaleString(language === 'en' ? 'en-US' : 'fr-FR')} FCFA</span>
               </div>
               
               <div style={{ marginBottom: '2rem' }}>
                 {isFull ? (
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#fee2e2', color: '#dc2626', padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.9rem', fontWeight: 600 }}>
-                    <AlertCircle size={16} /> FORMATION COMPLÈTE
+                    <AlertCircle size={16} /> {t('courses_full')}
                   </div>
                 ) : (
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: showWarning ? '#ffedd5' : '#dcfce7', color: showWarning ? '#c2410c' : '#166534', padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.9rem', fontWeight: 600 }}>
-                    <Users size={16} /> Il reste {spotsLeft} place(s) disponible(s)
+                    <Users size={16} /> {t('fd_spots_left').replace('{spots}', spotsLeft)}
                   </div>
                 )}
                 
@@ -179,22 +238,13 @@ const FormationDetails = () => {
               </div>
 
               <button 
+                onClick={handleEnrollClick}
                 className="btn btn-primary" 
-                onClick={handleEnrollClick} 
-                style={{ width: '100%', justifyContent: 'center', padding: '1rem', fontSize: '1.05rem', backgroundColor: isFull ? '#475569' : 'var(--color-primary)' }}
+                style={{ width: '100%', padding: '1.2rem', fontSize: '1.1rem', borderRadius: '12px' }}
               >
-                {isFull ? 'Rejoindre la liste d\'attente' : 'S\'inscrire maintenant'}
+                {t('fd_enroll_now')}
               </button>
             </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', backgroundColor: 'var(--color-white)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-              <ShieldCheck size={32} color="var(--color-accent)" />
-              <div>
-                <strong style={{ display: 'block', color: 'var(--color-primary)', fontSize: '0.95rem' }}>Paiement 100% sécurisé</strong>
-                <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Transaction cryptée via Kkiapay / FedaPay</span>
-              </div>
-            </div>
-
           </aside>
 
         </div>

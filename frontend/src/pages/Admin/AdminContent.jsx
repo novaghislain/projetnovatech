@@ -13,7 +13,7 @@ const AdminContent = () => {
   const [showGalleryModal, setShowGalleryModal] = useState(false);
 
   // Form states
-  const [testimonialForm, setTestimonialForm] = useState({ authorName: '', age: '', courseName: '', comment: '', rating: 5, avatar: '' });
+  const [testimonialForm, setTestimonialForm] = useState({ authorName: '', age: '', courseName: '', comment: '', rating: 5, avatar: '', mediaUrl: '', mediaType: 'none' });
   const [galleryForm, setGalleryForm] = useState({ title: '', imageUrl: '', category: 'Classes' });
 
   // Static pages states
@@ -130,7 +130,7 @@ const AdminContent = () => {
     try {
       await axios.post(`${API_URL}/api/admin/testimonials`, testimonialForm, getHeaders());
       setShowTestimonialModal(false);
-      setTestimonialForm({ authorName: '', age: '', courseName: '', comment: '', rating: 5, avatar: '' });
+      setTestimonialForm({ authorName: '', age: '', courseName: '', comment: '', rating: 5, avatar: '', mediaUrl: '', mediaType: 'none' });
       fetchContent();
     } catch (err) {
       alert("Erreur: " + err.message);
@@ -297,6 +297,35 @@ const AdminContent = () => {
                 <div className="form-group">
                   <label>Avatar URL (Optionnel)</label>
                   <input type="text" name="avatar" className="form-control" placeholder="/2x.png" onChange={handleTestimonialChange} />
+                </div>
+                <div className="form-group">
+                  <label>Média du témoignage (Photo ou Vidéo)</label>
+                  <input type="file" accept="image/*,video/*" className="form-control" onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const isVideo = file.type.startsWith('video/');
+                    const formData = new FormData();
+                    formData.append('image', file); // Multer uses 'image' key
+                    try {
+                      const token = localStorage.getItem('nv_token');
+                      const res = await fetch(`${API_URL}/api/upload`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                      });
+                      const data = await res.json();
+                      if (data.imageUrl) {
+                        setTestimonialForm(f => ({ ...f, mediaUrl: data.imageUrl, mediaType: isVideo ? 'video' : 'image' }));
+                      }
+                    } catch (err) {
+                      alert("Erreur lors de l'upload du média");
+                    }
+                  }} />
+                  {testimonialForm.mediaUrl && (
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'green' }}>
+                      Média téléchargé avec succès ({testimonialForm.mediaType})
+                    </div>
+                  )}
                 </div>
                 
                 <div className="form-group">

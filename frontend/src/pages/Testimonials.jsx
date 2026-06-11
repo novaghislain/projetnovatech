@@ -86,6 +86,16 @@ const Testimonials = () => {
                     {'★'.repeat(t.rating)}<span className="empty-star">{'★'.repeat(5 - t.rating)}</span>
                   </div>
                   
+                  {t.mediaUrl && (
+                    <div style={{ margin: '1rem 0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                      {t.mediaType === 'video' ? (
+                        <video src={t.mediaUrl.startsWith('http') ? t.mediaUrl : `${API_URL}${t.mediaUrl}`} controls style={{ width: '100%', maxHeight: '250px', display: 'block', backgroundColor: '#000' }} />
+                      ) : (
+                        <img src={t.mediaUrl.startsWith('http') ? t.mediaUrl : `${API_URL}${t.mediaUrl}`} alt="Média" style={{ width: '100%', maxHeight: '250px', objectFit: 'cover', display: 'block' }} />
+                      )}
+                    </div>
+                  )}
+                  
                   <p className="card-comment">
                     {t.comment}
                   </p>

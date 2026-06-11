@@ -177,6 +177,25 @@ const translations = {
     cat_secure_banner_title: 'Paiement 100% sécurisé via FedaPay',
     cat_secure_banner_desc: 'Vos transactions sont cryptées et protégées. Nous ne conservons aucune donnée bancaire.',
 
+    // FormationDetails
+    fd_back: 'Retour aux formations',
+    fd_about: 'À propos de cette formation',
+    fd_default_desc: 'Cette formation est spécialement conçue pour vous permettre de maîtriser de nouvelles compétences pratiques, étape par étape.',
+    fd_practical: 'Détails pratiques',
+    fd_level: 'Niveau :',
+    fd_all_levels: 'Tous niveaux',
+    fd_format: 'Format :',
+    fd_pace: 'Rythme :',
+    fd_sessions_week: 'séances par semaine',
+    fd_curriculum: 'Programme de la formation',
+    fd_module: 'Module',
+    fd_chapters: 'chapitres',
+    fd_lessons: 'leçon(s) au programme',
+    fd_spots_left: 'Il reste {spots} place(s) disponible(s)',
+    fd_enroll_now: "S'inscrire maintenant",
+    fd_secure_pay: 'Paiement 100% sécurisé',
+    fd_secure_desc: 'Transaction cryptée via Kkiapay / FedaPay',
+
     // ApprenantDashboard
     dash_welcome: 'Bonjour,',
     dash_courses_in_progress: 'formation(s) en cours',
@@ -441,6 +460,25 @@ const translations = {
     cat_waitlist: 'Waitlist',
     cat_secure_banner_title: '100% Secure Payment via FedaPay',
     cat_secure_banner_desc: 'Your transactions are encrypted and protected. We do not store any banking data.',
+
+    // FormationDetails
+    fd_back: 'Back to courses',
+    fd_about: 'About this course',
+    fd_default_desc: 'This course is specially designed to allow you to master new practical skills, step by step.',
+    fd_practical: 'Practical details',
+    fd_level: 'Level :',
+    fd_all_levels: 'All levels',
+    fd_format: 'Format :',
+    fd_pace: 'Pace :',
+    fd_sessions_week: 'sessions per week',
+    fd_curriculum: 'Course curriculum',
+    fd_module: 'Module',
+    fd_chapters: 'chapters',
+    fd_lessons: 'lesson(s) in curriculum',
+    fd_spots_left: '{spots} spot(s) remaining',
+    fd_enroll_now: 'Enroll now',
+    fd_secure_pay: '100% secure payment',
+    fd_secure_desc: 'Encrypted transaction via Kkiapay / FedaPay',
 
     // ApprenantDashboard
     dash_welcome: 'Hello,',

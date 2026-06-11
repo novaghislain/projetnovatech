@@ -27,18 +27,20 @@ class Database {
     }
     params = params || [];
 
+    let result, success = false;
     try {
       this._db.run(sql, params);
       const changes = this._db.getRowsModified();
       const lastID = this._db.exec("SELECT last_insert_rowid() as id");
       const id = lastID.length > 0 ? lastID[0].values[0][0] : null;
-
-      if (callback) callback(null, { changes, lastID: id });
-      return this;
+      result = { changes, lastID: id };
+      success = true;
     } catch (err) {
       if (callback) callback(err);
       return this;
     }
+    if (success && callback) callback(null, result);
+    return this;
   }
 
   /**
@@ -51,11 +53,11 @@ class Database {
     }
     params = params || [];
 
+    let row = null, success = false;
     try {
       const stmt = this._db.prepare(sql);
       if (params.length > 0) stmt.bind(params);
 
-      let row = null;
       if (stmt.step()) {
         const cols = stmt.getColumnNames();
         const vals = stmt.get();
@@ -65,11 +67,13 @@ class Database {
         });
       }
       stmt.free();
-
-      if (callback) callback(null, row);
+      success = true;
     } catch (err) {
       if (callback) callback(err);
+      return this;
     }
+    if (success && callback) callback(null, row);
+    return this;
   }
 
   /**
@@ -82,11 +86,11 @@ class Database {
     }
     params = params || [];
 
+    let rows = [], success = false;
     try {
       const stmt = this._db.prepare(sql);
       if (params.length > 0) stmt.bind(params);
 
-      const rows = [];
       while (stmt.step()) {
         const cols = stmt.getColumnNames();
         const vals = stmt.get();
@@ -97,11 +101,13 @@ class Database {
         rows.push(row);
       }
       stmt.free();
-
-      if (callback) callback(null, rows);
+      success = true;
     } catch (err) {
       if (callback) callback(err);
+      return this;
     }
+    if (success && callback) callback(null, rows);
+    return this;
   }
 
   /**
@@ -313,6 +319,7 @@ const initDb = async () => {
     
     addColumnIfMissing('Formations', "format TEXT DEFAULT 'en_ligne'");
     addColumnIfMissing('Formations', "locationMode TEXT DEFAULT 'en_ligne'");
+    addColumnIfMissing('Formations', "imageUrls TEXT");
 
     const enrollCols = [
       "childFirstName TEXT", "childLastName TEXT", "childAge TEXT",
@@ -335,9 +342,14 @@ const initDb = async () => {
         comment TEXT NOT NULL,
         rating INTEGER DEFAULT 5,
         avatar TEXT,
+        mediaUrl TEXT,
+        mediaType TEXT DEFAULT 'none',
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    addColumnIfMissing('Testimonials', "mediaUrl TEXT");
+    addColumnIfMissing('Testimonials', "mediaType TEXT DEFAULT 'none'");
 
     // Seed testimonials
     try {

@@ -7,7 +7,7 @@ import './FormateurDashboard.css';
 import './Admin/AdminDashboard.css';
 import { API_URL } from '../config';
 
-const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Débutant', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne', meetLink: '', whatsappLink: '', imageUrl: '', sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
+const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Débutant', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne', meetLink: '', whatsappLink: '', imageUrl: '', imageUrls: [], sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
 
 const localT = {
   fr: {
@@ -1412,8 +1412,8 @@ const FormateurDashboard = () => {
                             ageGroup: raw.ageGroup || '', level: raw.level || '', duration: raw.duration || '',
                             price: raw.price || '', registrationFee: raw.registrationFee || '', maxParticipants: raw.maxParticipants || 20,
                             startDate: raw.startDate || '', endDate: raw.endDate || '', location: raw.location || '',
-                            format: raw.format || 'en_ligne', locationMode: raw.locationMode || 'en_ligne', meetLink: raw.meetLink || '', whatsappLink: raw.whatsappLink || '',
-                            imageUrl: raw.imageUrl || '', sessionsPerWeek: raw.sessionsPerWeek || 2, sessionDuration: raw.sessionDuration || '',
+                            format: raw.format || 'en_ligne', locationMode: raw.locationMode || 'en_ligne', meetLink: raw.meetLink || '', whatsappLink: raw.whatsappLink || '', 
+                            imageUrl: raw.imageUrl || '', imageUrls: raw.imageUrls ? JSON.parse(raw.imageUrls) : [], sessionsPerWeek: raw.sessionsPerWeek || 2, sessionDuration: raw.sessionDuration || '',
                             status: raw.status || 'published'
                           });
                           setEditingCourse(course.id);
@@ -1466,7 +1466,7 @@ const FormateurDashboard = () => {
                 const res = await fetch(url, {
                   method,
                   headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                  body: JSON.stringify(courseForm)
+                  body: JSON.stringify({...courseForm, imageUrls: JSON.stringify(courseForm.imageUrls || [])})
                 });
                 const result = await res.json();
                 if (result.success || result.id) {
@@ -1479,7 +1479,7 @@ const FormateurDashboard = () => {
               finally { setCourseFormLoading(false); }
             }} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
 
-              {[['Titre *', 'title', 'text', true], ['Description', 'description', 'text', false], ['Lien Meet (si en ligne)', 'meetLink', 'text', false], ['Lien WhatsApp', 'whatsappLink', 'text', false], ['Date de début', 'startDate', 'date', false], ['Date de fin', 'endDate', 'date', false], ['Lieu (si présentiel)', 'location', 'text', false]].map(([frLabel, key, type, required]) => (
+              {[['Titre *', 'title', 'text', true], ['Description', 'description', 'text', false], ['Lien Meet (si en ligne)', 'meetLink', 'text', false], ['Lien WhatsApp', 'whatsappLink', 'text', false], ['Date de début', 'startDate', 'date', false], ['Date de fin', 'endDate', 'date', false]].map(([frLabel, key, type, required]) => (
                 <div key={key}>
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{fieldLabels[key] || frLabel}</label>
                   <input
@@ -1493,37 +1493,63 @@ const FormateurDashboard = () => {
               ))}
 
               <div>
-                <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Course Image' : 'Image de la formation'}</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="file"
+                <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Course Images (Select multiple)' : 'Images de la formation (Plusieurs possibles)'}</label>
+                  <input 
+                    type="file" 
                     accept="image/*"
+                    multiple
                     onChange={async (e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-                      const formData = new FormData();
-                      formData.append('image', file);
-                      try {
-                        const token = localStorage.getItem('nv_token');
-                        const res = await fetch(`${API_URL}/api/upload`, {
-                          method: 'POST',
-                          headers: { 'Authorization': `Bearer ${token}` },
-                          body: formData
-                        });
-                        const data = await res.json();
-                        if (data.imageUrl) {
-                          setCourseForm(f => ({ ...f, imageUrl: data.imageUrl }));
+                      const files = Array.from(e.target.files);
+                      if (files.length === 0) return;
+                      
+                      const token = localStorage.getItem('nv_token');
+                      const uploadedUrls = [];
+                      
+                      for (const file of files) {
+                        const formData = new FormData();
+                        formData.append('image', file);
+                        try {
+                          const res = await fetch(`${API_URL}/api/upload`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}` },
+                            body: formData
+                          });
+                          const data = await res.json();
+                          if (data.imageUrl) {
+                            uploadedUrls.push(data.imageUrl);
+                          }
+                        } catch (err) {
+                          console.error("Upload error", err);
                         }
-                      } catch (err) {
-                        alert(language === 'en' ? 'Image upload failed' : 'Erreur lors de l\'upload de l\'image');
+                      }
+                      
+                      if (uploadedUrls.length > 0) {
+                        setCourseForm(f => {
+                          const newUrls = [...(f.imageUrls || []), ...uploadedUrls];
+                          return { ...f, imageUrls: newUrls, imageUrl: newUrls[0] };
+                        });
                       }
                     }}
                     style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box', background: '#f8fafc' }}
                   />
-                  {courseForm.imageUrl && (
-                    <img src={courseForm.imageUrl.startsWith('http') ? courseForm.imageUrl : `${API_URL}${courseForm.imageUrl}`} alt="Aperçu" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                  {courseForm.imageUrls && courseForm.imageUrls.length > 0 && (
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                      {courseForm.imageUrls.map((url, idx) => (
+                        <div key={idx} style={{ position: 'relative' }}>
+                          <img src={url.startsWith('http') ? url : `${API_URL}${url}`} alt="Aperçu" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                          <button 
+                            type="button"
+                            onClick={() => setCourseForm(f => {
+                              const newUrls = f.imageUrls.filter((_, i) => i !== idx);
+                              return { ...f, imageUrls: newUrls, imageUrl: newUrls.length > 0 ? newUrls[0] : '' };
+                            })}
+                            style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', fontSize: '10px' }}>
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
-                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -1549,6 +1575,17 @@ const FormateurDashboard = () => {
                       <option value="en_ligne">En Ligne</option>
                       <option value="physique">Présentiel</option>
                     </select>
+                  </div>
+                )}
+                {(courseForm.format === 'physique' || (courseForm.format === 'masse' && courseForm.locationMode === 'physique')) && (
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Location (if in-person)' : 'Lieu (si présentiel)'}</label>
+                    <input
+                      type="text"
+                      value={courseForm.location}
+                      onChange={e => setCourseForm(f => ({ ...f, location: e.target.value }))}
+                      style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                    />
                   </div>
                 )}
                 <div>

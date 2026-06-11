@@ -4,8 +4,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { Clock, Users, ShieldCheck, Search, Filter, MapPin, Layers } from 'lucide-react';
 
 import { useLanguage } from '../contexts/LanguageContext';
+import { translateDuration, translateAgeGroup, translateLevel, translateTitle, translateDescription, translateCategory } from '../utils/translator';
 import './Home.css';
 import { API_URL, getImageUrl } from '../config';
+import CourseImageSlider from '../components/CourseImageSlider';
 
 const InscriptionFormation = () => {
   const [formations, setFormations] = useState([]);
@@ -21,25 +23,15 @@ const InscriptionFormation = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
 
-  const categoryDisplay = {
-    'Développement': language === 'en' ? 'Development' : 'Développement',
-    'Intelligence Artificielle': language === 'en' ? 'Artificial Intelligence' : 'Intelligence Artificielle',
-    'Bureautique': language === 'en' ? 'Office Applications' : 'Bureautique',
-    'Cybersécurité': language === 'en' ? 'Cybersecurity' : 'Cybersécurité',
-    'Design': language === 'en' ? 'Design' : 'Design',
-    'Robotique': language === 'en' ? 'Robotics' : 'Robotique',
-    'Autre': language === 'en' ? 'Other' : 'Autre'
-  };
-
   const getFormatDisplay = (f) => {
     if (f.format === 'physique' || f.format === 'présentiel') {
-      return `Présentiel ${f.location ? '(' + f.location + ')' : ''}`;
+      return (language === 'en' ? 'In-person ' : 'Présentiel ') + (f.location ? '(' + f.location + ')' : '');
     } else if (f.format === 'en_ligne' || f.format === 'hybride') {
-      return 'En ligne';
+      return language === 'en' ? 'Online' : 'En ligne';
     } else if (f.format === 'masse') {
-      return `Camp / Masse ${f.location ? '(' + f.location + ')' : ''}`;
+      return (language === 'en' ? 'Camp / Mass ' : 'Camp / Masse ') + (f.location ? '(' + f.location + ')' : '');
     }
-    return f.isOnline ? 'En ligne' : (f.location || 'Présentiel');
+    return f.isOnline ? (language === 'en' ? 'Online' : 'En ligne') : (f.location || (language === 'en' ? 'In-person' : 'Présentiel'));
   };
 
   const fetchFormations = useCallback(async () => {
@@ -127,7 +119,7 @@ const InscriptionFormation = () => {
                 <select value={category} onChange={e => setCategory(e.target.value)}
                   style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 13, minWidth: 160 }}>
                   <option value="">{t('cat_category_all')}</option>
-                  {categories.map(c => <option key={c} value={c}>{categoryDisplay[c] || c}</option>)}
+                  {categories.map(c => <option key={c} value={c}>{translateCategory(c, language) || c}</option>)}
                 </select>
               </div>
               <div>
@@ -166,20 +158,20 @@ const InscriptionFormation = () => {
               const isFull = f.isFull || f.status === 'full';
               return (
                 <div key={f.id} className="formation-card">
-                  <div className="formation-card-img">
-                    <img src={f.imageUrl ? getImageUrl(f.imageUrl) : '/10x.jpg'} alt={f.title} />
-                    {f.category && <div className="formation-card-tag">{categoryDisplay[f.category] || f.category}</div>}
-                    {isFull && <div className="formation-card-complet">{t('courses_full').toUpperCase()}</div>}
+                  <div className="formation-card-img" style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
+                    <CourseImageSlider formation={f} height="180px" />
+                    {f.category && <div className="formation-card-tag" style={{zIndex: 2}}>{translateCategory(f.category, language) || f.category}</div>}
+                    {isFull && <div className="formation-card-complet" style={{zIndex: 2}}>{t('courses_full').toUpperCase()}</div>}
                   </div>
                   <div className="formation-card-body">
                     <div className="formation-card-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', color: '#64748b', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Clock size={16} /> {f.duration?.replace('semaines', language === 'en' ? 'weeks' : 'semaines')}</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Users size={16} /> {f.ageGroup?.replace('ans', language === 'en' ? 'years old' : 'ans').replace('Tous âges', language === 'en' ? 'All ages' : 'Tous âges')}</span>
+                      {f.duration && <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Clock size={16} /> {translateDuration(f.duration, language)}</span>}
+                      {f.ageGroup && <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Users size={16} /> {translateAgeGroup(f.ageGroup, language)}</span>}
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><MapPin size={16} /> {getFormatDisplay(f)}</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Layers size={16} /> {f.level || 'Tous niveaux'}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Layers size={16} /> {translateLevel(f.level, language) || t('fd_all_levels')}</span>
                     </div>
-                    <h3>{f.title}</h3>
-                    <p>{f.description}</p>
+                    <h3>{translateTitle(f.title, language)}</h3>
+                    <p>{translateDescription(f.description, language)}</p>
                     
                     {/* Jauge de remplissage & alerte places */}
                     <div style={{ margin: '1rem 0' }}>
@@ -204,15 +196,15 @@ const InscriptionFormation = () => {
                       </div>
                     </div>
 
-                    <div className="formation-card-foot">
-                      <strong>{f.price ? f.price.toLocaleString() + ' FCFA' : t('courses_free')}</strong>
-                      <div className="formation-card-actions">
-                        <Link to={language === 'en' ? `/en/courses/${f.slug || f.id}` : `/formations/${f.slug || f.id}`} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
-                          {t('details')}
-                        </Link>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <strong style={{ fontSize: '1.2rem', color: '#0f172a' }}>
+                        {f.price ? `${f.price.toLocaleString(language === 'en' ? 'en-US' : 'fr-FR')} FCFA` : t('courses_free')}
+                      </strong>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <Link to={language === 'en' ? `/en/courses/${f.slug || f.id}` : `/formations/${f.slug || f.id}`} className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>{t('details')}</Link>
                         <button 
                           className="btn btn-primary" 
-                          style={{ padding: '0.5rem 1rem', backgroundColor: isFull ? '#475569' : 'var(--color-primary)' }}
+                          style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', backgroundColor: isFull ? '#475569' : 'var(--color-primary)' }}
                           onClick={() => handleReserve(f)}
                         >
                           {isFull ? t('cat_waitlist') : t('cat_enroll')}
@@ -225,16 +217,6 @@ const InscriptionFormation = () => {
             })}
           </div>
         )}
-
-
-
-        <div className="secure-banner">
-          <ShieldCheck size={40} />
-          <div>
-            <strong>{t('cat_secure_banner_title')}</strong>
-            <span>{t('cat_secure_banner_desc')}</span>
-          </div>
-        </div>
       </div>
     </div>
   );

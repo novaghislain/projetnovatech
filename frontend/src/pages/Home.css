@@ -374,8 +374,8 @@
 .formation-card-img img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  background-color: #f8fafc;
+  object-fit: cover;
+  background-color: var(--color-primary);
   display: block;
   transition: transform 0.4s ease;
 }
