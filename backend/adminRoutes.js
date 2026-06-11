@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const { sendEmail } = require('./emailService');
 
 module.exports = function(db, authenticateToken) {
@@ -8,7 +9,7 @@ module.exports = function(db, authenticateToken) {
   const requireAdmin = (req, res, next) => {
     db.get("SELECT role FROM Users WHERE id = ?", [req.user.id], (err, user) => {
       if (err) return res.status(500).json({ error: "Erreur serveur" });
-      if (!user || user.role !== 'admin') return res.status(403).json({ error: "Accès refusé. Administrateur uniquement." });
+      if (!user || (user.role !== 'admin' && user.role !== 'admin_restreint')) return res.status(403).json({ error: "Accès refusé. Administrateur uniquement." });
       next();
     });
   };
@@ -35,10 +36,39 @@ module.exports = function(db, authenticateToken) {
 
   // 2. Utilisateurs
   router.get('/users', (req, res) => {
-    db.all("SELECT id, firstName, lastName, email, phone, role, status, createdAt FROM Users ORDER BY id DESC", (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
+    db.all("SELECT id, firstName, lastName, email, phone, role, status, createdAt FROM Users ORDER BY createdAt DESC", [], (err, rows) => {
+      if (err) return res.status(500).json({ error: "Erreur serveur" });
       res.json(rows);
     });
+  });
+
+  router.post('/users', async (req, res) => {
+    const { firstName, lastName, email, phone, password, role, status } = req.body;
+    if (!firstName || !email || !password) {
+      return res.status(400).json({ error: 'Le prénom, email et mot de passe sont requis' });
+    }
+
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const userRole = role || 'apprenant';
+      const userStatus = status || 'active';
+
+      db.run(
+        `INSERT INTO Users (firstName, lastName, email, phone, password, role, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [firstName, lastName || '', email.toLowerCase(), phone || '', hashedPassword, userRole, userStatus],
+        function (err) {
+          if (err) {
+            if (err.message.includes('UNIQUE')) {
+              return res.status(400).json({ error: 'Cet email est déjà utilisé.' });
+            }
+            return res.status(500).json({ error: 'Erreur lors de la création du compte.' });
+          }
+          res.json({ success: true, id: this.lastID });
+        }
+      );
+    } catch (error) {
+      res.status(500).json({ error: "Erreur serveur lors de la création de l'utilisateur" });
+    }
   });
 
   router.put('/users/:id/role', (req, res) => {
@@ -211,15 +241,15 @@ module.exports = function(db, authenticateToken) {
 
   router.post('/formations', (req, res) => {
     const { title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull,
-            whatsappLink, meetLink, startDate, endDate, location, isOnline } = req.body;
+            whatsappLink, meetLink, startDate, endDate, location, isOnline, format, locationMode } = req.body;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
     const query = `
       INSERT INTO Formations (title, slug, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull,
-                              whatsappLink, meetLink, startDate, endDate, location, isOnline)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                              whatsappLink, meetLink, startDate, endDate, location, isOnline, format, locationMode)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     db.run(query, [title, slug, description, category, ageGroup, duration, price, maxParticipants, status || 'published', imageUrl, isFull ? 1 : 0,
-                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', location || '', isOnline ? 1 : 0], function(err) {
+                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne'], function(err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, id: this.lastID });
     });
@@ -227,15 +257,15 @@ module.exports = function(db, authenticateToken) {
 
   router.put('/formations/:id', (req, res) => {
     const { title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull,
-            whatsappLink, meetLink, startDate, endDate, location, isOnline } = req.body;
+            whatsappLink, meetLink, startDate, endDate, location, isOnline, format, locationMode } = req.body;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
     const query = `
       UPDATE Formations SET title=?, slug=?, description=?, category=?, ageGroup=?, duration=?, price=?, maxParticipants=?, status=?, imageUrl=?, isFull=?,
-                            whatsappLink=?, meetLink=?, startDate=?, endDate=?, location=?, isOnline=?
+                            whatsappLink=?, meetLink=?, startDate=?, endDate=?, location=?, isOnline=?, format=?, locationMode=?
       WHERE id=?
     `;
     db.run(query, [title, slug, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull ? 1 : 0,
-                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', location || '', isOnline ? 1 : 0,
+                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne',
                    req.params.id], (err) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true });

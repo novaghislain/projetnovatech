@@ -19,7 +19,7 @@ const Inscription = () => {
   const [selectedCourseId, setSelectedCourseId] = useState(initialFormationId || '');
   const [course, setCourse] = useState(null);
   
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(location.state?.transactionId ? 2 : 1);
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [waitlistSuccess, setWaitlistSuccess] = useState(false);
@@ -31,23 +31,17 @@ const Inscription = () => {
     parentName: auth?.user?.firstName ? `${auth.user.firstName} ${auth.user.lastName}` : '',
     parentPhone: auth?.user?.phone || '',
     parentEmail: auth?.user?.email || '',
+    guestFirstName: '',
+    guestLastName: '',
+    guestEmail: '',
+    guestPhone: '',
     address: '',
-    paymentType: 'complet'
+    paymentType: 'complet',
+    transactionId: location.state?.transactionId || null
   });
 
-  useEffect(() => {
-    if (!auth.user) {
-      navigate('/register', { state: { from: '/inscription' } });
-      return;
-    }
-    fetchFormations();
-  }, [auth.user, navigate]);
-
-  useEffect(() => {
-    if (selectedCourseId && formations.length > 0) {
-      setCourse(formations.find(f => f.id === Number(selectedCourseId)) || null);
-    }
-  }, [selectedCourseId, formations]);
+  const isPhysicalCourse = course && (course.format === 'physique' || (course.format === 'masse' && course.locationMode === 'physique'));
+  const [physicalSuccess, setPhysicalSuccess] = useState(false);
 
   const fetchFormations = async () => {
     try {
@@ -62,14 +56,18 @@ const Inscription = () => {
     }
   };
 
+  useEffect(() => {
+    fetchFormations();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCourseId && formations.length > 0) {
+      setCourse(formations.find(f => f.id === Number(selectedCourseId)) || null);
+    }
+  }, [selectedCourseId, formations]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleStep1Submit = (e) => {
-    e.preventDefault();
-    if (!selectedCourseId) return alert(language === 'en' ? 'Please select a course' : 'Veuillez sélectionner une formation');
-    setStep(2);
   };
 
   const processEnrollment = async (paymentMethod = null, transactionId = null) => {
@@ -94,7 +92,9 @@ const Inscription = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || (language === 'en' ? 'Registration error' : "Erreur d'inscription"));
 
-      if (result.status === 'waitlist') {
+      if (isPhysicalCourse) {
+        setPhysicalSuccess(true);
+      } else if (result.status === 'waitlist') {
         setWaitlistSuccess(true);
       } else {
         navigate('/mon-espace');
@@ -104,16 +104,6 @@ const Inscription = () => {
     } finally {
       setSubmitLoading(false);
     }
-  };
-
-  const handlePaymentComplete = (transactionId) => {
-    // Si paiement via FedaPay réussi
-    processEnrollment('FedaPay', transactionId);
-  };
-
-  const handleWaitlistSubmit = () => {
-    // Inscription sans paiement si complet
-    processEnrollment();
   };
 
   if (loading) return <div style={{ padding: '5rem', textAlign: 'center' }}>{t('loading')}</div>;
@@ -131,6 +121,35 @@ const Inscription = () => {
                 : "La formation sélectionnée est actuellement complète. Vous avez été ajouté(e) avec succès à la liste d'attente. Nous vous contacterons dès qu'une place se libère !"}
             </p>
             <button className="btn btn-primary" onClick={() => navigate(language === 'en' ? '/en' : '/mon-espace')}>{language === 'en' ? 'Go to my space' : 'Aller à mon espace'}</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (physicalSuccess) {
+    return (
+      <div className="inscription-page" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center' }}>
+        <div className="container" style={{ maxWidth: '600px', textAlign: 'center' }}>
+          <div style={{ backgroundColor: 'white', padding: '3rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+            <CheckCircle size={64} color="#10b981" style={{ margin: '0 auto 1rem' }} />
+            <h2 style={{ marginBottom: '1rem' }}>{language === 'en' ? 'Registration Successful!' : "Inscription Réussie !"}</h2>
+            <p style={{ color: '#666', marginBottom: '1rem' }}>
+              {language === 'en' 
+                ? 'Your registration is confirmed. Please join our WhatsApp group to receive further instructions and updates about the physical session.' 
+                : "Votre inscription est confirmée. Veuillez rejoindre notre groupe WhatsApp pour recevoir toutes les informations concernant la session en présentiel."}
+            </p>
+            {course?.whatsappLink ? (
+              <a href={course.whatsappLink} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ display: 'inline-block', backgroundColor: '#25D366', borderColor: '#25D366' }}>
+                {language === 'en' ? 'Join WhatsApp Group' : 'Rejoindre le groupe WhatsApp'}
+              </a>
+            ) : (
+              <p style={{ color: '#d97706', fontWeight: 600 }}>Le lien WhatsApp sera bientôt disponible. Nous vous contacterons.</p>
+            )}
+            <br />
+            <button className="btn btn-outline" onClick={() => navigate(language === 'en' ? '/en' : '/')} style={{ marginTop: '2rem' }}>
+              {language === 'en' ? 'Back to Home' : 'Retour à l\'accueil'}
+            </button>
           </div>
         </div>
       </div>
@@ -159,28 +178,178 @@ const Inscription = () => {
           <h1 className="inscription-title">{t('ins_title')}</h1>
           
           <div className="inscription-steps">
-            <div className={`step ${step >= 1 ? 'active' : ''}`}>{t('ins_step1')}</div>
-            <div className={`step ${step >= 2 ? 'active' : ''}`}>{t('ins_step2')}</div>
+            <div className={`step ${step >= 1 ? 'active' : ''}`}>{language === 'en' ? '1. Secure Payment' : '1. Paiement sécurisé'}</div>
+            {!isPhysicalCourse && (
+              <div className={`step ${step >= 2 ? 'active' : ''}`}>{language === 'en' ? '2. Student Information' : '2. Informations de l\'enfant'}</div>
+            )}
           </div>
 
           {step === 1 && (
-            <form onSubmit={handleStep1Submit} className="fade-in">
-                
-                <div className="form-section">
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
-                    <BookOpen size={20} /> {t('ins_choice')}
-                  </h3>
-                  <div className="form-group">
-                    <label>{t('ins_select_course')}</label>
-                    <select className="form-input" value={selectedCourseId} onChange={e => setSelectedCourseId(e.target.value)} required>
-                      <option value="">{t('ins_choose_opt')}</option>
-                      {formations.map(f => (
-                        <option key={f.id} value={f.id}>{f.title} ({f.price?.toLocaleString()} FCFA)</option>
-                      ))}
-                    </select>
+            <div className="fade-in">
+                <div style={{ backgroundColor: 'var(--color-bg-light)', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)', marginBottom: '2rem' }}>
+                  <h2 style={{ fontSize: '1.8rem', color: 'var(--color-primary)', marginBottom: '1rem', textAlign: 'center' }}>
+                    {language === 'en' ? 'Pay before registering' : 'Payez avant de vous inscrire'}
+                  </h2>
+                  <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginBottom: '2rem' }}>
+                    {language === 'en' ? 'To secure your spot, please complete the payment first. You will provide the student details right after.' : 'Pour sécuriser votre place, veuillez effectuer le paiement en premier. Vous renseignerez les détails de l\'enfant juste après.'}
+                  </p>
+
+                  <div className="form-section">
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
+                      <BookOpen size={20} /> {t('ins_choice')}
+                    </h3>
+                    <div className="form-group">
+                      <select className="form-input" value={selectedCourseId} onChange={e => setSelectedCourseId(e.target.value)} required>
+                        <option value="">{t('ins_choose_opt')}</option>
+                        {formations.map(f => (
+                          <option key={f.id} value={f.id}>{f.title} ({f.price?.toLocaleString()} FCFA)</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {course && !isFull && (
+                    <div className="form-section">
+                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
+                        <CreditCard size={20} /> {t('ins_payment_type')}
+                      </h3>
+                      <div className="form-group">
+                        <select className="form-input" name="paymentType" value={formData.paymentType} onChange={handleChange}>
+                          <option value="complet">{t('ins_pay_complet')}</option>
+                          <option value="mensuel">{t('ins_pay_mensuel')}</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {course && (
+                    <div style={{ marginTop: '2rem' }}>
+                      {isFull ? (
+                        <div style={{ backgroundColor: '#fff7ed', padding: '1.5rem', borderRadius: '12px', border: '1px solid #ffedd5' }}>
+                          <h4 style={{ color: '#c2410c', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <CheckCircle size={20} /> {t('ins_full_title')}
+                          </h4>
+                          <p style={{ color: '#9a3412', marginBottom: '1.5rem' }}>
+                            {t('ins_full_desc')}
+                          </p>
+                          <button className="btn btn-primary" onClick={() => setStep(2)} style={{ width: '100%' }}>
+                            {language === 'en' ? 'Join Waitlist (Free)' : "Rejoindre la liste d'attente (Gratuit)"}
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          {!auth.user && (
+                            <div className="form-section" style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.5rem' }}>
+                              <h4 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>{language === 'en' ? 'Your Contact Details' : 'Vos informations de contact'}</h4>
+                              <div className="form-row">
+                                <div className="form-group">
+                                  <label>{language === 'en' ? 'First Name' : 'Prénom'} *</label>
+                                  <input className="form-input" name="guestFirstName" value={formData.guestFirstName} onChange={handleChange} required />
+                                </div>
+                                <div className="form-group">
+                                  <label>{language === 'en' ? 'Last Name' : 'Nom'} *</label>
+                                  <input className="form-input" name="guestLastName" value={formData.guestLastName} onChange={handleChange} required />
+                                </div>
+                              </div>
+                              <div className="form-row">
+                                <div className="form-group">
+                                  <label>Email *</label>
+                                  <input type="email" className="form-input" name="guestEmail" value={formData.guestEmail} onChange={handleChange} required />
+                                </div>
+                                <div className="form-group">
+                                  <label>{language === 'en' ? 'WhatsApp Phone' : 'Téléphone WhatsApp'} *</label>
+                                  <input type="tel" className="form-input" name="guestPhone" value={formData.guestPhone} onChange={handleChange} required />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {(!auth.user && (!formData.guestFirstName || !formData.guestEmail || !formData.guestPhone)) ? (
+                            <button className="btn btn-primary" disabled style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', opacity: 0.5, cursor: 'not-allowed' }}>
+                              {language === 'en' ? 'Fill contact details first' : 'Remplissez vos informations d\'abord'}
+                            </button>
+                          ) : (!course.price || course.price === 0) ? (
+                            <button className="btn btn-primary" onClick={() => setStep(2)} style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}>
+                              {language === 'en' ? 'Confirm Free Enrollment' : "Confirmer l'inscription gratuite"}
+                            </button>
+                          ) : (
+                            <FedapayWidget 
+                              amount={formData.paymentType === 'mensuel' ? Math.ceil(course.price / 2) : course.price} 
+                              description={`${language === 'en' ? 'Enrollment:' : 'Inscription:'} ${course.title} ${formData.paymentType === 'mensuel' ? (language === 'en' ? '(Installment 1/2)' : '(1ère tranche 50%)') : (language === 'en' ? '(Full payment)' : '(Paiement complet)')}`}
+                              customerInfo={
+                                auth.user ? {
+                                  email: auth.user.email,
+                                  firstName: auth.user.firstName,
+                                  lastName: auth.user.lastName,
+                                  phone: auth.user.phone
+                                } : {
+                                  email: formData.guestEmail,
+                                  firstName: formData.guestFirstName,
+                                  lastName: formData.guestLastName,
+                                  phone: formData.guestPhone
+                                }
+                              }
+                              onSuccess={async (resp) => {
+                                const txId = resp?.id || resp?.transactionId || 'feda_success';
+                                setFormData(prev => ({ ...prev, transactionId: txId }));
+                                
+                                if (isPhysicalCourse) {
+                                  // Pour les formations physiques, on procède directement à l'inscription et on affiche le succès
+                                  await processEnrollment('FedaPay', txId);
+                                } else {
+                                  // Sinon on passe à l'étape 2
+                                  setStep(2);
+                                }
+                              }}
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                </div>
+            </div>
+          )}
+
+          {step === 2 && course && (
+            <div className="fade-in">
+              <button className="btn btn-outline" onClick={() => setStep(1)} style={{ marginBottom: '2rem' }}>
+                ← {t('back')}
+              </button>
+
+              {!isFull && (
+                <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '1.5rem', borderRadius: '12px', marginBottom: '2rem', display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                  <CheckCircle size={28} color="#16a34a" style={{ flexShrink: 0 }} />
+                  <div>
+                    <h4 style={{ color: '#16a34a', margin: '0 0 0.5rem 0', fontSize: '1.2rem' }}>{language === 'en' ? 'Payment Successful!' : 'Paiement Réussi !'}</h4>
+                    <p style={{ color: '#15803d', margin: 0 }}>
+                      {language === 'en' ? 'Your spot is secured.' : 'Votre place est sécurisée.'} {!auth.user ? (language === 'en' ? 'Please log in to continue.' : 'Veuillez vous connecter pour continuer.') : (language === 'en' ? 'Please fill out the student details below to finalize the enrollment.' : 'Veuillez remplir les informations de l\'étudiant ci-dessous pour finaliser l\'inscription.')}
+                    </p>
                   </div>
                 </div>
+              )}
 
+              {!auth.user ? (
+                <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                  <User size={48} color="var(--color-primary)" style={{ margin: '0 auto 1rem', opacity: 0.8 }} />
+                  <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>
+                    {language === 'en' ? 'Authentication Required' : 'Authentification Requise'}
+                  </h3>
+                  <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
+                    {language === 'en' ? 'You must be logged in to register a student and access your dashboard.' : 'Vous devez avoir un compte pour enregistrer l\'enfant et accéder à votre espace parent.'}
+                  </p>
+                  <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                    <button className="btn btn-primary" onClick={() => navigate('/register', { state: { from: '/inscription', transactionId: formData.transactionId, formationId: selectedCourseId } })}>
+                      {language === 'en' ? 'Create an account' : 'Créer un compte'}
+                    </button>
+                    <button className="btn btn-outline" onClick={() => navigate('/login', { state: { from: '/inscription', transactionId: formData.transactionId, formationId: selectedCourseId } })}>
+                      {language === 'en' ? 'Log in' : 'Se connecter'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={(e) => { e.preventDefault(); processEnrollment(isFull ? 'waitlist' : 'FedaPay', formData.transactionId || null); }}>
                 <div className="form-section">
                   <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
                     <User size={20} /> {t('ins_child_info')}
@@ -225,83 +394,12 @@ const Inscription = () => {
                   </div>
                 </div>
 
-                {!isFull && (
-                  <div className="form-section">
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
-                      <CreditCard size={20} /> {t('ins_payment_type')}
-                    </h3>
-                    <div className="form-group">
-                      <select className="form-input" name="paymentType" value={formData.paymentType} onChange={handleChange}>
-                        <option value="complet">{t('ins_pay_complet')}</option>
-                        <option value="mensuel">{t('ins_pay_mensuel')}</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', padding: '1rem', fontSize: '1rem', borderRadius: '12px' }}>
-                  {t('ins_next_step')} <ArrowRight size={18} style={{ marginLeft: '0.5rem' }} />
+                <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ width: '100%', marginTop: '1rem', padding: '1rem', fontSize: '1.1rem', borderRadius: '12px' }}>
+                  {submitLoading ? t('loading') : (language === 'en' ? 'Complete Enrollment' : 'Terminer mon inscription')} <CheckCircle size={18} style={{ marginLeft: '0.5rem' }} />
                 </button>
               </form>
-          )}
-
-          {step === 2 && course && (
-            <div className="inscription-payment fade-in">
-              <button className="btn btn-outline" onClick={() => setStep(1)} style={{ marginBottom: '2rem' }}>
-                ← {t('back')}
-              </button>
-
-              <h3 style={{ marginBottom: '1.5rem', color: 'var(--color-primary)', fontSize: '1.3rem', fontWeight: 700 }}>{t('ins_summary')}</h3>
-              
-              <div style={{ backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '14px', marginBottom: '2rem', border: '1px solid #e2e8f0' }}>
-                <p style={{ margin: '0 0 0.6rem 0' }}><strong>{t('ins_course')}</strong> {course.title}</p>
-                <p style={{ margin: '0 0 0.6rem 0' }}><strong>{t('ins_student')}</strong> {formData.childFirstName} {formData.childLastName} ({formData.childAge} {language === 'en' ? 'years old' : 'ans'})</p>
-                <p style={{ margin: '0 0 0.6rem 0' }}><strong>{t('ins_parent')}</strong> {formData.parentName} ({formData.parentPhone})</p>
-                <hr style={{ margin: '1rem 0', borderColor: '#e5e7eb' }} />
-                <p style={{ margin: '0', fontSize: '1.1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 600 }}>{t('ins_total_to_pay')}</span>
-                  <strong style={{ color: 'var(--color-primary)', fontSize: '1.3rem' }}>{course.price?.toLocaleString()} FCFA</strong>
-                </p>
-              </div>
-
-              {isFull ? (
-                <div style={{ backgroundColor: '#fff7ed', padding: '1.5rem', borderRadius: '12px', border: '1px solid #ffedd5' }}>
-                  <h4 style={{ color: '#c2410c', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <CheckCircle size={20} /> {t('ins_full_title')}
-                  </h4>
-                  <p style={{ color: '#9a3412', marginBottom: '1.5rem' }}>
-                    {t('ins_full_desc')}
-                  </p>
-                  <button className="btn btn-primary" onClick={handleWaitlistSubmit} disabled={submitLoading} style={{ width: '100%' }}>
-                    {submitLoading ? t('loading') : t('ins_confirm_waitlist')}
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  <h4 style={{ marginBottom: '1rem', color: '#0f172a' }}>{t('ins_proceed_payment')}</h4>
-                  <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
-                    {t('ins_payment_desc')}
-                  </p>
-                  
-                  {(!course.price || course.price === 0) ? (
-                    <button className="btn btn-primary" onClick={() => processEnrollment()} disabled={submitLoading} style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}>
-                      {submitLoading ? t('loading') : (language === 'en' ? 'Confirm Free Enrollment' : "Confirmer l'inscription gratuite")}
-                    </button>
-                  ) : (
-                    <FedapayWidget 
-                      amount={formData.paymentType === 'mensuel' ? Math.ceil(course.price / 2) : course.price} 
-                      description={`${language === 'en' ? 'Enrollment:' : 'Inscription:'} ${course.title} ${formData.paymentType === 'mensuel' ? (language === 'en' ? '(Installment 1/2)' : '(1ère tranche 50%)') : (language === 'en' ? '(Full payment)' : '(Paiement complet)')}`}
-                      customerInfo={{
-                        email: formData.parentEmail,
-                        firstName: formData.parentName,
-                        lastName: "",
-                        phone: formData.parentPhone
-                      }}
-                      onSuccess={handlePaymentComplete}
-                    />
-                  )}
-                </div>
               )}
+
             </div>
           )}
         </div>

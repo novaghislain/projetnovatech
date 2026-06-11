@@ -160,9 +160,36 @@ class ExtendedDatabase extends Database {
   }
 }
 
+<<<<<<< HEAD
 // Initialize DB
 const initDb = async () => {
   const SQL = await initSqlJs();
+=======
+  // Migrations: Nouveaux types de formations
+  db.run("ALTER TABLE Formations ADD COLUMN format TEXT DEFAULT 'en_ligne'", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {}
+  });
+  db.run("ALTER TABLE Formations ADD COLUMN locationMode TEXT DEFAULT 'en_ligne'", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {}
+  });
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS Enrollments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
+      courseId INTEGER,
+      amount INTEGER,
+      paymentType TEXT DEFAULT 'full',
+      totalAmount INTEGER DEFAULT 0,
+      amountPaid INTEGER DEFAULT 0,
+      transactionId TEXT,
+      paymentMethod TEXT,
+      status TEXT DEFAULT 'active',
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(userId) REFERENCES Users(id)
+    )
+  `);
+>>>>>>> 37a1890 (refactor: remove advertiser role, add restricted admin role, and enhance user management capabilities)
 
   let sqlDb;
   if (fs.existsSync(dbPath)) {
@@ -308,6 +335,7 @@ const initDb = async () => {
       )
     `);
 
+<<<<<<< HEAD
     addColumnIfMissing('Enrollments', 'rating INTEGER');
 
     const enrollCols = [
@@ -346,6 +374,50 @@ const initDb = async () => {
       "paymentMethod TEXT"
     ];
     adCols.forEach(col => addColumnIfMissing('Advertisements', col));
+=======
+  // Migration: Ajouter la colonne rating à Enrollments
+  db.run("ALTER TABLE Enrollments ADD COLUMN review TEXT", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {
+      console.log("Migration 'review' sur Enrollments : ignorée ou erreur (", err.message, ")");
+    }
+  });
+
+  // Migrations: Données invité pour inscriptions physiques
+  db.run("ALTER TABLE Enrollments ADD COLUMN guestFirstName TEXT", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {}
+  });
+  db.run("ALTER TABLE Enrollments ADD COLUMN guestLastName TEXT", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {}
+  });
+  db.run("ALTER TABLE Enrollments ADD COLUMN guestEmail TEXT", (err) => {
+    if (err && !err.message.includes("duplicate column name")) {}
+  });
+  db.run("ALTER TABLE Enrollments ADD COLUMN guestPhone TEXT", (err) => {
+    if (!err) console.log("Colonne guestPhone ajoutée à Enrollments");
+  });
+  db.run("ALTER TABLE Enrollments ADD COLUMN progress INTEGER DEFAULT 0", (err) => {
+    if (!err) console.log("Colonne progress ajoutée à Enrollments");
+  });
+  db.run("ALTER TABLE Enrollments ADD COLUMN exercises TEXT DEFAULT '[]'", (err) => {
+    if (!err) console.log("Colonne exercises ajoutée à Enrollments");
+  });
+
+  // Migrations Enrollments
+  const enrollCols = [
+    "childFirstName TEXT", "childLastName TEXT", "childAge TEXT", 
+    "parentName TEXT", "parentPhone TEXT", "parentEmail TEXT", 
+    "address TEXT", "paymentType TEXT",
+    "installmentsPaid INTEGER DEFAULT 1",
+    "totalInstallments INTEGER DEFAULT 3"
+  ];
+  enrollCols.forEach(colDef => {
+    db.run(`ALTER TABLE Enrollments ADD COLUMN ${colDef}`, (err) => {
+      // Ignore if column already exists
+    });
+  });
+
+
+>>>>>>> 37a1890 (refactor: remove advertiser role, add restricted admin role, and enhance user management capabilities)
 
     // Testimonials
     db.run(`

@@ -23,7 +23,7 @@ const FedapayWidget = ({ amount, customerInfo, onSuccess, onFail }) => {
           amount: amount,
           description: 'Inscription à la formation Novatech',
         },
-        customer: {
+        customer: customerInfo ? {
           email: customerInfo.email,
           lastname: customerInfo.lastName,
           firstname: customerInfo.firstName,
@@ -31,7 +31,7 @@ const FedapayWidget = ({ amount, customerInfo, onSuccess, onFail }) => {
             number: customerInfo.phone,
             country: 'BJ' // Par défaut Bénin
           }
-        },
+        } : undefined,
         onComplete: (resp) => {
           console.log("Paiement FedaPay réussi", resp);
           if (onSuccess) onSuccess(resp);

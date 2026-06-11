@@ -21,8 +21,7 @@ const Navbar = () => {
     // Check Dashboard routes - they do not change URL
     if (currentPath.startsWith('/mon-espace') || 
         currentPath.startsWith('/admin') || 
-        currentPath.startsWith('/formateur') || 
-        currentPath.startsWith('/annonceur') ||
+        currentPath.startsWith('/formateur') ||
         currentPath === '/inscription') {
       toggleLanguage();
       return;
@@ -147,7 +146,6 @@ const Navbar = () => {
               <>
                 {auth.user?.role === 'admin' && <Link to="/admin" onClick={closeAll}>{t('nav_admin')}</Link>}
                 {auth.user?.role === 'formateur' && <Link to="/formateur" onClick={closeAll}>{t('nav_formateur')}</Link>}
-                {auth.user?.role === 'annonceur' && <Link to="/annonceur" onClick={closeAll}>{t('nav_annonceur')}</Link>}
               </>
             )}
             <Link to="/contact" onClick={closeAll}>{t('nav_contact')}</Link>
@@ -241,11 +239,6 @@ const Navbar = () => {
                     {auth.user?.role === 'formateur' && (
                       <Link to="/formateur" className="account-menu-item" onClick={closeAll}>
                         <LayoutDashboard size={16} /> {t('nav_formateur')}
-                      </Link>
-                    )}
-                    {auth.user?.role === 'annonceur' && (
-                      <Link to="/annonceur" className="account-menu-item" onClick={closeAll}>
-                        <LayoutDashboard size={16} /> {t('nav_annonceur')}
                       </Link>
                     )}
                     {auth.user?.role === 'apprenant' && (

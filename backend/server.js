@@ -947,7 +947,7 @@ app.use('/api/admin/meta-pixel', require('./metaPixelRoutes')(db, authenticateTo
 
 // Formateur & Annonceur Routes
 app.use('/api/formateur', require('./formateurRoutes')(db, authenticateToken));
-app.use('/api/annonceur', require('./annonceurRoutes')(db, authenticateToken));
+
 
 // --- ENROLLMENT ROUTES ---
 app.use('/api/enroll', require('./enrollmentRoutes')(db, authenticateToken));
@@ -1195,42 +1195,6 @@ app.get('/api/certificates/verify/:certId', (req, res) => {
 });
 
 // --- TÂCHES PLANIFIÉES (CRON SIMULÉ) ---
-const checkExpiringAds = () => {
-  const targetDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  db.all(
-    `SELECT a.*, u.email as userEmail, u.firstName as userFirstName 
-     FROM Advertisements a 
-     JOIN Users u ON a.userId = u.id 
-     WHERE a.isActive = 1 AND a.endDate = ?`,
-    [targetDate],
-    (err, ads) => {
-      if (err) {
-        console.error("[CRON ADS] Erreur lors de la vérification:", err.message);
-        return;
-      }
-      if (!ads || ads.length === 0) return;
-      
-      ads.forEach(ad => {
-        sendEmail({
-          to: ad.userEmail,
-          subject: `Votre annonce "${ad.title || 'Publicité'}" expire dans 3 jours - Novatech Vision`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2563eb;">Novatech Vision - Relance Publicitaire</h2>
-              <p>Bonjour ${ad.userFirstName || 'Annonceur'},</p>
-              <p>Votre annonce publicitaire intitulée <strong>"${ad.title || 'Publicité'}"</strong> (Emplacement: ${ad.placement}) arrive à échéance le <strong>${ad.endDate}</strong>.</p>
-              <p>Pour éviter toute interruption de diffusion, vous pouvez la renouveler dès maintenant depuis votre Espace Annonceur.</p>
-              <a href="http://localhost:5173/annonceur/ads" style="display: inline-block; padding: 12px 24px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0; font-weight: bold;">Accéder à mes publicités</a>
-              <hr style="border: none; border-top: 1px solid #e5e7eb;" />
-              <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
-            </div>
-          `
-        }).then(() => console.log(`[CRON ADS] Relance envoyée à ${ad.userEmail} pour la pub ${ad.id}`))
-          .catch(e => console.error(`[CRON ADS] Erreur envoi relance à ${ad.userEmail}:`, e.message));
-      });
-    }
-  );
-};
 
 const solicitTestimonials = () => {
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -1271,8 +1235,7 @@ const solicitTestimonials = () => {
 };
 
 const runCronTasks = () => {
-  console.log("[CRON] Lancement des tâches de vérification périodique (Ads & Témoignages)...");
-  checkExpiringAds();
+  console.log("[CRON] Lancement des tâches de vérification périodique (Témoignages)...");
   solicitTestimonials();
 };
 

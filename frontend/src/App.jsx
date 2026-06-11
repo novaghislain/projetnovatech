@@ -7,7 +7,7 @@ import Galerie from './pages/Galerie';
 import Inscription from './pages/Inscription';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import FormateurDashboard from './pages/FormateurDashboard';
-import AnnonceurDashboard from './pages/AnnonceurDashboard';
+
 import Apropos from './pages/Apropos';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
@@ -48,7 +48,6 @@ const AppLayout = () => {
   const location = useLocation();
   const isDashboard = location.pathname.startsWith('/admin') || 
                       location.pathname.startsWith('/formateur') || 
-                      location.pathname.startsWith('/annonceur') ||
                       location.pathname.startsWith('/mon-espace') ||
                       location.pathname.startsWith('/inscription') ||
                       location.pathname.startsWith('/fr/inscription') ||
@@ -65,7 +64,7 @@ const AppLayout = () => {
         <MetaPixel />
         <Routes>
         <Route path="/admin/*" element={
-          <ProtectedRoute allowedRoles={['admin']}>
+          <ProtectedRoute allowedRoles={['admin', 'admin_restreint']}>
             <AdminDashboard />
           </ProtectedRoute>
         } />
@@ -74,11 +73,7 @@ const AppLayout = () => {
             <FormateurDashboard />
           </ProtectedRoute>
         } />
-        <Route path="/annonceur/*" element={
-          <ProtectedRoute allowedRoles={['annonceur', 'admin']}>
-            <AnnonceurDashboard />
-          </ProtectedRoute>
-        } />
+
         <Route path="/mon-espace/lecons/:courseId" element={
           <ProtectedRoute allowedRoles={['apprenant', 'admin']}>
             <LessonViewer />
@@ -89,21 +84,9 @@ const AppLayout = () => {
             <ApprenantDashboard />
           </ProtectedRoute>
         } />
-        <Route path="/inscription" element={
-          <ProtectedRoute>
-            <Inscription />
-          </ProtectedRoute>
-        } />
-        <Route path="/fr/inscription" element={
-          <ProtectedRoute>
-            <Inscription />
-          </ProtectedRoute>
-        } />
-        <Route path="/en/enroll" element={
-          <ProtectedRoute>
-            <Inscription />
-          </ProtectedRoute>
-        } />
+        <Route path="/inscription" element={<Inscription />} />
+        <Route path="/fr/inscription" element={<Inscription />} />
+        <Route path="/en/enroll" element={<Inscription />} />
       </Routes>
       </>
     );

@@ -245,6 +245,17 @@ const CoursesTab = ({ enrollments, setEnrollments }) => {
                       <div style={{ width: '100%', height: '6px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
                         <div style={{ width: `${e.progress || 0}%`, height: '100%', background: '#0F3460', borderRadius: '10px' }}></div>
                       </div>
+                      {e.exercises && e.exercises.length > 0 && (
+                        <div style={{ marginTop: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#374151' }}>{language === 'en' ? 'Exercises / Tasks' : 'Exercices / Tâches'}:</span>
+                          {e.exercises.map((ex, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: ex.completed ? '#10b981' : '#64748b' }}>
+                              {ex.completed ? <CheckCircle size={12} color="#10b981" /> : <div style={{ width: '12px', height: '12px', border: '1px solid #cbd5e1', borderRadius: '50%' }}></div>}
+                              <span style={{ textDecoration: ex.completed ? 'line-through' : 'none' }}>{ex.title}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

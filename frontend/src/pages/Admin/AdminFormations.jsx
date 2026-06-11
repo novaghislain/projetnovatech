@@ -22,7 +22,7 @@ const AdminFormations = () => {
   const [formData, setFormData] = useState({
     id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '',
     maxParticipants: '', status: 'draft', imageUrl: '', isFull: false,
-    whatsappLink: '', meetLink: '', startDate: '', endDate: '', location: '', isOnline: false
+    whatsappLink: '', meetLink: '', startDate: '', endDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne'
   });
   const [errors, setErrors] = useState({});
 
@@ -59,7 +59,7 @@ const AdminFormations = () => {
       setFormData({
         id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '',
         maxParticipants: '', status: 'draft', imageUrl: '', isFull: false,
-        whatsappLink: '', meetLink: '', startDate: '', endDate: '', location: '', isOnline: false
+        whatsappLink: '', meetLink: '', startDate: '', endDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne'
       });
     }
     setErrors({});
@@ -275,6 +275,27 @@ const AdminFormations = () => {
                 </div>
               </div>
 
+              <div className="form-row">
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Format de la formation *</label>
+                  <select className="form-control" value={formData.format || 'en_ligne'} onChange={e => setFormData({...formData, format: e.target.value})}>
+                    <option value="en_ligne">En Ligne (Classique)</option>
+                    <option value="physique">Physique (Sans compte, lien WhatsApp)</option>
+                    <option value="masse">Formation de Masse (Groupée)</option>
+                    <option value="personnelle">Formation Personnelle (Sur mesure)</option>
+                  </select>
+                </div>
+                {formData.format === 'masse' && (
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>Lieu de la formation de Masse</label>
+                    <select className="form-control" value={formData.locationMode || 'en_ligne'} onChange={e => setFormData({...formData, locationMode: e.target.value})}>
+                      <option value="en_ligne">En Ligne</option>
+                      <option value="physique">Présentiel (Physique)</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
               <div className="form-group">
                 <label>Description</label>
                 <textarea className="form-control" rows="3" value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})}></textarea>
@@ -371,20 +392,9 @@ const AdminFormations = () => {
                     <input type="text" className="form-control" placeholder="ex: Cotonou, Bénin" value={formData.location || ''} onChange={e => setFormData({...formData, location: e.target.value})} />
                   </div>
                 </div>
-                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input
-                    type="checkbox"
-                    id="isOnlineCheckAdmin"
-                    checked={formData.isOnline || false}
-                    onChange={e => setFormData({...formData, isOnline: e.target.checked})}
-                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  />
-                  <label htmlFor="isOnlineCheckAdmin" style={{ margin: 0, cursor: 'pointer', fontWeight: 600 }}>
-                    🌐 Formation en ligne (visioconférence)
-                  </label>
                 </div>
               </div>
-            </div>
+
             <div className="admin-modal-footer">
               <button className="btn btn-outline" onClick={() => setIsModalOpen(false)}>Annuler</button>
               <button className="btn btn-primary" onClick={handleSave}>Enregistrer la formation</button>

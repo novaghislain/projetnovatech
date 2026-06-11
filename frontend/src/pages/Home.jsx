@@ -7,9 +7,9 @@ import {
   GraduationCap, BookOpen, FlaskConical, Award, Clock, ArrowRight,
   Send, Mail, Phone, MapPin, Calendar
 } from 'lucide-react';
-import AdBanner from '../components/AdBanner';
+
 import './Home.css';
-import { API_URL } from '../config';
+import { API_URL, getImageUrl } from '../config';
 
 const Home = () => {
   const { t, language } = useLanguage();
@@ -195,7 +195,7 @@ const Home = () => {
 
       {/* Ad Banner */}
       <section className="container">
-        <AdBanner placement="header" />
+
       </section>
 
       {/* Featured Courses */}
@@ -210,10 +210,12 @@ const Home = () => {
             {featuredCourses.map((course, i) => (
               <div className="course-card" key={i} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-light)', transition: 'all 0.3s ease', display: 'flex', flexDirection: 'column' }}>
                 <div className="course-card-img" style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
-                  <img src={course.imageUrl || '/placeholder.jpg'} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', top: '15px', right: '15px', backgroundColor: 'var(--color-white)', padding: '0.4rem 0.8rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', boxShadow: 'var(--shadow-sm)' }}>
-                    {course.category}
-                  </div>
+                  <img src={getImageUrl(course.imageUrl) || '/10x.jpg'} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#f8fafc' }} />
+                  {course.category && (
+                    <div style={{ position: 'absolute', top: '15px', right: '15px', backgroundColor: 'var(--color-white)', padding: '0.4rem 0.8rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', boxShadow: 'var(--shadow-sm)' }}>
+                      {course.category}
+                    </div>
+                  )}
                 </div>
                 <div className="course-card-content" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>{course.title}</h3>
@@ -230,7 +232,7 @@ const Home = () => {
                         {course.price ? course.price.toLocaleString() + ' FCFA' : t('courses_free')}
                       </strong>
                     </div>
-                    <Link to={language === 'en' ? '/en/courses' : '/formations'} className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
+                    <Link to={language === 'en' ? '/en/enroll' : '/inscription'} state={{ formationId: course.id }} className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
                       {t('courses_enroll')}
                     </Link>
                   </div>
@@ -311,7 +313,17 @@ const Home = () => {
                 </a>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+              {!auth.user ? (
+                <Link to="/connexion" className="btn btn-primary" style={{ padding: '1.2rem 2.5rem', fontSize: '1.1rem', borderRadius: '50px', display: 'inline-flex', alignItems: 'center', gap: '0.8rem', boxShadow: '0 8px 25px rgba(212,160,23,0.3)', marginTop: '1.5rem', background: 'linear-gradient(135deg, var(--color-accent) 0%, #f39c12 100%)', color: '#1A1A2E', fontWeight: 700 }}>
+                  {t('hero_btn_start')} <ArrowRight size={20} />
+                </Link>
+              ) : (
+                <Link to={auth.user.role === 'admin' || auth.user.role === 'admin_restreint' ? '/admin' : auth.user.role === 'formateur' ? '/formateur' : '/mon-espace'} className="btn btn-primary" style={{ padding: '1.2rem 2.5rem', fontSize: '1.1rem', borderRadius: '50px', display: 'inline-flex', alignItems: 'center', gap: '0.8rem', boxShadow: '0 8px 25px rgba(212,160,23,0.3)', marginTop: '1.5rem', background: 'linear-gradient(135deg, var(--color-accent) 0%, #f39c12 100%)', color: '#1A1A2E', fontWeight: 700 }}>
+                  {auth.user.role === 'admin' || auth.user.role === 'admin_restreint' ? 'Aller au Tableau de Bord' : auth.user.role === 'formateur' ? 'Espace Formateur' : t('hero_btn_start')} <ArrowRight size={20} />
+                </Link>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginTop: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--color-text-muted)' }}>
                   <span style={{ color: 'var(--color-accent)' }}><Phone size={20} /></span>
                   +229 0191348557

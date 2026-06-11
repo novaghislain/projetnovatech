@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Clock, Users, Calendar, CheckCircle2, ShieldCheck, ArrowLeft, AlertCircle } from 'lucide-react';
-import AdBanner from '../components/AdBanner';
+
 import './Home.css';
 import { API_URL } from '../config';
 
@@ -47,11 +47,7 @@ const FormationDetails = () => {
   const showWarning = !isFull && spotsLeft <= 5;
 
   const handleEnrollClick = () => {
-    if (!auth.user) {
-      navigate('/register', { state: { formationId: formation.id } });
-    } else {
-      navigate('/inscription', { state: { formationId: formation.id } });
-    }
+    navigate('/inscription', { state: { formationId: formation.id } });
   };
 
   return (
@@ -78,7 +74,7 @@ const FormationDetails = () => {
       </div>
 
       <div className="container" style={{ marginTop: '3rem' }}>
-        <AdBanner placement="header" />
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '3rem', alignItems: 'start' }}>
           
           {/* LEFT CONTENT */}
@@ -146,7 +142,7 @@ const FormationDetails = () => {
                 <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Transaction cryptée via Kkiapay / FedaPay</span>
               </div>
             </div>
-            <AdBanner placement="sidebar" />
+
           </aside>
 
         </div>

@@ -13,13 +13,9 @@ module.exports = (db, authenticateToken) => {
 
     // 1. Get the formateur profile for this user (if not admin)
     if (!isAdmin) {
-      db.get('SELECT id FROM Formateurs WHERE userId = ?', [userId], (err, formateur) => {
+      getFormateurId(userId, (err, formateurId) => {
         if (err) return res.status(500).json({ error: 'Erreur base de données' });
-        
-        if (!formateur) {
-          return res.json({ stats: { courses: 0, students: 0, rating: 0 }, courses: [], questions: [] });
-        }
-        fetchCourses(formateur.id);
+        fetchCourses(formateurId);
       });
     } else {
       // Admin sees everything
@@ -45,9 +41,11 @@ module.exports = (db, authenticateToken) => {
 
           // Fetch students
           const studentsQuery = courseIds.length > 0 
-            ? `SELECT Enrollments.id as enrollmentId, Users.firstName, Users.lastName, Users.email, Formations.title as courseTitle, Enrollments.createdAt as date, Enrollments.amount 
+            ? `SELECT Enrollments.id as enrollmentId, Users.firstName, Users.lastName, Users.email, 
+                      Enrollments.guestFirstName, Enrollments.guestLastName, Enrollments.guestEmail,
+                      Formations.title as courseTitle, Enrollments.createdAt as date, Enrollments.amount, Enrollments.progress, Enrollments.exercises 
                FROM Enrollments 
-               JOIN Users ON Enrollments.userId = Users.id 
+               LEFT JOIN Users ON Enrollments.userId = Users.id 
                JOIN Formations ON Enrollments.courseId = Formations.id 
                WHERE Enrollments.courseId IN (${courseIds.join(',')})`
             : `SELECT 1 WHERE 0`; // dummy query if no courses
@@ -167,13 +165,15 @@ module.exports = (db, authenticateToken) => {
                     replies: replies.filter(r => r.questionId === q.id)
                   })),
                   studentsList: studentsData.map(s => ({
-                    id: s.enrollmentId,
-                    name: `${s.firstName} ${s.lastName}`.trim() || 'Apprenant',
-                    email: s.email,
-                    course: s.courseTitle,
-                    date: s.date,
-                    amount: s.amount
-                  }))
+                  id: s.enrollmentId,
+                  name: s.firstName ? `${s.firstName} ${s.lastName}` : `${s.guestFirstName} ${s.guestLastName} (Guest)`,
+                  email: s.email || s.guestEmail,
+                  course: s.courseTitle,
+                  date: s.date,
+                  amount: s.amount,
+                  progress: s.progress || 0,
+                  exercises: s.exercises || '[]'
+                }))
                 });
               });
             });
@@ -242,8 +242,7 @@ module.exports = (db, authenticateToken) => {
   // GESTION DES FORMATIONS (par le formateur)
   // ============================================
 
-  // Helper: récupère l'ID formateur à partir de l'email de l'utilisateur
-  const getFormateurId = (userId, callback) => {
+  function getFormateurId(userId, callback) {
     db.get('SELECT email FROM Users WHERE id = ?', [userId], (err, user) => {
       if (err || !user) return callback(err, null);
       db.get('SELECT id FROM Formateurs WHERE email = ?', [user.email], (err, row) => {
@@ -252,7 +251,49 @@ module.exports = (db, authenticateToken) => {
         callback(err, row ? row.id : userId);
       });
     });
-  };
+  }
+
+  // Obtenir les étudiants d'une formation spécifique
+  router.get('/courses/:id/students', authenticateToken, (req, res) => {
+    if (req.user.role !== 'formateur' && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+    const courseId = req.params.id;
+
+    const query = `
+      SELECT 
+        e.id as enrollmentId, e.progress, e.exercises, e.createdAt,
+        e.childFirstName, e.childLastName, e.childAge, 
+        e.parentName, e.parentEmail, e.parentPhone,
+        e.guestFirstName, e.guestLastName, e.guestEmail, e.guestPhone,
+        u.firstName, u.lastName, u.email
+      FROM Enrollments e
+      LEFT JOIN Users u ON e.userId = u.id
+      WHERE e.courseId = ?
+    `;
+    db.all(query, [courseId], (err, students) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(students);
+    });
+  });
+
+  // Mettre à jour la progression d'un étudiant
+  router.put('/enrollments/:id/progress', authenticateToken, (req, res) => {
+    if (req.user.role !== 'formateur' && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Accès refusé' });
+    }
+    const enrollmentId = req.params.id;
+    const { progress, exercises } = req.body;
+
+    db.run(
+      'UPDATE Enrollments SET progress = ?, exercises = ? WHERE id = ?',
+      [progress, exercises ? JSON.stringify(exercises) : '[]', enrollmentId],
+      function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+      }
+    );
+  });
 
   // Créer une formation
   router.post('/courses', authenticateToken, (req, res) => {
@@ -260,14 +301,14 @@ module.exports = (db, authenticateToken) => {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-    const { title, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, startDate, endDate, location, isOnline, meetLink, whatsappLink, imageUrl, sessionsPerWeek, sessionDuration, status } = req.body;
+    const { title, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, startDate, endDate, location, isOnline, meetLink, whatsappLink, imageUrl, sessionsPerWeek, sessionDuration, status, format, locationMode } = req.body;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
 
     const doInsert = (formateurId) => {
       db.run(
-        `INSERT INTO Formations (title, slug, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, startDate, endDate, location, isOnline, meetLink, whatsappLink, imageUrl, sessionsPerWeek, sessionDuration, status, formateurId)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [title, slug, description, category, ageGroup || '', level || '', duration || '', price || 0, registrationFee || 0, maxParticipants || 20, startDate || null, endDate || null, location || '', isOnline ? 1 : 0, meetLink || '', whatsappLink || '', imageUrl || '', sessionsPerWeek || 1, sessionDuration || '', status || 'published', formateurId || null],
+        `INSERT INTO Formations (title, slug, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, startDate, endDate, location, isOnline, meetLink, whatsappLink, imageUrl, sessionsPerWeek, sessionDuration, status, formateurId, format, locationMode)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [title, slug, description, category, ageGroup || '', level || '', duration || '', price || 0, registrationFee || 0, maxParticipants || 20, startDate || null, endDate || null, location || '', isOnline ? 1 : 0, meetLink || '', whatsappLink || '', imageUrl || '', sessionsPerWeek || 1, sessionDuration || '', status || 'published', formateurId || null, format || 'en_ligne', locationMode || 'en_ligne'],
         function(err) {
           if (err) return res.status(500).json({ error: err.message });
           res.json({ success: true, id: this.lastID });
@@ -291,7 +332,7 @@ module.exports = (db, authenticateToken) => {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-    const { title, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, startDate, endDate, location, isOnline, meetLink, whatsappLink, imageUrl, sessionsPerWeek, sessionDuration, status } = req.body;
+    const { title, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, startDate, endDate, location, isOnline, meetLink, whatsappLink, imageUrl, sessionsPerWeek, sessionDuration, status, format, locationMode } = req.body;
     const courseId = req.params.id;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
 
@@ -307,8 +348,8 @@ module.exports = (db, authenticateToken) => {
         if (!row) return res.status(403).json({ error: 'Formation introuvable ou non autorisée' });
 
         db.run(
-          `UPDATE Formations SET title=?, slug=?, description=?, category=?, ageGroup=?, level=?, duration=?, price=?, registrationFee=?, maxParticipants=?, startDate=?, endDate=?, location=?, isOnline=?, meetLink=?, whatsappLink=?, imageUrl=?, sessionsPerWeek=?, sessionDuration=?, status=? WHERE id=?`,
-          [title, slug, description, category, ageGroup || '', level || '', duration || '', price || 0, registrationFee || 0, maxParticipants || 20, startDate || null, endDate || null, location || '', isOnline ? 1 : 0, meetLink || '', whatsappLink || '', imageUrl || '', sessionsPerWeek || 1, sessionDuration || '', status || 'published', courseId],
+          `UPDATE Formations SET title=?, slug=?, description=?, category=?, ageGroup=?, level=?, duration=?, price=?, registrationFee=?, maxParticipants=?, startDate=?, endDate=?, location=?, isOnline=?, meetLink=?, whatsappLink=?, imageUrl=?, sessionsPerWeek=?, sessionDuration=?, status=?, format=?, locationMode=? WHERE id=?`,
+          [title, slug, description, category, ageGroup || '', level || '', duration || '', price || 0, registrationFee || 0, maxParticipants || 20, startDate || null, endDate || null, location || '', isOnline ? 1 : 0, meetLink || '', whatsappLink || '', imageUrl || '', sessionsPerWeek || 1, sessionDuration || '', status || 'published', format || 'en_ligne', locationMode || 'en_ligne', courseId],
           (err) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true });

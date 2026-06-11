@@ -2,23 +2,43 @@ const express = require('express');
 const { sendEmail } = require('./emailService');
 const { enrollmentConfirmation } = require('./emailTemplates');
 
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_change_in_production';
+
 module.exports = function(db, authenticateToken) {
   const router = express.Router();
 
   // Route d'inscription
-  router.post('/', authenticateToken, (req, res) => {
+  router.post('/', (req, res) => {
+    const authHeader = req.headers['authorization'];
+    const token = (authHeader && authHeader.split(' ')[1]) || req.query.token;
+    
+    let userId = null;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        userId = decoded.id;
+      } catch (err) {
+        // Ignorer l'erreur, userId restera null
+      }
+    }
+
     const { 
       courseId, childFirstName, childLastName, childAge, 
       parentName, parentPhone, parentEmail, address, 
+      guestFirstName, guestLastName, guestEmail, guestPhone,
       paymentType, amount, paymentMethod, transactionId
     } = req.body;
-    
-    const userId = req.user.id;
 
     // 1. Vérifier la capacité de la formation
-    db.get("SELECT maxParticipants, enrolled, title, meetLink, whatsappLink FROM Formations WHERE id = ?", [courseId], (err, course) => {
+    db.get("SELECT maxParticipants, enrolled, title, meetLink, whatsappLink, format, locationMode FROM Formations WHERE id = ?", [courseId], (err, course) => {
       if (err) return res.status(500).json({ error: "Erreur serveur" });
       if (!course) return res.status(404).json({ error: "Formation introuvable" });
+
+      const isPhysical = course.format === 'physique' || (course.format === 'masse' && course.locationMode === 'physique');
+      if (!userId && !isPhysical) {
+        return res.status(401).json({ error: "Authentification requise pour s'inscrire à cette formation" });
+      }
 
       const isFull = course.enrolled >= course.maxParticipants;
       const status = isFull ? 'waitlist' : 'active';
@@ -33,12 +53,14 @@ module.exports = function(db, authenticateToken) {
         INSERT INTO Enrollments (
           userId, courseId, amount, transactionId, paymentMethod, status, 
           childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address, 
+          guestFirstName, guestLastName, guestEmail, guestPhone,
           paymentType, totalAmount, amountPaid
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const params = [
         userId, courseId, amountPaid, transactionId, paymentMethod, status,
         childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address,
+        guestFirstName || '', guestLastName || '', guestEmail || '', guestPhone || '',
         dbPaymentType, totalAmount, amountPaid
       ];
 
@@ -99,9 +121,9 @@ module.exports = function(db, authenticateToken) {
   router.get('/my-enrollments', authenticateToken, (req, res) => {
     const query = `
       SELECT e.id, e.amount, e.paymentMethod, e.paymentType, e.totalAmount, e.amountPaid, e.status, e.createdAt, e.transactionId,
-             e.childFirstName, e.childLastName, e.rating,
+             e.childFirstName, e.childLastName, e.rating, e.progress as manualProgress, e.exercises,
              f.id as courseId, f.title as courseTitle, f.isOnline, f.meetLink, f.whatsappLink, f.imageUrl,
-             f.startDate, f.endDate, f.duration, f.sessionDuration, f.isLive, f.liveRoomName, f.price as courseFullPrice
+             f.startDate, f.endDate, f.duration, f.sessionDuration, f.isLive, f.liveRoomName, f.price as courseFullPrice, f.format
       FROM Enrollments e
       JOIN Formations f ON e.courseId = f.id
       WHERE e.userId = ?
@@ -132,7 +154,17 @@ module.exports = function(db, authenticateToken) {
             `;
             db.get(completedQuery, [req.user.id, row.courseId], (err, compRow) => {
               const completed = compRow ? compRow.completed : 0;
-              row.progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+              if (row.format === 'personnelle') {
+                row.progress = row.manualProgress || 0;
+              } else {
+                row.progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+              }
+              // Parse exercises safely
+              try {
+                row.exercises = typeof row.exercises === 'string' ? JSON.parse(row.exercises) : (row.exercises || []);
+              } catch (e) {
+                row.exercises = [];
+              }
               resolve(row);
             });
           });

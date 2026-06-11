@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Clock, Users, ShieldCheck, Search, Filter } from 'lucide-react';
-import AdBanner from '../components/AdBanner';
+
 import { useLanguage } from '../contexts/LanguageContext';
 import './Home.css';
 import { API_URL, getImageUrl } from '../config';
@@ -60,10 +60,6 @@ const InscriptionFormation = () => {
   }, []);
 
   const handleReserve = (f) => {
-    if (!auth.user) {
-      navigate('/register', { state: { formationId: f.id } });
-      return;
-    }
     navigate('/inscription', { state: { formationId: f.id } });
   };
 
@@ -79,7 +75,7 @@ const InscriptionFormation = () => {
       </div>
 
       <div className="container" style={{ padding: '2rem 0 4rem' }}>
-        <AdBanner placement="header" />
+
 
         {/* Barre de recherche et filtres */}
         <div style={{ margin: '2rem 0' }}>
@@ -160,8 +156,8 @@ const InscriptionFormation = () => {
               return (
                 <div key={f.id} className="formation-card">
                   <div className="formation-card-img">
-                    <img src={f.imageUrl ? getImageUrl(f.imageUrl) : '/placeholder.jpg'} alt={f.title} />
-                    <div className="formation-card-tag">{categoryDisplay[f.category] || f.category}</div>
+                    <img src={f.imageUrl ? getImageUrl(f.imageUrl) : '/10x.jpg'} alt={f.title} />
+                    {f.category && <div className="formation-card-tag">{categoryDisplay[f.category] || f.category}</div>}
                     {isFull && <div className="formation-card-complet">{t('courses_full').toUpperCase()}</div>}
                   </div>
                   <div className="formation-card-body">
@@ -217,7 +213,7 @@ const InscriptionFormation = () => {
           </div>
         )}
 
-        <AdBanner placement="inline" />
+
 
         <div className="secure-banner">
           <ShieldCheck size={40} />

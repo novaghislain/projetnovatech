@@ -35,7 +35,7 @@ import './AdminDashboard.css';
 import AdminCategories from './AdminCategories';
 import AdminFormations from './AdminFormations';
 import AdminSessions from './AdminSessions';
-import AdminAds from './AdminAds';
+
 import AdminUsers from './AdminUsers';
 import AdminContent from './AdminContent';
 import AdminInscriptions from './AdminInscriptions';
@@ -51,9 +51,8 @@ import { ToastProvider } from '../../components/Toast';
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+  const [activeTab, setActiveTab] = useState(user?.role === 'admin_restreint' ? 'formations' : 'dashboard');
   const [stats, setStats] = useState({ activeFormations: 0, totalUsers: 0, totalRevenue: 0 });
   const [extendedStats, setExtendedStats] = useState({ revenueThisMonth: 0, newUsersThisMonth: 0, pendingMessages: 0, pendingCandidatures: 0, activeInscriptions: 0 });
   const [payments, setPayments] = useState([]);
@@ -71,7 +70,6 @@ const AdminDashboard = () => {
     { tab: 'formations', icon: BookOpen, label: 'Formations' },
     { tab: 'inscriptions', icon: Users, label: 'Inscriptions' },
     { tab: 'paiements', icon: CreditCard, label: 'Paiements' },
-    { tab: 'ads', icon: Megaphone, label: 'Publicités' },
     { tab: 'meta-pixel', icon: BarChart3, label: 'Marketing › Meta Pixel' },
     { tab: 'contenu', icon: Edit, label: 'Contenu' },
     { tab: 'messages', icon: Edit, label: 'Messages' },
@@ -79,7 +77,12 @@ const AdminDashboard = () => {
     { tab: 'formateurs', icon: Users, label: 'Formateurs' },
     { tab: 'candidatures', icon: CheckCircle, label: 'Candidatures' },
     { tab: 'parametres', icon: Settings, label: 'Paramètres' },
-  ];
+  ].filter(item => {
+    if (user?.role === 'admin_restreint') {
+      return item.tab === 'formations';
+    }
+    return true;
+  });
 
   const updateIndicator = useCallback((tab) => {
     const el = itemRefs.current[tab];
@@ -500,7 +503,7 @@ const AdminDashboard = () => {
           {activeTab === 'categories' && <AdminCategories />}
           {activeTab === 'formations' && <AdminFormations />}
           {activeTab === 'sessions' && <AdminSessions />}
-          {activeTab === 'ads' && <AdminAds />}
+
           {activeTab === 'utilisateurs' && <AdminUsers />}
           {activeTab === 'formateurs' && <AdminFormateurs />}
           {activeTab === 'candidatures' && <AdminCandidatures />}

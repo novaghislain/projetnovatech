@@ -15,19 +15,25 @@ const Login = () => {
 
   useEffect(() => {
     if (auth.user) {
-      if (location.state?.formationId && auth.user.role === 'apprenant') {
-        navigate('/inscription', { state: { formationId: location.state.formationId }, replace: true });
+      const role = auth.user.role;
+      if (role === 'admin' || role === 'admin_restreint') {
+        navigate('/admin', { replace: true });
+        return;
+      }
+      if (role === 'formateur') {
+        navigate('/formateur', { replace: true });
+        return;
+      }
+
+      if (location.state?.formationId && role === 'apprenant') {
+        navigate('/inscription', { state: { ...location.state, formationId: location.state.formationId }, replace: true });
         return;
       }
       if (location.state?.from) {
-        navigate(location.state.from, { replace: true });
+        navigate(location.state.from, { state: { ...location.state }, replace: true });
         return;
       }
-      const role = auth.user.role;
-      if (role === 'admin') navigate('/admin', { replace: true });
-      else if (role === 'formateur') navigate('/formateur', { replace: true });
-      else if (role === 'annonceur') navigate('/annonceur', { replace: true });
-      else navigate('/mon-espace', { replace: true });
+      navigate('/mon-espace', { replace: true });
     }
   }, [auth.user, navigate, location.state]);
 
@@ -36,9 +42,19 @@ const Login = () => {
     setLoading(true);
     try {
       const loggedUser = await auth.login({ email, password });
-      
-      // Route based on intent
-      if (location.state?.formationId && loggedUser.role === 'apprenant') {
+      // Route based on role
+      const role = loggedUser.role;
+      if (role === 'admin' || role === 'admin_restreint') {
+        navigate('/admin', { replace: true });
+        return;
+      }
+      if (role === 'formateur') {
+        navigate('/formateur', { replace: true });
+        return;
+      }
+
+      // Route based on intent for apprenant
+      if (location.state?.formationId && role === 'apprenant') {
         navigate('/inscription', { state: { formationId: location.state.formationId } });
         return;
       }
@@ -47,11 +63,7 @@ const Login = () => {
         return;
       }
 
-      // Route based on role
-      if (loggedUser.role === 'admin') navigate('/admin');
-      else if (loggedUser.role === 'formateur') navigate('/formateur');
-      else if (loggedUser.role === 'annonceur') navigate('/annonceur');
-      else navigate('/mon-espace');
+      navigate('/mon-espace');
 
     } catch (err) {
       setError(err.message || 'Erreur de connexion. Vérifiez vos identifiants.');

@@ -7,7 +7,7 @@ import './FormateurDashboard.css';
 import './Admin/AdminDashboard.css';
 import { API_URL } from '../config';
 
-const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Débutant', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', location: '', isOnline: false, meetLink: '', whatsappLink: '', imageUrl: '', sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
+const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Débutant', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne', meetLink: '', whatsappLink: '', imageUrl: '', sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
 
 const localT = {
   fr: {
@@ -280,6 +280,14 @@ const FormateurDashboard = () => {
     '16-18 ans': language === 'en' ? '16-18 years' : '16-18 ans',
     'Tous âges': language === 'en' ? 'All ages' : 'Tous âges'
   };
+
+  // Nouveaux états pour la progression
+  const [selectedStudentForProgress, setSelectedStudentForProgress] = useState(null);
+  const [studentProgress, setStudentProgress] = useState(0);
+  const [studentExercises, setStudentExercises] = useState([]);
+  const [newExercise, setNewExercise] = useState('');
+  const [updatingProgress, setUpdatingProgress] = useState(false);
+
   const [activeTab, setActiveTab] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLiveModal, setShowLiveModal] = useState(false);
@@ -480,6 +488,52 @@ const FormateurDashboard = () => {
     } finally {
       setSendingMessage(false);
     }
+  };
+
+  const handleUpdateProgress = async (e) => {
+    e.preventDefault();
+    if (!selectedStudentForProgress) return;
+    setUpdatingProgress(true);
+    try {
+      const token = localStorage.getItem('nv_token');
+      const res = await fetch(`${API_URL}/api/formateur/enrollments/${selectedStudentForProgress.id}/progress`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          progress: studentProgress,
+          exercises: studentExercises
+        })
+      });
+      if (res.ok) {
+        alert(language === 'en' ? 'Progress updated successfully' : 'Progression mise à jour avec succès');
+        setSelectedStudentForProgress(null);
+        window.location.reload();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || (language === 'en' ? 'Error updating progress' : 'Erreur de mise à jour'));
+      }
+    } catch (err) {
+      alert(language === 'en' ? 'Network error' : 'Erreur réseau');
+    } finally {
+      setUpdatingProgress(false);
+    }
+  };
+
+  const addExercise = () => {
+    if (!newExercise.trim()) return;
+    setStudentExercises([...studentExercises, { id: Date.now(), title: newExercise, completed: false }]);
+    setNewExercise('');
+  };
+
+  const toggleExercise = (id) => {
+    setStudentExercises(studentExercises.map(ex => ex.id === id ? { ...ex, completed: !ex.completed } : ex));
+  };
+
+  const removeExercise = (id) => {
+    setStudentExercises(studentExercises.filter(ex => ex.id !== id));
   };
 
   React.useEffect(() => {
@@ -821,6 +875,7 @@ const FormateurDashboard = () => {
                     <th style={{ padding: '1rem 0.5rem', fontWeight: 600 }}>{t('th_email')}</th>
                     <th style={{ padding: '1rem 0.5rem', fontWeight: 600 }}>{t('th_course')}</th>
                     <th style={{ padding: '1rem 0.5rem', fontWeight: 600 }}>{t('th_enroll_date')}</th>
+                    <th style={{ padding: '1rem 0.5rem', fontWeight: 600 }}>{language === 'en' ? 'Progress' : 'Progression'}</th>
                     <th style={{ padding: '1rem 0.5rem', fontWeight: 600 }}>{t('th_amount_paid')}</th>
                     <th style={{ padding: '1rem 0.5rem', fontWeight: 600 }}>{t('th_actions')}</th>
                   </tr>
@@ -832,8 +887,22 @@ const FormateurDashboard = () => {
                       <td style={{ padding: '1rem 0.5rem', color: '#64748b' }}>{student.email}</td>
                       <td style={{ padding: '1rem 0.5rem', color: '#0F3460', fontWeight: 500 }}>{student.course}</td>
                       <td style={{ padding: '1rem 0.5rem', color: '#64748b' }}>{new Date(student.date).toLocaleDateString()}</td>
+                      <td style={{ padding: '1rem 0.5rem', color: '#0F3460', fontWeight: 600 }}>{student.progress || 0}%</td>
                       <td style={{ padding: '1rem 0.5rem', color: '#10b981', fontWeight: 600 }}>{student.amount ? `${student.amount} FCFA` : (language === 'en' ? 'Free' : 'Gratuit')}</td>
-                      <td style={{ padding: '1rem 0.5rem' }}>
+                      <td style={{ padding: '1rem 0.5rem', display: 'flex', gap: '0.5rem' }}>
+                        <button 
+                          onClick={() => {
+                            setSelectedStudentForProgress(student);
+                            setStudentProgress(student.progress || 0);
+                            try {
+                              setStudentExercises(typeof student.exercises === 'string' ? JSON.parse(student.exercises) : (student.exercises || []));
+                            } catch (e) {
+                              setStudentExercises([]);
+                            }
+                          }}
+                          style={{ background: '#eff6ff', color: '#3b82f6', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                          {language === 'en' ? 'Progress' : 'Progression'}
+                        </button>
                         <button 
                           onClick={async () => {
                             if (window.confirm(t('confirm_remove_student'))) {
@@ -855,7 +924,7 @@ const FormateurDashboard = () => {
                   ))}
                   {(data?.studentsList?.length === 0) && (
                     <tr>
-                      <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>{t('no_students')}</td>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>{t('no_students')}</td>
                     </tr>
                   )}
                 </tbody>
@@ -1343,7 +1412,7 @@ const FormateurDashboard = () => {
                             ageGroup: raw.ageGroup || '', level: raw.level || '', duration: raw.duration || '',
                             price: raw.price || '', registrationFee: raw.registrationFee || '', maxParticipants: raw.maxParticipants || 20,
                             startDate: raw.startDate || '', endDate: raw.endDate || '', location: raw.location || '',
-                            isOnline: !!raw.isOnline, meetLink: raw.meetLink || '', whatsappLink: raw.whatsappLink || '',
+                            format: raw.format || 'en_ligne', locationMode: raw.locationMode || 'en_ligne', meetLink: raw.meetLink || '', whatsappLink: raw.whatsappLink || '',
                             imageUrl: raw.imageUrl || '', sessionsPerWeek: raw.sessionsPerWeek || 2, sessionDuration: raw.sessionDuration || '',
                             status: raw.status || 'published'
                           });
@@ -1410,7 +1479,7 @@ const FormateurDashboard = () => {
               finally { setCourseFormLoading(false); }
             }} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
 
-              {[['Titre *', 'title', 'text', true], ['Description', 'description', 'text', false], ['Image URL', 'imageUrl', 'text', false], ['Lien Meet (si en ligne)', 'meetLink', 'text', false], ['Lien WhatsApp', 'whatsappLink', 'text', false], ['Date de début', 'startDate', 'date', false], ['Date de fin', 'endDate', 'date', false], ['Lieu (si présentiel)', 'location', 'text', false]].map(([frLabel, key, type, required]) => (
+              {[['Titre *', 'title', 'text', true], ['Description', 'description', 'text', false], ['Lien Meet (si en ligne)', 'meetLink', 'text', false], ['Lien WhatsApp', 'whatsappLink', 'text', false], ['Date de début', 'startDate', 'date', false], ['Date de fin', 'endDate', 'date', false], ['Lieu (si présentiel)', 'location', 'text', false]].map(([frLabel, key, type, required]) => (
                 <div key={key}>
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{fieldLabels[key] || frLabel}</label>
                   <input
@@ -1423,6 +1492,40 @@ const FormateurDashboard = () => {
                 </div>
               ))}
 
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Course Image' : 'Image de la formation'}</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const formData = new FormData();
+                      formData.append('image', file);
+                      try {
+                        const token = localStorage.getItem('nv_token');
+                        const res = await fetch(`${API_URL}/api/upload`, {
+                          method: 'POST',
+                          headers: { 'Authorization': `Bearer ${token}` },
+                          body: formData
+                        });
+                        const data = await res.json();
+                        if (data.imageUrl) {
+                          setCourseForm(f => ({ ...f, imageUrl: data.imageUrl }));
+                        }
+                      } catch (err) {
+                        alert(language === 'en' ? 'Image upload failed' : 'Erreur lors de l\'upload de l\'image');
+                      }
+                    }}
+                    style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box', background: '#f8fafc' }}
+                  />
+                  {courseForm.imageUrl && (
+                    <img src={courseForm.imageUrl.startsWith('http') ? courseForm.imageUrl : `${API_URL}${courseForm.imageUrl}`} alt="Aperçu" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                  )}
+                </div>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Category' : 'Catégorie'}</label>
@@ -1430,6 +1533,24 @@ const FormateurDashboard = () => {
                     {['Développement', 'Intelligence Artificielle', 'Bureautique', 'Cybersécurité', 'Design', 'Robotique', 'Autre'].map(c => <option key={c} value={c}>{categoryDisplay[c]}</option>)}
                   </select>
                 </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Format' : 'Format de la formation'}</label>
+                  <select value={courseForm.format} onChange={e => setCourseForm(f => ({ ...f, format: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
+                    <option value="en_ligne">En Ligne (Classique)</option>
+                    <option value="physique">Physique (Sans compte)</option>
+                    <option value="masse">Formation de Masse (Groupée)</option>
+                    <option value="personnelle">Formation Personnelle</option>
+                  </select>
+                </div>
+                {courseForm.format === 'masse' && (
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Location Mode' : 'Lieu (Masse)'}</label>
+                    <select value={courseForm.locationMode} onChange={e => setCourseForm(f => ({ ...f, locationMode: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
+                      <option value="en_ligne">En Ligne</option>
+                      <option value="physique">Présentiel</option>
+                    </select>
+                  </div>
+                )}
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Age Group' : "Tranche d'âge"}</label>
                   <select value={courseForm.ageGroup} onChange={e => setCourseForm(f => ({ ...f, ageGroup: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
@@ -1440,7 +1561,7 @@ const FormateurDashboard = () => {
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Price (FCFA)' : 'Prix (FCFA)'}</label>
                   <input type="number" value={courseForm.price} onChange={e => setCourseForm(f => ({ ...f, price: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box' }} />
                 </div>
-                <div>
+                <div style={{ display: 'none' }}>
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Registration fee (FCFA)' : 'Frais inscription (FCFA)'}</label>
                   <input type="number" value={courseForm.registrationFee} onChange={e => setCourseForm(f => ({ ...f, registrationFee: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box' }} />
                 </div>
@@ -1452,11 +1573,6 @@ const FormateurDashboard = () => {
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Total duration' : 'Durée totale'}</label>
                   <input type="text" placeholder={language === 'en' ? 'e.g., 4 weeks' : 'ex: 4 semaines'} value={courseForm.duration} onChange={e => setCourseForm(f => ({ ...f, duration: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box' }} />
                 </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '1rem', background: '#f8fafc', borderRadius: '10px' }}>
-                <input type="checkbox" id="isOnlineCheck" checked={courseForm.isOnline} onChange={e => setCourseForm(f => ({ ...f, isOnline: e.target.checked }))} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                <label htmlFor="isOnlineCheck" style={{ fontWeight: 600, color: '#374151', cursor: 'pointer' }}>{t('online_course_check')}</label>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
@@ -1512,6 +1628,80 @@ const FormateurDashboard = () => {
           />
         </div>
       )}
+
+      {/* Modal: Gérer Progression */}
+      {selectedStudentForProgress && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="fade-in" style={{ background: '#fff', padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+            <h3 style={{ margin: '0 0 1rem 0', color: '#0F3460' }}>{language === 'en' ? 'Manage Progress for' : 'Progression de'} {selectedStudentForProgress.name}</h3>
+            <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem' }}>{selectedStudentForProgress.course}</p>
+            
+            <form onSubmit={handleUpdateProgress}>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#374151' }}>{language === 'en' ? 'Global Progress (%)' : 'Progression globale (%)'}</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input 
+                    type="range" 
+                    min="0" max="100" 
+                    value={studentProgress} 
+                    onChange={e => setStudentProgress(Number(e.target.value))}
+                    style={{ flex: 1, accentColor: '#0F3460' }}
+                  />
+                  <span style={{ fontWeight: 700, color: '#0F3460', minWidth: '40px' }}>{studentProgress}%</span>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#374151' }}>{language === 'en' ? 'Exercises / Tasks' : 'Exercices / Tâches'}</label>
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <input 
+                    type="text" 
+                    value={newExercise} 
+                    onChange={e => setNewExercise(e.target.value)} 
+                    placeholder={language === 'en' ? 'New exercise title...' : 'Titre du nouvel exercice...'}
+                    style={{ flex: 1, padding: '0.6rem', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}
+                  />
+                  <button type="button" onClick={addExercise} style={{ background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', padding: '0 1rem', cursor: 'pointer', fontWeight: 600 }}>
+                    {language === 'en' ? 'Add' : 'Ajouter'}
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
+                  {studentExercises.map(ex => (
+                    <div key={ex.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', margin: 0 }}>
+                        <input 
+                          type="checkbox" 
+                          checked={ex.completed} 
+                          onChange={() => toggleExercise(ex.id)}
+                          style={{ width: '16px', height: '16px', accentColor: '#10b981' }}
+                        />
+                        <span style={{ textDecoration: ex.completed ? 'line-through' : 'none', color: ex.completed ? '#94a3b8' : '#374151' }}>{ex.title}</span>
+                      </label>
+                      <button type="button" onClick={() => removeExercise(ex.id)} style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', padding: '0.2rem' }}>
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                  {studentExercises.length === 0 && (
+                    <p style={{ color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center', margin: '1rem 0' }}>{language === 'en' ? 'No exercises assigned yet.' : 'Aucun exercice assigné.'}</p>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
+                <button type="button" onClick={() => setSelectedStudentForProgress(null)} style={{ padding: '0.8rem 1.5rem', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: 'pointer' }}>
+                  {t('btn_cancel')}
+                </button>
+                <button type="submit" disabled={updatingProgress} style={{ padding: '0.8rem 1.5rem', background: updatingProgress ? '#94a3b8' : '#0F3460', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: updatingProgress ? 'not-allowed' : 'pointer' }}>
+                  {updatingProgress ? (language === 'en' ? 'Saving...' : 'Enregistrement...') : (language === 'en' ? 'Save' : 'Enregistrer')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 } catch (renderError) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, UserCheck, UserX, Shield, Edit, Trash2 } from 'lucide-react';
+import { Search, UserCheck, UserX, Shield, Edit, Trash2, Plus, X } from 'lucide-react';
 import { API_URL } from '../../config';
 
 const AdminUsers = () => {
@@ -7,6 +7,34 @@ const AdminUsers = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '', role: 'apprenant', status: 'active' });
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('nv_token');
+      const response = await fetch(`${API_URL}/api/admin/users`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Erreur lors de la création");
+      setShowModal(false);
+      setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', role: 'apprenant', status: 'active' });
+      fetchUsers();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -128,9 +156,28 @@ const AdminUsers = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="btn btn-outline" onClick={exportToCSV} style={{ color: '#10B981', borderColor: '#10B981' }}>
-            Exporter en CSV
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button 
+              onClick={() => setShowModal(true)}
+              style={{
+                background: '#2563eb', color: 'white', border: 'none',
+                padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer',
+                fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem'
+              }}
+            >
+              <Plus size={16} /> Ajouter Utilisateur
+            </button>
+            <button 
+              onClick={exportToCSV}
+              style={{
+                background: '#10b981', color: 'white', border: 'none',
+                padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer',
+                fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem'
+              }}
+            >
+              Exporter en CSV
+            </button>
+          </div>
         </div>
 
         <div className="admin-table-wrapper">
@@ -167,8 +214,8 @@ const AdminUsers = () => {
                     >
                       <option value="apprenant">Apprenant</option>
                       <option value="formateur">Formateur</option>
-                      <option value="annonceur">Annonceur</option>
                       <option value="admin">Administrateur</option>
+                      <option value="admin_restreint">Admin Restreint</option>
                     </select>
                   </td>
                   <td>
@@ -203,6 +250,60 @@ const AdminUsers = () => {
           </table>
         </div>
       </div>
+
+      {/* Modal Création Utilisateur */}
+      {showModal && (
+        <div className="admin-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="admin-modal" style={{ background: '#fff', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '500px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h4 style={{ margin: 0, fontSize: '1.25rem', color: '#1e293b' }}>Ajouter un utilisateur</h4>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
+            </div>
+            <form onSubmit={handleCreateUser}>
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Prénom *</label>
+                  <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }} required />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Nom</label>
+                  <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                </div>
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Email *</label>
+                <input type="email" name="email" value={formData.email} onChange={handleInputChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }} required />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Mot de passe *</label>
+                <input type="password" name="password" value={formData.password} onChange={handleInputChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }} required minLength={6} />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Rôle</label>
+                  <select name="role" value={formData.role} onChange={handleInputChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <option value="apprenant">Apprenant</option>
+                    <option value="formateur">Formateur</option>
+                    <option value="admin">Administrateur Complet</option>
+                    <option value="admin_restreint">Admin Restreint (Formations)</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Statut (Restreint ou non)</label>
+                  <select name="status" value={formData.status} onChange={handleInputChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <option value="active">Actif (Accès total)</option>
+                    <option value="blocked">Bloqué (Restreint)</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" onClick={() => setShowModal(false)} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontWeight: 600 }}>Annuler</button>
+                <button type="submit" style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>Créer l'utilisateur</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

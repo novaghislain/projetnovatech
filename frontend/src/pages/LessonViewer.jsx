@@ -4,7 +4,7 @@ import {
   ChevronDown, ChevronRight, ChevronLeft, ChevronLast, BookOpen,
   Play, FileText, CheckCircle, Circle, Menu, X, ArrowLeft
 } from 'lucide-react';
-import AdBanner from '../components/AdBanner';
+
 
 const LessonViewer = () => {
   const { courseId } = useParams();
@@ -317,13 +317,13 @@ const LessonViewer = () => {
         </div>
 
         <div style={{ padding: '1rem', borderTop: '1px solid #e5e7eb' }}>
-          <AdBanner placement="sidebar" />
+
         </div>
       </div>
 
       {/* MAIN CONTENT */}
       <div style={{ flex: 1, padding: '2rem', overflowY: 'auto', minWidth: 0 }}>
-        <AdBanner placement="header" />
+
         <Link to="/mon-espace" style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
           color: 'var(--color-text-muted)', textDecoration: 'none',
