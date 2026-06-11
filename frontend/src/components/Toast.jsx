@@ -14,7 +14,7 @@ const ICONS = {
 
 const COLORS = {
   success: { bg: '#ECFDF5', border: '#10B981', text: '#059669', icon: '#10B981' },
-  error: { bg: '#FEF2F2', border: '#EF4444', text: '#DC2626', icon: '#EF4444' },
+  error: { bg: '#F3F4F6', border: '#EF4444', text: '#DC2626', icon: '#EF4444' },
   warning: { bg: '#FFFBEB', border: '#F59E0B', text: '#D97706', icon: '#F59E0B' },
   info: { bg: '#EFF6FF', border: '#3B82F6', text: '#2563EB', icon: '#3B82F6' },
 };

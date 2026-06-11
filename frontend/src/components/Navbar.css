@@ -245,7 +245,7 @@
 }
 
 .account-menu-logout:hover {
-  background: rgba(233, 69, 96, 0.08) !important;
+  background: rgba(239, 68, 68, 0.08) !important;
   color: var(--color-alert) !important;
 }
 

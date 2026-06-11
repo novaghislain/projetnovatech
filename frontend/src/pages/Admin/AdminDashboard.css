@@ -2,7 +2,7 @@
 
 :root {
   --primary: #8B5CF6;
-  --primary-light: #C4B5FD;
+  --primary-light: #6B8A9E;
   --dark: #1F1F2E;
   --dark-light: #2A2A3C;
   --background: #F8F9FC;
@@ -386,7 +386,7 @@
   background: linear-gradient(135deg, #0F3460, #1A1A2E);
   color: white;
 }
-.stat-card.accent .stat-icon { background: rgba(139, 92, 246, 0.25); color: #A78BFA; }
+.stat-card.accent .stat-icon { background: rgba(139, 92, 246, 0.25); color: #6B8A9E; }
 .stat-card.accent .stat-value { color: white; }
 .stat-card.accent .stat-label { color: rgba(255,255,255,0.7); }
 
