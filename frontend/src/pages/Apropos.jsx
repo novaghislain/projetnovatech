@@ -27,8 +27,8 @@ const Apropos = () => {
         <div className="container apropos-intro-inner" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem', alignItems: 'center' }}>
           <div className="apropos-img" style={{ textAlign: 'center' }}>
             <img 
-              src="/image1.png" 
-              alt="Ghislain Jules EDA — Fondateur" 
+              src="/image2-removebg-preview.png" 
+              alt="Ghislain Jules EDA — Fondateur et Directeur" 
               style={{ 
                 width: '100%', 
                 maxWidth: '400px', 
@@ -47,13 +47,13 @@ const Apropos = () => {
             </h2>
             <p style={{ fontSize: '1.1rem', lineHeight: '1.7', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
               {language === 'en' 
-                ? "Novatech Vision is fundamentally a technology company with strong digital expertise: software development, IT automation, and tech equipment. We help businesses optimize their processes through innovative solutions on a daily basis."
-                : "Novatech Vision est avant tout une entreprise technologique dotée d'une forte expertise numérique : développement logiciel, automatisation et fourniture d'équipements informatiques. Nous accompagnons au quotidien les entreprises dans leur transformation digitale avec des solutions innovantes."}
+                ? "Founded by Ghislain Jules EDA, its Director, Novatech Vision is fundamentally a technology company with strong digital expertise: software development, IT automation, and tech equipment. We help businesses optimize their processes through innovative solutions on a daily basis."
+                : "Fondée par Ghislain Jules EDA, son Directeur, Novatech Vision est avant tout une entreprise technologique dotée d'une forte expertise numérique : développement logiciel, automatisation et fourniture d'équipements informatiques."}
             </p>
             <p style={{ fontSize: '1.1rem', lineHeight: '1.7', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
               {language === 'en'
                 ? "Why did we branch into kids' education? Because we noticed a simple fact: in an increasingly digital world, most young people remain mere consumers of technology. With our professional IT background, we decided to step up and share our passion."
-                : "Pourquoi nous lancer dans l'éducation des enfants ? Parce que nous avons fait un constat simple : dans un monde hyper-connecté, la majorité des jeunes restent de simples consommateurs de technologie. Forts de notre expérience sur le terrain, nous avons décidé de partager notre passion."}
+                : "Pourquoi nous lancer dans l'éducation des enfants ? Parce que nous avons fait un constat simple : dans un monde hyper-connecté, la majorité des jeunes restent de simples consommateurs de technologie. Forts de notre expérience, nous avons décidé de partager notre passion."}
             </p>
             <p style={{ fontSize: '1.25rem', lineHeight: '1.6', color: 'var(--color-primary)', fontWeight: 700 }}>
               {language === 'en'
