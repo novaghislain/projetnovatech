@@ -470,7 +470,7 @@ Oui, vous pouvez opter pour le paiement en 3 mensualités. Le premier tiers est 
 Bienvenue sur la plateforme Novatech Vision. En accédant à ce site, vous acceptez nos conditions d'utilisation.
 
 ## 1. Services proposés
-Novatech Vision propose des formations en informatique et des espaces publicitaires pour les annonceurs.
+Novatech Vision propose des formations en informatique pour les enfants et adolescents.
 
 ## 2. Inscriptions et Paiements
 Les inscriptions aux formations sont fermes après validation du paiement (intégral ou de la première mensualité).
@@ -520,7 +520,7 @@ Yes, you can opt to pay in 3 monthly installments. The first third is paid at re
 Welcome to the Novatech Vision platform. By accessing this site, you agree to our terms of service.
 
 ## 1. Services Provided
-Novatech Vision offers training courses in computing and advertising spaces for advertisers.
+Novatech Vision offers training courses in computing for children and teenagers.
 
 ## 2. Registrations and Payments
 Registrations for courses are final after payment validation (full or first installment).
