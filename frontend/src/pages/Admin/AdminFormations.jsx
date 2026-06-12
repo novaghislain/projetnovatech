@@ -322,13 +322,6 @@ const AdminFormations = () => {
                   <label>Titre de la formation *</label>
                   <input type="text" className="form-control" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
                   {errors.title && <div style={{ color: '#ff4d4f', fontSize: '0.8rem', marginTop: '4px' }}>{errors.title}</div>}
-                </div>
-                <div className="form-group">
-                  <label>Domaine *</label>
-                  <select className="form-control" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
-                    {mockCategories.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
               </div>
 
               <div className="form-row">

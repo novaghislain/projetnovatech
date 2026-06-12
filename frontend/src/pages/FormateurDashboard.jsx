@@ -1565,13 +1565,7 @@ const FormateurDashboard = () => {
                   )}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Domain' : 'Domaine'}</label>
-                  <select value={courseForm.category} onChange={e => setCourseForm(f => ({ ...f, category: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
-                    {['Développement', 'Intelligence Artificielle', 'Bureautique', 'Cybersécurité', 'Design', 'Robotique', 'Autre'].map(c => <option key={c} value={c}>{categoryDisplay[c]}</option>)}
-                  </select>
-                </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Category' : 'Catégorie'}</label>
                   <select value={courseForm.format} onChange={e => setCourseForm(f => ({ ...f, format: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
