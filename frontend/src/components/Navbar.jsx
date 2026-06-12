@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import './Navbar.css';
 import { Menu, X, User, ChevronDown, LayoutDashboard, BookOpen, LogOut, Settings, CreditCard, FileText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -134,20 +134,20 @@ const Navbar = () => {
 
           {/* Main links */}
           <div className="navbar-main-links">
-            <Link to="/" onClick={closeAll}>{t('nav_home')}</Link>
-            <Link to="/formations" onClick={closeAll}>{t('nav_courses')}</Link>
+            <NavLink to="/" end onClick={closeAll}>{t('nav_home')}</NavLink>
+            <NavLink to="/formations" onClick={closeAll}>{t('nav_courses')}</NavLink>
             {!isLoggedIn ? (
               <>
-                <Link to="/a-propos" onClick={closeAll}>{t('nav_about')}</Link>
-                <Link to="/galerie" onClick={closeAll}>{t('nav_gallery')} & {t('nav_testimonials')}</Link>
+                <NavLink to="/a-propos" onClick={closeAll}>{t('nav_about')}</NavLink>
+                <NavLink to="/galerie" onClick={closeAll}>{t('nav_gallery')} & {t('nav_testimonials')}</NavLink>
               </>
             ) : (
               <>
-                {auth.user?.role === 'admin' && <Link to="/admin" onClick={closeAll}>{t('nav_admin')}</Link>}
-                {auth.user?.role === 'formateur' && <Link to="/formateur" onClick={closeAll}>{t('nav_formateur')}</Link>}
+                {auth.user?.role === 'admin' && <NavLink to="/admin" onClick={closeAll}>{t('nav_admin')}</NavLink>}
+                {auth.user?.role === 'formateur' && <NavLink to="/formateur" onClick={closeAll}>{t('nav_formateur')}</NavLink>}
               </>
             )}
-            <Link to="/contact" onClick={closeAll}>{t('nav_contact')}</Link>
+            <NavLink to="/contact" onClick={closeAll}>{t('nav_contact')}</NavLink>
           </div>
 
           <div className="navbar-auth-links">

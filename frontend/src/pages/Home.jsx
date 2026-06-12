@@ -24,10 +24,7 @@ const Home = () => {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setPresentationVisible(true);
-          observer.disconnect();
-        }
+        setPresentationVisible(entry.isIntersecting);
       },
       { threshold: 0.15 }
     );
@@ -266,7 +263,6 @@ const Home = () => {
                 <img src="/10x.jpg" alt="Élèves apprenant l'informatique" style={{ width: '100%', borderRadius: 'var(--radius-lg)', boxShadow: '0 20px 40px rgba(26,26,46,0.15)', display: 'block' }} />
 
                 {/* Decorative Elements */}
-                <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', border: '3px solid var(--color-accent)', borderRadius: 'var(--radius-lg)', zIndex: -1 }}></div>
                 <div style={{ position: 'absolute', bottom: '-20px', left: '-20px', backgroundColor: 'var(--color-primary)', color: 'var(--color-white)', padding: '1rem 1.5rem', borderRadius: 'var(--radius-md)', boxShadow: '0 10px 30px rgba(15, 52, 96,0.3)', display: 'flex', alignItems: 'center', gap: '1.2rem', zIndex: 2 }}>
                   <div style={{ backgroundColor: 'var(--color-accent)', padding: '0.8rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Award size={28} color="var(--color-white)" />
@@ -341,21 +337,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Statistics / Key Figures */}
-      <section className="key-figures-section section-padding">
-        <div className="container text-center">
-          <h2 className="section-title">{t('stats_title')}</h2>
-          <p className="section-subtitle">{t('stats_subtitle')}</p>
-          <div className="key-figures-grid">
-            {stats.map((stat, i) => (
-              <div className="key-figure-item" key={i}>
-                <span className="key-figure-value">{stat.value}</span>
-                <span className="key-figure-label">{stat.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
 
 
