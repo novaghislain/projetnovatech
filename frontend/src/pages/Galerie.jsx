@@ -161,7 +161,15 @@ const Galerie = () => {
                     </div>
                   </div>
                 ) : (
-                  <img src={photo.src} alt={photo.caption} loading="lazy" />
+                  <img 
+                    src={photo.src} 
+                    alt={photo.caption} 
+                    loading="lazy" 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/group-diverse-teens-young-people-doing-activities-together-celebrating-world-youth-skills-day.jpg';
+                    }} 
+                  />
                 )}
                 <div className="galerie-card-overlay">
                   <span className="galerie-tag">{photo.tag}</span>
@@ -194,7 +202,14 @@ const Galerie = () => {
             {filtered[lightboxIdx].mediaType === 'video' ? (
               <video src={filtered[lightboxIdx].src} controls autoPlay style={{ maxWidth: '100%', maxHeight: '80vh', display: 'block', margin: '0 auto', backgroundColor: '#000' }} />
             ) : (
-              <img src={filtered[lightboxIdx].src} alt={filtered[lightboxIdx].caption} />
+              <img 
+                src={filtered[lightboxIdx].src} 
+                alt={filtered[lightboxIdx].caption} 
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/group-diverse-teens-young-people-doing-activities-together-celebrating-world-youth-skills-day.jpg';
+                }}
+              />
             )}
             <div className="lb-info">
               <span className="galerie-tag">
