@@ -525,10 +525,37 @@
 .hero-main {
   position: relative;
   flex: 1;
-  min-height: 480px;
+  min-height: 520px;
   overflow: hidden;
   border-radius: 0 0 0 var(--radius-lg);
   box-shadow: var(--shadow-md);
+}
+
+/* Carousel dots */
+.hero-dots {
+  position: absolute;
+  bottom: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+.hero-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.8);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+.hero-dot.active {
+  background: #fff;
+  width: 28px;
+  border-radius: 5px;
+  border-color: #fff;
 }
 
 .hero-bg-img {
@@ -1241,6 +1268,7 @@
 
   .hero-main {
     border-radius: var(--radius-lg);
+    min-height: 600px;
   }
 
   .sidebar-card--cta {

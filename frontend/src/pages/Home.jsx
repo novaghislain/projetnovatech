@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -41,6 +41,49 @@ const Home = () => {
     { value: '98%', label: t('stats_satisfaction') },
     { value: '15+', label: t('stats_experts') }
   ]);
+
+  // ── Hero Carousel ──
+  const heroSlides = [
+    {
+      image: '/7x.jpg',
+      title: t('hero_title'),
+      accent: t('hero_title_accent'),
+      end: t('hero_title_end'),
+      desc: t('hero_desc'),
+    },
+    {
+      image: '/12x.jpg',
+      title: language === 'fr' ? 'Apprendre' : 'Learning',
+      accent: language === 'fr' ? "Le Code & L'IA" : 'Coding & AI',
+      end: language === 'fr' ? 'Dès 8 Ans' : 'From Age 8',
+      desc: language === 'fr'
+        ? "Des cours adaptés à chaque enfant pour découvrir la programmation et l'intelligence artificielle dès le plus jeune âge."
+        : 'Courses tailored for every child to discover programming and AI from an early age.',
+    },
+    {
+      image: '/13x.jpg',
+      title: language === 'fr' ? 'Éveiller' : 'Awakening',
+      accent: language === 'fr' ? 'La Curiosité' : 'The Curiosity',
+      end: language === 'fr' ? 'Numérique' : 'Digital',
+      desc: language === 'fr'
+        ? "Une jeune génération inspirée, curieuse et prête à construire l'Afrique digitale de demain."
+        : 'An inspired, curious young generation ready to build the digital Africa of tomorrow.',
+    },
+  ];
+  const [heroSlide, setHeroSlide] = useState(0);
+
+  const goToSlide = useCallback((idx) => {
+    setHeroSlide(idx);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroSlide(prev => (prev + 1) % heroSlides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
+
+  const currentSlide = heroSlides[heroSlide];
 
   const getFormatDisplay = (f) => {
     if (f.format === 'physique' || f.format === 'présentiel') {
@@ -98,23 +141,26 @@ const Home = () => {
 
           {/* Main hero block (left + center) */}
           <div className="hero-main">
-            {/* Background Image */}
-            <img
-              src="/7x.jpg"
-              alt="Formateur Novatech Vision avec des élèves"
-              className="hero-bg-img active"
-            />
+            {/* Background Images — Carousel */}
+            {heroSlides.map((slide, idx) => (
+              <img
+                key={idx}
+                src={slide.image}
+                alt={`Slide ${idx + 1} Novatech Vision`}
+                className={`hero-bg-img${heroSlide === idx ? ' active' : ''}`}
+              />
+            ))}
             {/* Dark overlay */}
             <div className="hero-overlay" />
 
             <div className="hero-text-block">
               <h1>
-                {t('hero_title')}<br />
-                <span className="hero-blue">{t('hero_title_accent')}</span><br />
-                {t('hero_title_end')}
+                {currentSlide.title}<br />
+                <span className="hero-blue">{currentSlide.accent}</span><br />
+                {currentSlide.end}
               </h1>
               <p>
-                {t('hero_desc')}
+                {currentSlide.desc}
               </p>
 
               <div className="hero-programs">
@@ -129,6 +175,18 @@ const Home = () => {
               <Link to={language === 'en' ? '/en/courses' : '/formations'} className="hero-cta-btn">
                 {t('hero_cta')} <ArrowRight size={18} />
               </Link>
+            </div>
+
+            {/* Carousel Dots */}
+            <div className="hero-dots">
+              {heroSlides.map((_, idx) => (
+                <button
+                  key={idx}
+                  className={`hero-dot${heroSlide === idx ? ' active' : ''}`}
+                  onClick={() => goToSlide(idx)}
+                  aria-label={`Slide ${idx + 1}`}
+                />
+              ))}
             </div>
           </div>
 
