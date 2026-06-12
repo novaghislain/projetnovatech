@@ -28,16 +28,15 @@ const Apropos = () => {
           <div className="apropos-img" style={{ textAlign: 'center' }}>
             <img 
               src="/image2-removebg-preview.png" 
-              alt="Directeur" 
+              alt="Ghislain Jules EDA — Fondateur et Directeur" 
               style={{ 
                 width: '100%', 
                 maxWidth: '400px', 
                 height: 'auto', 
                 maxHeight: '450px', 
-                objectFit: 'cover', 
-                objectPosition: 'top center',
-                borderRadius: '24px',
-                boxShadow: '0 20px 40px rgba(15, 52, 96, 0.15)' 
+                objectFit: 'contain', 
+                objectPosition: 'bottom center',
+                filter: 'drop-shadow(0 20px 30px rgba(15, 52, 96, 0.15))'
               }} 
             />
           </div>
@@ -47,8 +46,8 @@ const Apropos = () => {
             </h2>
             <p style={{ fontSize: '1.1rem', lineHeight: '1.7', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
               {language === 'en' 
-                ? "Novatech Vision is fundamentally a technology company with strong digital expertise: software development, IT automation, and tech equipment. We help businesses optimize their processes through innovative solutions on a daily basis."
-                : "Novatech Vision est avant tout une entreprise technologique dotée d'une forte expertise numérique : développement logiciel, automatisation et fourniture d'équipements informatiques."}
+                ? "Founded by Ghislain Jules EDA, its Director, Novatech Vision is fundamentally a technology company with strong digital expertise: software development, IT automation, and tech equipment. We help businesses optimize their processes through innovative solutions on a daily basis."
+                : "Fondée par Ghislain Jules EDA, son Directeur, Novatech Vision est avant tout une entreprise technologique dotée d'une forte expertise numérique : développement logiciel, automatisation et fourniture d'équipements informatiques."}
             </p>
             <p style={{ fontSize: '1.1rem', lineHeight: '1.7', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
               {language === 'en'
