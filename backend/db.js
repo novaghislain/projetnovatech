@@ -243,6 +243,16 @@ const initDb = async () => {
     addColumnIfMissing('Users', 'parentPhone TEXT');
     addColumnIfMissing('Users', 'companyName TEXT');
 
+    // Seed default admin user if empty
+    try {
+      const uCount = db._db.exec("SELECT COUNT(*) as count FROM Users");
+      if (uCount.length > 0 && uCount[0].values[0][0] === 0) {
+        db._db.run(`INSERT INTO Users (firstName, lastName, email, password, role, status) VALUES (?, ?, ?, ?, ?, ?)`,
+          ['Admin', 'Novatech', 'admin@novatech.com', '$2b$10$G/h.CXka/3FRJKXp5.ZxLeqdWW4b3iyvTH4BuLh1Jk2cMJvlCezwO', 'admin', 'active']);
+        console.log("Compte administrateur par défaut (admin@novatech.com / password123) injecté.");
+      }
+    } catch (e) { /* silent */ }
+
     // Create Formations
     db.run(`
       CREATE TABLE IF NOT EXISTS Formations (
