@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -17,6 +17,27 @@ import CourseImageSlider from '../components/CourseImageSlider';
 const Home = () => {
   const { t, language } = useLanguage();
   const auth = useAuth();
+
+  const [presentationVisible, setPresentationVisible] = useState(false);
+  const presentationRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setPresentationVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+    if (presentationRef.current) {
+      observer.observe(presentationRef.current);
+    }
+    return () => {
+      if (observer) observer.disconnect();
+    };
+  }, []);
 
   const programs = [
     { icon: <Monitor size={26} />, label: t('program_office') },
@@ -218,10 +239,10 @@ const Home = () => {
 
 
       {/* Presentation Section */}
-      <section className="presentation-section section-padding" style={{ backgroundColor: 'var(--color-bg-light)' }}>
+      <section ref={presentationRef} className="presentation-section section-padding" style={{ backgroundColor: 'var(--color-bg-light)', overflow: 'hidden' }}>
         <div className="container">
           <div className="presentation-content" style={{ display: 'flex', gap: '4rem', alignItems: 'center' }}>
-            <div className="presentation-text" style={{ flex: 1 }}>
+            <div className={`presentation-text presentation-text-anim ${presentationVisible ? 'is-visible' : ''}`} style={{ flex: 1 }}>
               <h2 className="section-title">{t('about_title')}</h2>
               <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '1.05rem', lineHeight: 1.7 }}>
                 {t('about_desc1')}
@@ -240,15 +261,24 @@ const Home = () => {
                 </li>
               </ul>
             </div>
-            <div className="presentation-image" style={{ flex: 1, position: 'relative', display: 'flex', justifyContent: 'flex-end' }}>
+            <div className={`presentation-image presentation-img-anim ${presentationVisible ? 'is-visible' : ''}`} style={{ flex: 1, position: 'relative', display: 'flex', justifyContent: 'flex-end' }}>
               <div style={{ position: 'relative', width: '90%' }}>
                 <img src="/10x.jpg" alt="Élèves apprenant l'informatique" style={{ width: '100%', borderRadius: 'var(--radius-lg)', boxShadow: '0 20px 40px rgba(26,26,46,0.15)', display: 'block' }} />
 
                 {/* Decorative Elements */}
                 <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', border: '3px solid var(--color-accent)', borderRadius: 'var(--radius-lg)', zIndex: -1 }}></div>
-                <div style={{ position: 'absolute', bottom: '-20px', left: '-20px', backgroundColor: 'var(--color-primary)', color: 'var(--color-white)', padding: '1.5rem 2rem', borderRadius: 'var(--radius-md)', boxShadow: '0 10px 30px rgba(15, 52, 96,0.3)', display: 'flex', alignItems: 'center', gap: '1.2rem', zIndex: 2 }}>
-                  <div style={{ fontSize: '3rem', fontWeight: 900, color: '#0F3460', lineHeight: 1 }}>5+</div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{t('about_years')}</div>
+                <div style={{ position: 'absolute', bottom: '-20px', left: '-20px', backgroundColor: 'var(--color-primary)', color: 'var(--color-white)', padding: '1rem 1.5rem', borderRadius: 'var(--radius-md)', boxShadow: '0 10px 30px rgba(15, 52, 96,0.3)', display: 'flex', alignItems: 'center', gap: '1.2rem', zIndex: 2 }}>
+                  <div style={{ backgroundColor: 'var(--color-accent)', padding: '0.8rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Award size={28} color="var(--color-white)" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--color-white)', lineHeight: 1.2, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {language === 'en' ? 'Excellence' : 'Excellence'}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 500, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.3px' }}>
+                      {language === 'en' ? '100% Practical' : '100% Pratique'}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
