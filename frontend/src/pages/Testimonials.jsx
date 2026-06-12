@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Send } from 'lucide-react';
+import { Send, Star, User, BookOpen, MessageSquare } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import './Testimonials.css';
 import { API_URL, getImageUrl } from '../config';
@@ -165,45 +165,78 @@ const Testimonials = () => {
       </section>
 
       {/* Form Section */}
-      <section className="testimonials-form-section" style={{ padding: '4rem 0', backgroundColor: 'var(--color-bg-light)' }}>
-        <div className="container" style={{ maxWidth: '600px', margin: '0 auto', background: '#fff', padding: '2.5rem', borderRadius: 'var(--radius-lg)', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
-          <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--color-primary)' }}>
+      <section className="testimonials-form-section" style={{ padding: '6rem 0', background: 'linear-gradient(135deg, #f8f9fa 0%, #eef2f5 100%)' }}>
+        <div className="container" style={{ maxWidth: '650px', margin: '0 auto', background: '#fff', padding: '3rem', borderRadius: '24px', boxShadow: '0 20px 40px rgba(15, 52, 96, 0.08)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '6px', background: 'linear-gradient(90deg, var(--color-primary), var(--color-secondary))' }}></div>
+          <h2 style={{ textAlign: 'center', marginBottom: '0.5rem', color: 'var(--color-primary)', fontSize: '2.2rem', fontWeight: 800 }}>
             {language === 'en' ? 'Share your experience' : 'Partagez votre expérience'}
           </h2>
+          <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginBottom: '2.5rem' }}>
+            {language === 'en' ? 'Your feedback helps us improve and inspires others!' : 'Votre avis nous aide à nous améliorer et inspire d\'autres parents !'}
+          </p>
+          
           {submitStatus === 'success' ? (
-            <div style={{ padding: '1rem', background: '#d4edda', color: '#155724', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}>
-              {language === 'en' ? 'Thank you! Your testimonial has been submitted.' : 'Merci ! Votre témoignage a été envoyé.'}
+            <div style={{ padding: '2rem', background: '#f0fdf4', color: '#166534', borderRadius: '16px', textAlign: 'center', border: '1px solid #bbf7d0' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
+              <h3 style={{ marginBottom: '0.5rem', fontWeight: 700 }}>{language === 'en' ? 'Thank you!' : 'Merci beaucoup !'}</h3>
+              <p>{language === 'en' ? 'Your testimonial has been successfully submitted.' : 'Votre témoignage a été envoyé avec succès et publié.'}</p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{language === 'en' ? 'Name (Parent or Student)' : 'Nom (Parent ou Élève)'} *</label>
-                <input type="text" name="authorName" value={form.authorName} onChange={handleFormChange} required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                  <User size={18} color="var(--color-primary)" />
+                  {language === 'en' ? 'Name (Parent or Student)' : 'Nom (Parent ou Élève)'} *
+                </label>
+                <input type="text" name="authorName" value={form.authorName} onChange={handleFormChange} required placeholder={language === 'en' ? 'e.g. Sarah M.' : 'ex: Sarah M.'} style={{ width: '100%', padding: '1rem 1.2rem', borderRadius: '12px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '1rem', transition: 'all 0.3s ease', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'} onBlur={(e) => e.target.style.borderColor = '#e2e8f0'} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{language === 'en' ? 'Age (optional)' : 'Âge (optionnel)'}</label>
-                  <input type="text" name="age" value={form.age} onChange={handleFormChange} placeholder="ex: 12 ans" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                    {language === 'en' ? 'Age (optional)' : 'Âge (optionnel)'}
+                  </label>
+                  <input type="text" name="age" value={form.age} onChange={handleFormChange} placeholder={language === 'en' ? 'e.g. 12 years' : 'ex: 12 ans'} style={{ width: '100%', padding: '1rem 1.2rem', borderRadius: '12px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '1rem', transition: 'all 0.3s ease', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'} onBlur={(e) => e.target.style.borderColor = '#e2e8f0'} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{language === 'en' ? 'Course / Program' : 'Formation / Programme'}</label>
-                  <input type="text" name="courseName" value={form.courseName} onChange={handleFormChange} placeholder="ex: Initiation à l'IA" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                    <BookOpen size={18} color="var(--color-primary)" />
+                    {language === 'en' ? 'Course / Program' : 'Formation / Programme'}
+                  </label>
+                  <input type="text" name="courseName" value={form.courseName} onChange={handleFormChange} placeholder={language === 'en' ? 'e.g. AI Intro' : 'ex: Initiation à l\'IA'} style={{ width: '100%', padding: '1rem 1.2rem', borderRadius: '12px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '1rem', transition: 'all 0.3s ease', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'} onBlur={(e) => e.target.style.borderColor = '#e2e8f0'} />
                 </div>
               </div>
+              
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{language === 'en' ? 'Rating' : 'Note'} *</label>
-                <select name="rating" value={form.rating} onChange={handleFormChange} required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }}>
-                  <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
-                  <option value="4">⭐⭐⭐⭐ (4/5)</option>
-                  <option value="3">⭐⭐⭐ (3/5)</option>
-                </select>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                  {language === 'en' ? 'Rating' : 'Note'} *
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: '#f8fafc', padding: '0.8rem 1.2rem', borderRadius: '12px', border: '1px solid #e2e8f0', width: 'fit-content' }}>
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <Star
+                      key={star}
+                      size={32}
+                      onClick={() => setForm({ ...form, rating: star })}
+                      fill={star <= form.rating ? "#FFB800" : "transparent"}
+                      color={star <= form.rating ? "#FFB800" : "#cbd5e1"}
+                      style={{ cursor: 'pointer', transition: 'all 0.2s ease', transform: star <= form.rating ? 'scale(1.1)' : 'scale(1)' }}
+                    />
+                  ))}
+                  <span style={{ marginLeft: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', fontSize: '1.1rem' }}>{form.rating}/5</span>
+                </div>
               </div>
+              
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{language === 'en' ? 'Your message' : 'Votre message'} *</label>
-                <textarea name="comment" value={form.comment} onChange={handleFormChange} required rows="4" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd', resize: 'vertical' }}></textarea>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                  <MessageSquare size={18} color="var(--color-primary)" />
+                  {language === 'en' ? 'Your message' : 'Votre message'} *
+                </label>
+                <textarea name="comment" value={form.comment} onChange={handleFormChange} required rows="4" placeholder={language === 'en' ? 'Tell us about your experience...' : 'Racontez-nous comment s\'est passée votre formation...'} style={{ width: '100%', padding: '1rem 1.2rem', borderRadius: '12px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '1rem', transition: 'all 0.3s ease', outline: 'none', resize: 'vertical' }} onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'} onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}></textarea>
               </div>
-              <button type="submit" disabled={submitStatus === 'loading'} className="btn btn-primary" style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-                {submitStatus === 'loading' ? '...' : language === 'en' ? 'Submit testimonial' : 'Envoyer mon témoignage'} <Send size={18} />
+              
+              <button type="submit" disabled={submitStatus === 'loading'} className="btn btn-primary" style={{ width: '100%', padding: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 600, boxShadow: '0 8px 20px rgba(15, 52, 96, 0.2)' }}>
+                {submitStatus === 'loading' ? (language === 'en' ? 'Sending...' : 'Envoi en cours...') : (language === 'en' ? 'Submit testimonial' : 'Envoyer mon témoignage')} 
+                <Send size={20} />
               </button>
             </form>
           )}
