@@ -458,13 +458,13 @@ const AdminDashboard = () => {
                       <div className="chart-header">
                         <h3>Évolution des Inscriptions & Revenus (10 jours)</h3>
                       </div>
-                      <div style={{ width: '100%', height: 280 }}>
-                        <ResponsiveContainer>
-                          <LineChart data={computedRevenueData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                      <div style={{ width: '100%', height: 260, minWidth: 0 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={computedRevenueData} margin={{ top: 5, right: 10, bottom: 5, left: -10 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} dy={10} />
-                            <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} dx={-10} />
-                            <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} dx={10} />
+                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 10}} dy={10} />
+                            <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 10}} dx={-4} width={30} />
+                            <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 10}} dx={4} width={30} />
                             <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
                             <Line yAxisId="left" type="monotone" dataKey="revenus" stroke="#8B5CF6" strokeWidth={3} dot={{r: 4, fill: '#8B5CF6'}} activeDot={{r: 6}} name="Revenus (FCFA)" />
                             <Line yAxisId="right" type="monotone" dataKey="inscriptions" stroke="#3B82F6" strokeWidth={3} dot={{r: 4, fill: '#3B82F6'}} activeDot={{r: 6}} name="Inscriptions" />

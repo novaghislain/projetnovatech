@@ -418,7 +418,20 @@
   gap: 20px;
   margin-bottom: 24px;
 }
-.dashboard-two-col .chart-container { margin-bottom: 0; }
+.dashboard-two-col .chart-container {
+  margin-bottom: 0;
+  min-width: 0; /* prevent grid blowout */
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .dashboard-two-col {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-two-col .chart-container {
+    width: 100%;
+  }
+}
 
 /* ── Activity Feed ── */
 .activity-feed {
