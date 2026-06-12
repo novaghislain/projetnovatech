@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -17,6 +17,24 @@ import CourseImageSlider from '../components/CourseImageSlider';
 const Home = () => {
   const { t, language } = useLanguage();
   const auth = useAuth();
+
+  const [presentationVisible, setPresentationVisible] = useState(false);
+  const presentationRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setPresentationVisible(entry.isIntersecting);
+      },
+      { threshold: 0.15 }
+    );
+    if (presentationRef.current) {
+      observer.observe(presentationRef.current);
+    }
+    return () => {
+      if (observer) observer.disconnect();
+    };
+  }, []);
 
   const programs = [
     { icon: <Monitor size={26} />, label: t('program_office') },
@@ -203,10 +221,10 @@ const Home = () => {
 
 
       {/* Presentation Section */}
-      <section className="presentation-section section-padding" style={{ backgroundColor: 'var(--color-bg-light)' }}>
+      <section ref={presentationRef} className="presentation-section section-padding" style={{ backgroundColor: 'var(--color-bg-light)', overflow: 'hidden' }}>
         <div className="container">
           <div className="presentation-content" style={{ display: 'flex', gap: '4rem', alignItems: 'center' }}>
-            <div className="presentation-text" style={{ flex: 1 }}>
+            <div className={`presentation-text presentation-text-anim ${presentationVisible ? 'is-visible' : ''}`} style={{ flex: 1 }}>
               <h2 className="section-title">{t('about_title')}</h2>
               <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '1.05rem', lineHeight: 1.7 }}>
                 {t('about_desc1')}
@@ -225,7 +243,7 @@ const Home = () => {
                 </li>
               </ul>
             </div>
-            <div className="presentation-image" style={{ flex: 1, position: 'relative', display: 'flex', justifyContent: 'flex-end' }}>
+            <div className={`presentation-image presentation-img-anim ${presentationVisible ? 'is-visible' : ''}`} style={{ flex: 1, position: 'relative', display: 'flex', justifyContent: 'flex-end' }}>
               <div style={{ position: 'relative', width: '90%' }}>
                 <img src="/10x.jpg" alt="Élèves apprenant l'informatique" style={{ width: '100%', borderRadius: 'var(--radius-lg)', boxShadow: '0 20px 40px rgba(26,26,46,0.15)', display: 'block' }} />
 
@@ -372,16 +390,6 @@ const Home = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect width="4" height="12" x="2" y="9" /><circle cx="4" cy="4" r="2" /></svg>
                 </a>
               </div>
-
-              {!auth.user ? (
-                <Link to="/connexion" className="btn btn-primary" style={{ padding: '1.2rem 2.5rem', fontSize: '1.1rem', borderRadius: '50px', display: 'inline-flex', alignItems: 'center', gap: '0.8rem', boxShadow: '0 8px 25px rgba(212,160,23,0.3)', marginTop: '1.5rem', background: 'linear-gradient(135deg, var(--color-accent) 0%, #f39c12 100%)', color: '#1A1A2E', fontWeight: 700 }}>
-                  {t('hero_btn_start')} <ArrowRight size={20} />
-                </Link>
-              ) : (
-                <Link to={auth.user.role === 'admin' || auth.user.role === 'admin_restreint' ? '/admin' : auth.user.role === 'formateur' ? '/formateur' : '/mon-espace'} className="btn btn-primary" style={{ padding: '1.2rem 2.5rem', fontSize: '1.1rem', borderRadius: '50px', display: 'inline-flex', alignItems: 'center', gap: '0.8rem', boxShadow: '0 8px 25px rgba(212,160,23,0.3)', marginTop: '1.5rem', background: 'linear-gradient(135deg, var(--color-accent) 0%, #f39c12 100%)', color: '#1A1A2E', fontWeight: 700 }}>
-                  {auth.user.role === 'admin' || auth.user.role === 'admin_restreint' ? 'Aller au Tableau de Bord' : auth.user.role === 'formateur' ? 'Espace Formateur' : t('hero_btn_start')} <ArrowRight size={20} />
-                </Link>
-              )}
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginTop: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--color-text-muted)' }}>
