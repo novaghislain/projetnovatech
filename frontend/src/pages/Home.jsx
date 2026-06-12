@@ -141,17 +141,19 @@ const Home = () => {
 
           {/* Main hero block (left + center) */}
           <div className="hero-main">
-            {/* Background Images — Carousel */}
-            {heroSlides.map((slide, idx) => (
-              <img
-                key={idx}
-                src={slide.image}
-                alt={`Slide ${idx + 1} Novatech Vision`}
-                className={`hero-bg-img${heroSlide === idx ? ' active' : ''}`}
-              />
-            ))}
-            {/* Dark overlay */}
-            <div className="hero-overlay" />
+            <div className="hero-slider-images">
+              {/* Background Images — Carousel */}
+              {heroSlides.map((slide, idx) => (
+                <img
+                  key={idx}
+                  src={slide.image}
+                  alt={`Slide ${idx + 1} Novatech Vision`}
+                  className={`hero-bg-img${heroSlide === idx ? ' active' : ''}`}
+                />
+              ))}
+              {/* Dark overlay */}
+              <div className="hero-overlay" />
+            </div>
 
             <div className="hero-text-block">
               <h1>
