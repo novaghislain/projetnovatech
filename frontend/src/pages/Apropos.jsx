@@ -45,15 +45,20 @@ const Apropos = () => {
             <h2 style={{ fontSize: '2rem', color: 'var(--color-primary)', marginBottom: '1.5rem' }}>
               {language === 'en' ? 'Our Expertise & Our New Vision' : 'Notre Expertise & Notre Nouvelle Vision'}
             </h2>
-            <p style={{ fontSize: '1.15rem', lineHeight: '1.6', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
+            <p style={{ fontSize: '1.1rem', lineHeight: '1.7', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
               {language === 'en' 
-                ? "Novatech Vision is built on strong digital expertise: software development, IT automation, and tech equipment."
-                : "Novatech Vision, c'est avant tout une forte expertise numérique : développement web, automatisation et équipements informatiques."}
+                ? "Novatech Vision is fundamentally a technology company with strong digital expertise: software development, IT automation, and tech equipment. We help businesses optimize their processes through innovative solutions on a daily basis."
+                : "Novatech Vision est avant tout une entreprise technologique dotée d'une forte expertise numérique : développement logiciel, automatisation et fourniture d'équipements informatiques. Nous accompagnons au quotidien les entreprises dans leur transformation digitale avec des solutions innovantes."}
+            </p>
+            <p style={{ fontSize: '1.1rem', lineHeight: '1.7', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
+              {language === 'en'
+                ? "Why did we branch into kids' education? Because we noticed a simple fact: in an increasingly digital world, most young people remain mere consumers of technology. With our professional IT background, we decided to step up and share our passion."
+                : "Pourquoi nous lancer dans l'éducation des enfants ? Parce que nous avons fait un constat simple : dans un monde hyper-connecté, la majorité des jeunes restent de simples consommateurs de technologie. Forts de notre expérience sur le terrain, nous avons décidé de partager notre passion."}
             </p>
             <p style={{ fontSize: '1.25rem', lineHeight: '1.6', color: 'var(--color-primary)', fontWeight: 700 }}>
               {language === 'en'
-                ? "Today, our mission is clear: training kids and teens from 8 to 18 years old to become the creators of tomorrow."
-                : "Aujourd'hui, notre mission est claire : former les jeunes de 8 à 18 ans pour en faire les créateurs de demain."}
+                ? "Today, our mission is clear: training kids and teens from 8 to 18 years old to master IT and become the creators of tomorrow."
+                : "Aujourd'hui, notre mission est claire : former les jeunes de 8 à 18 ans pour qu'ils maîtrisent l'informatique et deviennent les créateurs de demain."}
             </p>
           </div>
         </div>

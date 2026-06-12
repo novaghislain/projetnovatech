@@ -36,7 +36,7 @@ const translations = {
 
     about_eyebrow: 'Qui sommes-nous ?',
     about_title: 'L\'informatique à la portée de vos enfants',
-    about_desc1: 'Novatech Vision est un organisme de formation spécialisé dans l\'éducation informatique des enfants et jeunes de 8 à 18 ans.',
+    about_desc1: 'Novatech Vision est une entreprise technologique spécialisée dans l\'éducation informatique des enfants et jeunes de 8 à 18 ans.',
     about_desc2: 'Notre mission est de préparer la prochaine génération aux défis du monde numérique en leur offrant des compétences solides en bureautique, sécurité internet, et intelligence artificielle, dans un cadre ludique et stimulant.',
     about_feat1: 'Excellence pédagogique',
     about_feat2: 'Environnement sécurisé',
@@ -252,7 +252,6 @@ const translations = {
     dash_apply_bio: 'Biographie *',
     dash_apply_photo: "Photo d'identité (URL) *",
     dash_apply_submit: 'Envoyer ma candidature',
-    dash_profile_info: '👤 Informations du Profil',
     dash_modify_photo: 'Modifier la photo',
     dash_delete_photo: 'Supprimer',
     dash_student_role: 'Apprenant',
@@ -320,7 +319,7 @@ const translations = {
 
     about_eyebrow: 'Who are we?',
     about_title: 'IT training at your child\'s reach',
-    about_desc1: 'Novatech Vision is a training center specialized in computer education for kids and teens from 8 to 18.',
+    about_desc1: 'Novatech Vision is a technology company specializing in the computer education of children and youth aged 8 to 18.',
     about_desc2: 'Our mission is to prepare the next generation for the challenges of the digital world by providing solid skills in office tools, internet safety, and AI, within a fun and stimulating environment.',
     about_feat1: 'Pedagogical excellence',
     about_feat2: 'Safe environment',
