@@ -238,7 +238,7 @@ app.post('/api/user/avatar', authenticateToken, upload.single('avatar'), (req, r
     return res.status(400).json({ error: 'Aucun fichier fourni' });
   }
 
-  const avatarUrl = 'http://localhost:5001/uploads/' + req.file.filename;
+  const avatarUrl = '/uploads/' + req.file.filename;
 
   db.run(`UPDATE Users SET avatar = ? WHERE id = ?`, [avatarUrl, req.user.id], function(err) {
     if (err) return res.status(500).json({ error: "Erreur lors de la mise à jour de l'avatar" });
