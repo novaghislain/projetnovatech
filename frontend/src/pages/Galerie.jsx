@@ -44,21 +44,34 @@ const Galerie = () => {
   const [lightboxIdx, setLightboxIdx] = useState(null);
   const { language } = useLanguage();
 
+  const fallbackPhotos = [
+    { id: 'g1', src: '/small-black-boy-elearning-computer-home.jpg', caption: 'Initiation au développement', tag: 'Classes', mediaType: 'image' },
+    { id: 'g2', src: '/group-diverse-teens-young-people-doing-activities-together-celebrating-world-youth-skills-day.jpg', caption: 'Projet de groupe', tag: 'Événements', mediaType: 'image' },
+    { id: 'g3', src: '/woman-teaching-kids-class.jpg', caption: 'Atelier de Robotique', tag: 'Ateliers', mediaType: 'image' },
+    { id: 'g4', src: '/bureautique.jpg', caption: 'Cours de Bureautique Avancée', tag: 'Classes', mediaType: 'image' },
+    { id: 'g5', src: '/13x.jpg', caption: 'Atelier ludique', tag: 'Événements', mediaType: 'image' },
+    { id: 'g6', src: '/image2-removebg-preview.png', caption: 'Mot du Directeur', tag: 'Autre', mediaType: 'image' }
+  ];
+
   useEffect(() => {
     const fetchGallery = async () => {
       try {
         const res = await axios.get(`${API_URL}/api/public/gallery`);
-        // Convert API format to the expected format
-        const formatted = res.data.map(g => ({
-          id: g.id,
-          src: getImageUrl(g.imageUrl),
-          caption: g.title || 'Sans titre',
-          tag: g.category || 'Autre',
-          mediaType: g.mediaType || (/\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(g.imageUrl) ? 'video' : 'image')
-        }));
-        setPhotos(formatted);
+        if (res.data && res.data.length > 0) {
+          const formatted = res.data.map(g => ({
+            id: g.id,
+            src: getImageUrl(g.imageUrl),
+            caption: g.title || 'Sans titre',
+            tag: g.category || 'Autre',
+            mediaType: g.mediaType || (/\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(g.imageUrl) ? 'video' : 'image')
+          }));
+          setPhotos(formatted);
+        } else {
+          setPhotos(fallbackPhotos);
+        }
       } catch (err) {
         console.error('Error fetching gallery:', err);
+        setPhotos(fallbackPhotos);
       } finally {
         setLoading(false);
       }

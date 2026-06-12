@@ -37,12 +37,47 @@ const Testimonials = () => {
     fetchTestimonials();
   }, []);
 
+  const fallbackTestimonials = [
+    {
+      id: 'm1',
+      authorName: 'Sophie M.',
+      age: 'Parent',
+      courseName: 'Initiation à la Programmation',
+      comment: "J'ai adoré créer mon propre jeu vidéo ! Les animateurs sont super sympas et pédagogues. Mon enfant attend sa séance avec impatience chaque semaine.",
+      rating: 5,
+      avatar: null
+    },
+    {
+      id: 'm2',
+      authorName: 'Marc T.',
+      age: '15 ans',
+      courseName: "Découverte de l'IA",
+      comment: "C'est incroyable de voir comment fonctionne une intelligence artificielle. J'ai pu entraîner mon propre modèle, je ne pensais pas en être capable !",
+      rating: 5,
+      avatar: null
+    },
+    {
+      id: 'm3',
+      authorName: 'Aline P.',
+      age: '12 ans',
+      courseName: 'Bureautique Avancée',
+      comment: "Maintenant je sais utiliser PowerPoint et Word comme une pro pour mes exposés à l'école. Merci beaucoup à toute l'équipe de Novatech !",
+      rating: 4,
+      avatar: null
+    }
+  ];
+
   const fetchTestimonials = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/public/testimonials`);
-      setTestimonials(res.data);
+      if (res.data && res.data.length > 0) {
+        setTestimonials(res.data);
+      } else {
+        setTestimonials(fallbackTestimonials);
+      }
     } catch (err) {
       console.error(err);
+      setTestimonials(fallbackTestimonials);
     } finally {
       setLoading(false);
     }
