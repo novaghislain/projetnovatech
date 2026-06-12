@@ -130,7 +130,10 @@ const AdminFormations = () => {
         body: JSON.stringify(bodyData)
       });
       
-      if (!response.ok) throw new Error("Erreur lors de l'enregistrement");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Erreur lors de l'enregistrement");
+      }
       await fetchFormations();
       setIsModalOpen(false);
     } catch (err) {
