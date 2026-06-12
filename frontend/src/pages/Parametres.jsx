@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Camera, Trash2, User, Upload, Settings, Lock, Save } from 'lucide-react';
 import './Home.css';
-import { API_URL } from '../config';
+import { API_URL, getImageUrl } from '../config';
 
 const Parametres = () => {
   const { user, updateUserDetails } = useAuth();
@@ -191,7 +191,7 @@ const Parametres = () => {
               fontSize: '2.5rem', fontWeight: 'bold'
             }}>
               {user?.avatar ? (
-                <img src={user.avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={getImageUrl(user.avatar)} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 user?.firstName ? user.firstName.charAt(0).toUpperCase() : <User size={40} />
               )}

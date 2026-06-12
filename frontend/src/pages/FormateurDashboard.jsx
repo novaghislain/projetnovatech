@@ -670,15 +670,6 @@ const FormateurDashboard = () => {
             <h1 style={{ fontSize: '2rem', color: '#0f172a', margin: '0 0 0.5rem 0' }}>{t('welcome_greeting').replace('{name}', user?.firstName || '')}</h1>
             <p style={{ color: '#64748b', margin: 0, fontSize: '1.1rem' }}>{t('welcome_desc')}</p>
           </div>
-          {!activeLiveRoom ? (
-            <button onClick={() => setShowLiveModal(true)} style={{ padding: '0.8rem 1.5rem', background: '#fff', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}>
-              <Video size={18} color="#ef4444" /> {t('btn_start_live')}
-            </button>
-          ) : (
-            <button onClick={stopLive} style={{ padding: '0.8rem 1.5rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', boxShadow: '0 4px 10px rgba(239, 68, 68, 0.3)' }}>
-              <Video size={18} /> {t('btn_stop_live')}
-            </button>
-          )}
         </header>
 
         {activeTab === 'overview' && (
@@ -1483,7 +1474,10 @@ const FormateurDashboard = () => {
               finally { setCourseFormLoading(false); }
             }} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
 
-              {[['Titre *', 'title', 'text', true], ['Description', 'description', 'text', false], ['Lien Meet (si en ligne)', 'meetLink', 'text', false], ['Lien WhatsApp', 'whatsappLink', 'text', false], ['Date de début', 'startDate', 'date', false], ['Date de fin', 'endDate', 'date', false], ['Fin des inscriptions', 'enrollmentEndDate', 'date', false]].map(([frLabel, key, type, required]) => (
+              {[['Titre *', 'title', 'text', true], ['Description', 'description', 'text', false], ['Lien Meet (si en ligne)', 'meetLink', 'text', false], ['Lien WhatsApp', 'whatsappLink', 'text', false], ['Date de début', 'startDate', 'date', false], ['Date de fin', 'endDate', 'date', false], ['Fin des inscriptions', 'enrollmentEndDate', 'date', false]].filter(([frLabel, key]) => {
+                if (courseForm.format === 'physique' && (key === 'meetLink' || key === 'whatsappLink')) return false;
+                return true;
+              }).map(([frLabel, key, type, required]) => (
                 <div key={key}>
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{fieldLabels[key] || frLabel}</label>
                   <input
@@ -1558,18 +1552,17 @@ const FormateurDashboard = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Category' : 'Catégorie'}</label>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Domain' : 'Domaine'}</label>
                   <select value={courseForm.category} onChange={e => setCourseForm(f => ({ ...f, category: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
                     {['Développement', 'Intelligence Artificielle', 'Bureautique', 'Cybersécurité', 'Design', 'Robotique', 'Autre'].map(c => <option key={c} value={c}>{categoryDisplay[c]}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Format' : 'Format de la formation'}</label>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Category' : 'Catégorie'}</label>
                   <select value={courseForm.format} onChange={e => setCourseForm(f => ({ ...f, format: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
-                    <option value="en_ligne">En Ligne (Classique)</option>
-                    <option value="physique">Physique (Sans compte)</option>
-                    <option value="masse">Formation de Masse (Groupée)</option>
-                    <option value="personnelle">Formation Personnelle</option>
+                    <option value="en_ligne">En ligne</option>
+                    <option value="physique">Présentiel</option>
+                    <option value="masse">En masse</option>
                   </select>
                 </div>
                 {courseForm.format === 'masse' && (
