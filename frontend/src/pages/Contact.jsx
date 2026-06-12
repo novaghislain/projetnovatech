@@ -35,10 +35,12 @@ const Contact = () => {
     <div className="page-transition">
 
       {/* En-tête */}
-      <div className="page-top-bar">
+      <div className="page-top-bar" style={{ animation: 'fadeUp 0.8s ease both' }}>
         <div className="container">
-          <h1>{language === 'en' ? 'Contact Us' : 'Contactez-nous'}</h1>
-          <p className="page-top-desc">
+          <h1 style={{ animation: 'fadeUp 0.8s ease 0.2s both' }}>
+            {language === 'en' ? 'Contact Us' : 'Contactez-nous'}
+          </h1>
+          <p className="page-top-desc" style={{ animation: 'fadeUp 0.8s ease 0.4s both' }}>
             {language === 'en' 
               ? 'Our team is here to answer all your questions about our training programs, schedules, and registration details.'
               : "Notre équipe répond à toutes vos questions concernant nos formations, horaires et modalités d'inscription."}

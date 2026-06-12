@@ -188,3 +188,14 @@ img {
   height: 4px;
   background: linear-gradient(135deg, #38bdf8 0%, #0F3460 100%);
 }
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

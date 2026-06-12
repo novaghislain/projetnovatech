@@ -361,11 +361,12 @@
   }
 
   .navbar-auth-links .btn {
-    width: 100%;
-    max-width: 250px;
+    width: auto;
     text-align: center;
-    padding: 0.65rem 1rem;
+    padding: 0.6rem 1.4rem;
     font-size: 0.9rem;
+    border-radius: 50px;
+    margin-top: 0.5rem;
   }
 
   .account-menu {

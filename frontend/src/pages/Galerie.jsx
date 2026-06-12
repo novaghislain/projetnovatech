@@ -104,10 +104,12 @@ const Galerie = () => {
     <div className="galerie-page">
 
       {/* ── Header ── */}
-      <div className="page-top-bar">
+      <div className="page-top-bar" style={{ animation: 'fadeUp 0.8s ease both' }}>
         <div className="container">
-          <h1>{language === 'en' ? 'Gallery & Testimonials' : 'Galerie & Témoignages'}</h1>
-          <p className="page-top-desc">
+          <h1 style={{ animation: 'fadeUp 0.8s ease 0.2s both' }}>
+            {language === 'en' ? 'Gallery & Testimonials' : 'Galerie & Témoignages'}
+          </h1>
+          <p className="page-top-desc" style={{ animation: 'fadeUp 0.8s ease 0.4s both' }}>
             {language === 'en' 
               ? 'Discover our training sessions, workshops, and events in pictures, and read what our learners have to say.'
               : 'Découvrez nos sessions de formation, ateliers et événements en images, et lisez ce que nos apprenants en disent.'}

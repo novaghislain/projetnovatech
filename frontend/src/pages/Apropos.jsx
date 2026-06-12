@@ -9,12 +9,13 @@ const Apropos = () => {
   return (
     <div className="page-transition">
 
-      <div className="page-top-bar" style={{ position: 'relative', overflow: 'hidden' }}>
-        {/* Motif décoratif discret */}
-        <div style={{ position: 'absolute', top: -100, right: -50, width: 300, height: 300, background: 'radial-gradient(circle, rgba(15,52,96,0.03) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }}></div>
+      {/* ── En-tête de page ── */}
+      <div className="page-top-bar" style={{ animation: 'fadeUp 0.8s ease both' }}>
         <div className="container" style={{ position: 'relative', zIndex: 1 }}>
-          <h1>{language === 'en' ? 'About Novatech Vision' : 'À Propos de Novatech Vision'}</h1>
-          <p className="page-top-desc">
+          <h1 style={{ animation: 'fadeUp 0.8s ease 0.2s both' }}>
+            {language === 'en' ? 'About Novatech Vision' : 'À Propos de Novatech Vision'}
+          </h1>
+          <p className="page-top-desc" style={{ animation: 'fadeUp 0.8s ease 0.4s both' }}>
             {language === 'en' 
               ? 'Discover the mission, values, and people behind Novatech Vision.' 
               : 'Découvrez la mission, les valeurs et les personnes derrière Novatech Vision.'}

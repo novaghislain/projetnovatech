@@ -102,8 +102,8 @@ const AdminDashboard = () => {
       const wrapRect = wrap.getBoundingClientRect();
       const itemRect = el.getBoundingClientRect();
       setIndicatorStyle({
-        top: itemRect.top - wrapRect.top,
-        height: itemRect.height,
+        top: el.offsetTop,
+        height: el.offsetHeight,
       });
     }
   }, []);
