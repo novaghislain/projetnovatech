@@ -32,7 +32,7 @@ const translations = {
     hero_card_btn: 'Je réserve ma place',
     hero_ai_title: "Découvrez l'Intelligence Artificielle pour les jeunes",
     hero_ai_subtitle: 'Comprendre, créer, innover avec les technologies de demain.',
-    hero_ai_btn: 'En savoir plus',
+    hero_ai_btn: 'Je réserve ma place',
 
     about_eyebrow: 'Qui sommes-nous ?',
     about_title: 'L\'informatique à la portée de vos enfants',
