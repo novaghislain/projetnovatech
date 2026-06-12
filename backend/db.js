@@ -288,19 +288,7 @@ const initDb = async () => {
       )
     `);
 
-    // Seed default formations
-    try {
-      const count = db._db.exec("SELECT COUNT(*) as count FROM Formations");
-      if (count.length > 0 && count[0].values[0][0] === 0) {
-        db._db.run('INSERT INTO Formations (title, category, price, duration, ageGroup, maxParticipants, status, imageUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-          ['Initiation à la Programmation', 'Développement', 25000, '4 semaines', '10-14 ans', 20, 'published', '/7x.jpg']);
-        db._db.run('INSERT INTO Formations (title, category, price, duration, ageGroup, maxParticipants, status, imageUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-          ["Découverte de l'IA", 'Intelligence Artificielle', 30000, '6 semaines', '14-18 ans', 20, 'published', '/8x.jpeg']);
-        db._db.run('INSERT INTO Formations (title, category, price, duration, ageGroup, maxParticipants, status, imageUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-          ['Bureautique Avancée', 'Bureautique', 20000, '3 semaines', 'Tous âges', 15, 'published', '/10x.jpg']);
-        console.log("Données initiales Formations injectées.");
-      }
-    } catch (e) { /* silent */ }
+    // No default formations seeded — admin creates real formations from the dashboard
 
     addColumnIfMissing('Formations', 'isFull BOOLEAN DEFAULT 0');
     addColumnIfMissing('Formations', 'isLive BOOLEAN DEFAULT 0');
