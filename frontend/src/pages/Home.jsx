@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -18,24 +18,6 @@ const Home = () => {
   const { t, language } = useLanguage();
   const auth = useAuth();
 
-  const [presentationVisible, setPresentationVisible] = useState(false);
-  const presentationRef = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setPresentationVisible(entry.isIntersecting);
-      },
-      { threshold: 0.15 }
-    );
-    if (presentationRef.current) {
-      observer.observe(presentationRef.current);
-    }
-    return () => {
-      if (observer) observer.disconnect();
-    };
-  }, []);
-
   const programs = [
     { icon: <Monitor size={26} />, label: t('program_office') },
     { icon: <Shield size={26} />, label: t('program_safety') },
@@ -54,7 +36,6 @@ const Home = () => {
   ];
 
   const [stats, setStats] = useState([
-    { value: '500+', label: t('stats_students') },
     { value: '10+', label: t('stats_courses') },
     { value: '98%', label: t('stats_satisfaction') },
     { value: '15+', label: t('stats_experts') }
@@ -201,20 +182,6 @@ const Home = () => {
           {/* Right sidebar — Premium Panel */}
           <div className="hero-sidebar">
 
-            {/* Inscription CTA card */}
-            <div className="sidebar-card sidebar-card--cta">
-              <div className="sidebar-card-header">
-                <Calendar size={24} />
-                <div>
-                  <h3 className="sidebar-card-title">{t('hero_card_title')}</h3>
-                  <p className="sidebar-card-subtitle">{t('hero_card_subtitle')}</p>
-                </div>
-              </div>
-              <Link to={language === 'en' ? '/en/enroll' : '/inscription'} className="sidebar-card-btn">
-                {t('hero_card_btn')}
-              </Link>
-            </div>
-
             {/* AI Discovery card */}
             <div className="sidebar-card sidebar-card--ai">
               <div className="sidebar-card-content">
@@ -236,10 +203,10 @@ const Home = () => {
 
 
       {/* Presentation Section */}
-      <section ref={presentationRef} className="presentation-section section-padding" style={{ backgroundColor: 'var(--color-bg-light)', overflow: 'hidden' }}>
+      <section className="presentation-section section-padding" style={{ backgroundColor: 'var(--color-bg-light)' }}>
         <div className="container">
           <div className="presentation-content" style={{ display: 'flex', gap: '4rem', alignItems: 'center' }}>
-            <div className={`presentation-text presentation-text-anim ${presentationVisible ? 'is-visible' : ''}`} style={{ flex: 1 }}>
+            <div className="presentation-text" style={{ flex: 1 }}>
               <h2 className="section-title">{t('about_title')}</h2>
               <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '1.05rem', lineHeight: 1.7 }}>
                 {t('about_desc1')}
@@ -258,7 +225,7 @@ const Home = () => {
                 </li>
               </ul>
             </div>
-            <div className={`presentation-image presentation-img-anim ${presentationVisible ? 'is-visible' : ''}`} style={{ flex: 1, position: 'relative', display: 'flex', justifyContent: 'flex-end' }}>
+            <div className="presentation-image" style={{ flex: 1, position: 'relative', display: 'flex', justifyContent: 'flex-end' }}>
               <div style={{ position: 'relative', width: '90%' }}>
                 <img src="/10x.jpg" alt="Élèves apprenant l'informatique" style={{ width: '100%', borderRadius: 'var(--radius-lg)', boxShadow: '0 20px 40px rgba(26,26,46,0.15)', display: 'block' }} />
 
@@ -340,6 +307,22 @@ const Home = () => {
 
 
 
+
+      {/* Statistics / Key Figures */}
+      <section className="key-figures-section section-padding">
+        <div className="container text-center">
+          <h2 className="section-title">{t('stats_title')}</h2>
+          <p className="section-subtitle">{t('stats_subtitle')}</p>
+          <div className="key-figures-grid">
+            {stats.map((stat, i) => (
+              <div className="key-figure-item" key={i}>
+                <span className="key-figure-value">{stat.value}</span>
+                <span className="key-figure-label">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Why Choose Us */}
       <section className="why-us-section section-padding" style={{ backgroundColor: 'var(--color-bg-alt)' }}>
