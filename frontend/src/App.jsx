@@ -48,10 +48,7 @@ const AppLayout = () => {
   const location = useLocation();
   const isDashboard = location.pathname.startsWith('/admin') || 
                       location.pathname.startsWith('/formateur') || 
-                      location.pathname.startsWith('/mon-espace') ||
-                      location.pathname.startsWith('/inscription') ||
-                      location.pathname.startsWith('/fr/inscription') ||
-                      location.pathname.startsWith('/en/enroll');
+                      location.pathname.startsWith('/mon-espace');
 
   // Remonter en haut de la page à chaque changement de route
   useEffect(() => {
@@ -84,9 +81,6 @@ const AppLayout = () => {
             <ApprenantDashboard />
           </ProtectedRoute>
         } />
-        <Route path="/inscription" element={<Inscription />} />
-        <Route path="/fr/inscription" element={<Inscription />} />
-        <Route path="/en/enroll" element={<Inscription />} />
       </Routes>
       </>
     );
@@ -103,6 +97,11 @@ const AppLayout = () => {
           <Route path="/fr" element={<Home />} />
           <Route path="/galerie" element={<Galerie />} />
           <Route path="/fr/galerie" element={<Galerie />} />
+          
+          <Route path="/inscription" element={<Inscription />} />
+          <Route path="/fr/inscription" element={<Inscription />} />
+          <Route path="/en/enroll" element={<Inscription />} />
+
           <Route path="/temoignages" element={<Navigate to="/galerie" replace />} />
           <Route path="/fr/temoignages" element={<Navigate to="/fr/galerie" replace />} />
           <Route path="/a-propos" element={<Apropos />} />

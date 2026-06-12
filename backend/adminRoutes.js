@@ -241,15 +241,15 @@ module.exports = function(db, authenticateToken) {
 
   router.post('/formations', (req, res) => {
     const { title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull,
-            whatsappLink, meetLink, startDate, endDate, location, isOnline, format, locationMode } = req.body;
+            whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode } = req.body;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
     const query = `
       INSERT INTO Formations (title, slug, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull,
-                              whatsappLink, meetLink, startDate, endDate, location, isOnline, format, locationMode)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                              whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     db.run(query, [title, slug, description, category, ageGroup, duration, price, maxParticipants, status || 'published', imageUrl, isFull ? 1 : 0,
-                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne'], function(err) {
+                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', enrollmentEndDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne'], function(err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, id: this.lastID });
     });
@@ -257,15 +257,15 @@ module.exports = function(db, authenticateToken) {
 
   router.put('/formations/:id', (req, res) => {
     const { title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull,
-            whatsappLink, meetLink, startDate, endDate, location, isOnline, format, locationMode } = req.body;
+            whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode } = req.body;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
     const query = `
       UPDATE Formations SET title=?, slug=?, description=?, category=?, ageGroup=?, duration=?, price=?, maxParticipants=?, status=?, imageUrl=?, isFull=?,
-                            whatsappLink=?, meetLink=?, startDate=?, endDate=?, location=?, isOnline=?, format=?, locationMode=?
+                            whatsappLink=?, meetLink=?, startDate=?, endDate=?, enrollmentEndDate=?, location=?, isOnline=?, format=?, locationMode=?
       WHERE id=?
     `;
     db.run(query, [title, slug, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull ? 1 : 0,
-                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne',
+                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', enrollmentEndDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne',
                    req.params.id], (err) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true });

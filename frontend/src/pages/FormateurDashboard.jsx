@@ -7,7 +7,7 @@ import './FormateurDashboard.css';
 import './Admin/AdminDashboard.css';
 import { API_URL } from '../config';
 
-const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Débutant', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne', meetLink: '', whatsappLink: '', imageUrl: '', imageUrls: [], sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
+const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Débutant', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne', meetLink: '', whatsappLink: '', imageUrl: '', imageUrls: [], sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
 
 const localT = {
   fr: {
@@ -1479,7 +1479,7 @@ const FormateurDashboard = () => {
               finally { setCourseFormLoading(false); }
             }} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
 
-              {[['Titre *', 'title', 'text', true], ['Description', 'description', 'text', false], ['Lien Meet (si en ligne)', 'meetLink', 'text', false], ['Lien WhatsApp', 'whatsappLink', 'text', false], ['Date de début', 'startDate', 'date', false], ['Date de fin', 'endDate', 'date', false]].map(([frLabel, key, type, required]) => (
+              {[['Titre *', 'title', 'text', true], ['Description', 'description', 'text', false], ['Lien Meet (si en ligne)', 'meetLink', 'text', false], ['Lien WhatsApp', 'whatsappLink', 'text', false], ['Date de début', 'startDate', 'date', false], ['Date de fin', 'endDate', 'date', false], ['Fin des inscriptions', 'enrollmentEndDate', 'date', false]].map(([frLabel, key, type, required]) => (
                 <div key={key}>
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{fieldLabels[key] || frLabel}</label>
                   <input

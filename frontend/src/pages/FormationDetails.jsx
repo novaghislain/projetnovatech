@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Clock, Users, Calendar, CheckCircle2, ShieldCheck, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, Users, Calendar, CheckCircle2, ShieldCheck, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight, Share2, Timer } from 'lucide-react';
 import { translateCategory, translateDuration, translateAgeGroup, translateLevel, translateTitle, translateDescription } from '../utils/translator';
 
 import './Home.css';
@@ -20,6 +20,32 @@ const FormationDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    const targetDateStr = formation?.enrollmentEndDate || formation?.startDate;
+    if (!targetDateStr) return;
+    const target = new Date(targetDateStr).getTime();
+    if (isNaN(target)) return;
+    
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = target - now;
+      
+      if (distance < 0) {
+        setTimeLeft(language === 'en' ? 'Started' : 'Commencé');
+        clearInterval(interval);
+      } else {
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        setTimeLeft(`${days}j ${hours}h ${minutes}m ${seconds}s`);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [formation, language]);
 
   useEffect(() => {
     const fetchFormation = async () => {
@@ -100,6 +126,31 @@ const FormationDetails = () => {
 
   const handleEnrollClick = () => {
     navigate('/inscription', { state: { formationId: formation.id } });
+  };
+
+  const handleCopyLink = () => {
+    const url = window.location.href;
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url);
+    } else {
+      // Fallback for non-HTTPS (like local IP testing)
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+      } catch (err) {
+        console.error('Fallback: Oops, unable to copy', err);
+      }
+      document.body.removeChild(textArea);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -222,6 +273,18 @@ const FormationDetails = () => {
               </div>
               
               <div style={{ marginBottom: '2rem' }}>
+                {(formation.enrollmentEndDate || formation.startDate) && timeLeft && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: (timeLeft === 'Started' || timeLeft === 'Commencé') ? '#f3f4f6' : '#fef3c7', color: (timeLeft === 'Started' || timeLeft === 'Commencé') ? '#6b7280' : '#b45309', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.95rem', fontWeight: 600, marginBottom: '1rem', border: (timeLeft === 'Started' || timeLeft === 'Commencé') ? '1px solid #e5e7eb' : '1px solid #fde68a' }}>
+                    <Timer size={20} /> 
+                    {timeLeft === 'Started' || timeLeft === 'Commencé' 
+                      ? (language === 'en' ? 'Registrations closed' : 'Inscriptions terminées')
+                      : (language === 'en' ? 'Registrations close in:' : 'Fin des inscriptions :')
+                    }
+                    {timeLeft !== 'Started' && timeLeft !== 'Commencé' && (
+                      <span style={{ fontFamily: 'monospace', fontSize: '1.05rem', marginLeft: 'auto' }}>{timeLeft}</span>
+                    )}
+                  </div>
+                )}
                 {isFull ? (
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#fee2e2', color: '#dc2626', padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.9rem', fontWeight: 600 }}>
                     <AlertCircle size={16} /> {t('courses_full')}
@@ -237,13 +300,22 @@ const FormationDetails = () => {
                 </div>
               </div>
 
-              <button 
-                onClick={handleEnrollClick}
-                className="btn btn-primary" 
-                style={{ width: '100%', padding: '1.2rem', fontSize: '1.1rem', borderRadius: '12px' }}
-              >
-                {t('fd_enroll_now')}
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <button 
+                  onClick={handleEnrollClick}
+                  className="btn btn-primary" 
+                  style={{ width: '100%', padding: '1.2rem', fontSize: '1.1rem', borderRadius: '12px' }}
+                >
+                  {t('fd_enroll_now')}
+                </button>
+                <button 
+                  onClick={handleCopyLink}
+                  className="btn btn-outline" 
+                  style={{ width: '100%', padding: '1rem', fontSize: '1rem', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                >
+                  <Share2 size={18} /> {copied ? (language === 'en' ? 'Link Copied!' : 'Lien copié !') : (language === 'en' ? 'Copy Link' : 'Copier le lien')}
+                </button>
+              </div>
             </div>
           </aside>
 

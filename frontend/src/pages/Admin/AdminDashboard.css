@@ -1,8 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --primary: #8B5CF6;
-  --primary-light: #6B8A9E;
+  --primary: var(--color-accent);
+  --primary-hover: var(--color-primary);
+  --secondary: #64748B;
   --dark: #1F1F2E;
   --dark-light: #2A2A3C;
   --background: #F8F9FC;
@@ -44,7 +45,7 @@
 .sidebar-logo {
   width: 100%;
   padding: 0 18px;
-  height: 50px;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -53,8 +54,8 @@
 }
 
 .sidebar-logo img {
-  width: 34px;
-  height: 34px;
+  width: 60px;
+  height: 60px;
   filter: brightness(0) invert(1);
   object-fit: contain;
   cursor: pointer;
@@ -1114,11 +1115,11 @@
 }
 
 .mobile-header img {
-  height: 28px;
+  height: 40px;
   filter: brightness(0) invert(1);
 }
 
-.mobile-menu-btn {
+.mobile-header .mobile-menu-btn {
   background: none;
   border: none;
   color: white;

@@ -22,7 +22,7 @@ const AdminFormations = () => {
   const [formData, setFormData] = useState({
     id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '',
     maxParticipants: '', status: 'draft', imageUrl: '', isFull: false,
-    whatsappLink: '', meetLink: '', startDate: '', endDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne'
+    whatsappLink: '', meetLink: '', startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne'
   });
   const [errors, setErrors] = useState({});
 
@@ -59,7 +59,7 @@ const AdminFormations = () => {
       setFormData({
         id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '',
         maxParticipants: '', status: 'draft', imageUrl: '', isFull: false,
-        whatsappLink: '', meetLink: '', startDate: '', endDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne'
+        whatsappLink: '', meetLink: '', startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne'
       });
     }
     setErrors({});
@@ -386,6 +386,10 @@ const AdminFormations = () => {
                   <div className="form-group">
                     <label>📅 Date de fin</label>
                     <input type="date" className="form-control" value={formData.endDate || ''} onChange={e => setFormData({...formData, endDate: e.target.value})} />
+                  </div>
+                  <div className="form-group">
+                    <label>⏳ Fin des inscriptions</label>
+                    <input type="date" className="form-control" value={formData.enrollmentEndDate || ''} onChange={e => setFormData({...formData, enrollmentEndDate: e.target.value})} />
                   </div>
                   <div className="form-group">
                     <label>📍 Lieu (si présentiel)</label>

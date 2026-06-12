@@ -276,6 +276,7 @@ const initDb = async () => {
     addColumnIfMissing('Formations', 'isFull BOOLEAN DEFAULT 0');
     addColumnIfMissing('Formations', 'isLive BOOLEAN DEFAULT 0');
     addColumnIfMissing('Formations', 'liveRoomName TEXT');
+    addColumnIfMissing('Formations', 'enrollmentEndDate DATE');
 
     // Create Enrollments
     db.run(`
