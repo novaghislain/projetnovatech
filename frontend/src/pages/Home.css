@@ -564,7 +564,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: center 20%;
   opacity: 0;
   transition: opacity 1.5s ease-in-out;
 }
@@ -1268,7 +1268,7 @@
 
   .hero-main {
     border-radius: var(--radius-lg);
-    min-height: 600px;
+    min-height: 420px;
   }
 
   .sidebar-card--cta {

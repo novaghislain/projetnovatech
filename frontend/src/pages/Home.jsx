@@ -177,17 +177,7 @@ const Home = () => {
               </Link>
             </div>
 
-            {/* Carousel Dots */}
-            <div className="hero-dots">
-              {heroSlides.map((_, idx) => (
-                <button
-                  key={idx}
-                  className={`hero-dot${heroSlide === idx ? ' active' : ''}`}
-                  onClick={() => goToSlide(idx)}
-                  aria-label={`Slide ${idx + 1}`}
-                />
-              ))}
-            </div>
+
           </div>
 
           {/* Right sidebar — Premium Panel */}
