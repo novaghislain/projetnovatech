@@ -206,7 +206,7 @@ const Home = () => {
                 <p className="sidebar-card-subtitle" style={{ marginBottom: '1.2rem', color: 'rgba(255,255,255,0.85)' }}>
                   {t('hero_card_subtitle')}
                 </p>
-                <Link to="/register" className="btn" style={{ background: '#fff', color: 'var(--color-primary)', fontWeight: 600, padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', textAlign: 'center', display: 'block', transition: 'all 0.3s ease' }}>
+                <Link to="/inscription" className="btn" style={{ background: '#fff', color: 'var(--color-primary)', fontWeight: 600, padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', textAlign: 'center', display: 'block', transition: 'all 0.3s ease' }}>
                   {t('hero_card_btn')}
                 </Link>
               </div>

@@ -20,7 +20,8 @@ import {
   Search,
   Mail,
   Settings,
-  Download
+  Download,
+  User
 } from 'lucide-react';
 import {
   LineChart,
@@ -45,6 +46,7 @@ import AdminFormateurs from './AdminFormateurs';
 import AdminCandidatures from './AdminCandidatures';
 import AdminMetaPixel from './AdminMetaPixel';
 import AdminParametres from './AdminParametres';
+import Parametres from '../Parametres';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_URL, getImageUrl } from '../../config';
 import { ToastProvider } from '../../components/Toast';
@@ -87,7 +89,8 @@ const AdminDashboard = () => {
     { tab: 'utilisateurs', icon: Users, label: 'Utilisateurs' },
     { tab: 'formateurs', icon: Users, label: 'Formateurs' },
     { tab: 'candidatures', icon: CheckCircle, label: 'Candidatures' },
-    { tab: 'parametres', icon: Settings, label: 'Paramètres' },
+    { tab: 'parametres', icon: Settings, label: 'Configurations du site' },
+    { tab: 'mon-profil', icon: User, label: 'Paramètres du Profil' },
   ].filter(item => {
     if (user?.role === 'admin_restreint') {
       return item.tab === 'formations';
@@ -286,6 +289,7 @@ const AdminDashboard = () => {
     messages: 'Messages de Contact',
     candidatures: 'Candidatures Formateurs',
     'meta-pixel': 'Marketing › Meta Pixel',
+    'mon-profil': 'Paramètres du Profil',
   };
 
   return (
@@ -563,6 +567,7 @@ const AdminDashboard = () => {
           {activeTab === 'meta-pixel' && <AdminMetaPixel />}
           {activeTab === 'inscriptions' && <AdminInscriptions />}
           {activeTab === 'parametres' && <AdminParametres />}
+          {activeTab === 'mon-profil' && <Parametres />}
 
           {/* TAB: FINANCES */}
           {activeTab === 'finances' && (

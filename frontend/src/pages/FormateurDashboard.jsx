@@ -6,6 +6,7 @@ import './Home.css';
 import './FormateurDashboard.css';
 import './Admin/AdminDashboard.css';
 import { API_URL } from '../config';
+import Parametres from './Parametres';
 
 const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Tous niveaux', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne', meetLink: '', whatsappLink: '', imageUrl: '', imageUrls: [], sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
 
@@ -304,8 +305,8 @@ const FormateurDashboard = () => {
       const wrapRect = wrap.getBoundingClientRect();
       const itemRect = el.getBoundingClientRect();
       setIndicatorStyle({
-        top: itemRect.top - wrapRect.top,
-        height: itemRect.height,
+        top: el.offsetTop,
+        height: el.offsetHeight,
       });
     }
   }, []);
@@ -635,6 +636,7 @@ const FormateurDashboard = () => {
             { id: 'messages', icon: MessageCircle, label: t('nav_questions') },
             { id: 'groupMessage', icon: MessageCircle, label: t('nav_group_msg') },
             { id: 'schedule', icon: Calendar, label: t('nav_schedule') },
+            { id: 'settings', icon: Settings, label: t('nav_settings') },
           ].map(item => (
             <div
               key={item.id}
@@ -1445,6 +1447,8 @@ const FormateurDashboard = () => {
             )}
           </div>
         )}
+
+        {activeTab === 'settings' && <Parametres />}
       </main>
 
       {/* ===== MODALE CRÉATION / MODIFICATION FORMATION ===== */}

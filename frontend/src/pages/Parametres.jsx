@@ -15,6 +15,7 @@ const Parametres = () => {
   // States pour le profil
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
   const [bio, setBio] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [msgProfile, setMsgProfile] = useState({ type: '', text: '' });
@@ -30,6 +31,7 @@ const Parametres = () => {
     if (user) {
       setFirstName(user.firstName || '');
       setLastName(user.lastName || '');
+      setPhone(user.phone || '');
       setBio(user.bio || '');
     }
   }, [user]);
@@ -104,13 +106,13 @@ const Parametres = () => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ firstName, lastName, bio })
+        body: JSON.stringify({ firstName, lastName, phone, bio })
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Erreur de mise à jour');
 
-      if (updateUserDetails) updateUserDetails({ firstName, lastName, bio });
+      if (updateUserDetails) updateUserDetails({ firstName, lastName, phone, bio });
       setMsgProfile({ type: 'success', text: 'Profil mis à jour avec succès.' });
     } catch (err) {
       setMsgProfile({ type: 'error', text: err.message });
@@ -231,6 +233,10 @@ const Parametres = () => {
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#444' }}>Nom</label>
                 <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required className="form-control" />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#444' }}>Téléphone</label>
+                <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} className="form-control" placeholder="+229 ..." />
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#444' }}>Adresse Email</label>
