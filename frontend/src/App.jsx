@@ -95,7 +95,7 @@ const AppLayout = () => {
     <div className="app">
       <MetaPixel />
       <Navbar />
-      <main className="main-content">
+      <main className="public-main-content">
         <Routes>
           {/* French & Default routes */}
           <Route path="/" element={<Home />} />
