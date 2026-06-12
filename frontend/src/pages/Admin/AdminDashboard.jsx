@@ -355,7 +355,7 @@ const AdminDashboard = () => {
             </div>
             <div className="user-avatar">
               {user?.avatar ? (
-                <img src={user.avatar} alt="Avatar" />
+                <img src={getImageUrl(user.avatar)} alt="Avatar" />
               ) : (
                 user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'A'
               )}

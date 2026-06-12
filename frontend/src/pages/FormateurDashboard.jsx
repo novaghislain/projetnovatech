@@ -2,10 +2,10 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, Users, Star, MessageCircle, LogOut, Video, FileText, CheckCircle, Clock, ChevronRight, Plus, Trash2, Edit2, X, Menu, Calendar, PlayCircle, FolderOpen, ChevronDown, Settings } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { API_URL, getImageUrl } from '../config';
 import './Home.css';
 import './FormateurDashboard.css';
 import './Admin/AdminDashboard.css';
-import { API_URL } from '../config';
 import Parametres from './Parametres';
 
 const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Tous niveaux', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne', meetLink: '', whatsappLink: '', imageUrl: '', imageUrls: [], sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
@@ -665,10 +665,25 @@ const FormateurDashboard = () => {
       <main className="formateur-main">
         
         {/* HEADER */}
-        <header className="formateur-header">
+        <header className="formateur-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ fontSize: '2rem', color: '#0f172a', margin: '0 0 0.5rem 0' }}>{t('welcome_greeting').replace('{name}', user?.firstName || '')}</h1>
             <p style={{ color: '#64748b', margin: 0, fontSize: '1.1rem' }}>{t('welcome_desc')}</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ 
+              width: '50px', height: '50px', borderRadius: '50%', 
+              backgroundColor: 'var(--color-primary)', color: 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              fontSize: '1.2rem', fontWeight: 'bold'
+            }}>
+              {user?.avatar ? (
+                <img src={getImageUrl(user.avatar)} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                user?.firstName ? user.firstName.charAt(0).toUpperCase() : <User size={24} />
+              )}
+            </div>
           </div>
         </header>
 
