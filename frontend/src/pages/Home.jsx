@@ -4,11 +4,7 @@ import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { translateCategory, translateDuration, translateAgeGroup, translateLevel, translateTitle, translateDescription } from '../utils/translator';
-import {
-  Monitor, Shield, Code2, BrainCircuit, UserCheck,
-  GraduationCap, BookOpen, FlaskConical, Award, Clock, ArrowRight,
-  Send, Mail, Phone, MapPin, Calendar, Layers
-} from 'lucide-react';
+import { Shield, Monitor, Code2, BrainCircuit, UserCheck, ChevronRight, Calendar, GraduationCap, BookOpen, FlaskConical, Award, Clock, ArrowRight, Send, Mail, Phone, MapPin, Layers } from 'lucide-react';
 
 import './Home.css';
 import { API_URL, getImageUrl } from '../config';
@@ -198,10 +194,26 @@ const Home = () => {
           </div>
 
           {/* Right sidebar — Premium Panel */}
-          <div className="hero-sidebar">
+          <div className="hero-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+            {/* Registration Card */}
+            <div className="sidebar-card sidebar-card--primary" style={{ animation: 'fadeUp 0.8s ease 0.2s both' }}>
+              <div className="sidebar-card-content">
+                <h3 className="sidebar-card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+                  <Calendar size={22} color="var(--color-primary)" />
+                  {t('hero_card_title')}
+                </h3>
+                <p className="sidebar-card-subtitle" style={{ marginBottom: '1.2rem', color: 'rgba(255,255,255,0.85)' }}>
+                  {t('hero_card_subtitle')}
+                </p>
+                <Link to="/register" className="btn" style={{ background: '#fff', color: 'var(--color-primary)', fontWeight: 600, padding: '0.8rem 1.5rem', borderRadius: 'var(--radius-md)', textAlign: 'center', display: 'block', transition: 'all 0.3s ease' }}>
+                  {t('hero_card_btn')}
+                </Link>
+              </div>
+            </div>
 
             {/* AI Discovery card */}
-            <div className="sidebar-card sidebar-card--ai">
+            <div className="sidebar-card sidebar-card--ai" style={{ animation: 'fadeUp 0.8s ease 0.4s both' }}>
               <div className="sidebar-card-content">
                 <h3 className="sidebar-card-title">{t('hero_ai_title')}</h3>
                 <p className="sidebar-card-subtitle">{t('hero_ai_subtitle')}</p>
