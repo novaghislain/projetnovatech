@@ -165,10 +165,6 @@ const Galerie = () => {
                     src={photo.src} 
                     alt={photo.caption} 
                     loading="lazy" 
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = '/group-diverse-teens-young-people-doing-activities-together-celebrating-world-youth-skills-day.jpg';
-                    }} 
                   />
                 )}
                 <div className="galerie-card-overlay">
@@ -205,10 +201,6 @@ const Galerie = () => {
               <img 
                 src={filtered[lightboxIdx].src} 
                 alt={filtered[lightboxIdx].caption} 
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '/group-diverse-teens-young-people-doing-activities-together-celebrating-world-youth-skills-day.jpg';
-                }}
               />
             )}
             <div className="lb-info">
