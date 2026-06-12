@@ -290,7 +290,9 @@ const AdminParametres = () => {
               </div>
               <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
                 <div style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, marginBottom: '0.2rem' }}>Dernière sauvegarde</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)' }}>—</div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)' }}>
+                  {settings.lastBackup ? new Date(settings.lastBackup).toLocaleString() : '—'}
+                </div>
               </div>
             </div>
           </div>

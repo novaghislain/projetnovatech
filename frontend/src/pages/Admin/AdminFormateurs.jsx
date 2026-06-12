@@ -9,7 +9,8 @@ const specialites = [
 
 const emptyForm = {
   nom: '', prenom: '', email: '', telephone: '',
-  specialite: specialites[0], bio: '', photo: '', status: 'actif'
+  specialite: specialites[0], bio: '', photo: '', status: 'actif',
+  password: ''
 };
 
 const AdminFormateurs = () => {
@@ -39,13 +40,20 @@ const AdminFormateurs = () => {
     const e = {};
     if (!formData.nom.trim()) e.nom = 'Le nom est requis.';
     if (!formData.prenom.trim()) e.prenom = 'Le prénom est requis.';
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) e.email = 'Email invalide.';
+    if (!formData.email || !formData.email.trim()) {
+      e.email = 'L\'adresse email est requise.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      e.email = 'Email invalide.';
+    }
+    if (!formData.id && (!formData.password || formData.password.trim().length < 6)) {
+      e.password = 'Le mot de passe doit contenir au moins 6 caractères.';
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleOpen = (f = null) => {
-    setFormData(f ? { ...f } : { ...emptyForm });
+    setFormData(f ? { ...f, password: '' } : { ...emptyForm });
     setErrors({});
     setIsModalOpen(true);
   };
@@ -241,7 +249,7 @@ const AdminFormateurs = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Email</label>
+                  <label>Email *</label>
                   <input
                     type="email" className="form-control"
                     value={formData.email || ''}
@@ -259,6 +267,19 @@ const AdminFormateurs = () => {
                     placeholder="+229 01 XX XX XX XX"
                   />
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label>
+                  {!formData.id ? 'Mot de passe de connexion *' : 'Nouveau mot de passe de connexion (laisser vide pour ne pas modifier)'}
+                </label>
+                <input
+                  type="password" className="form-control"
+                  value={formData.password || ''}
+                  onChange={e => setFormData({ ...formData, password: e.target.value })}
+                  placeholder={!formData.id ? "Min. 6 caractères (ex: password123)" : "Entrez un nouveau mot de passe pour réinitialiser"}
+                />
+                {errors.password && <div style={{ color: '#dc2626', fontSize: '0.8rem', marginTop: '4px' }}>{errors.password}</div>}
               </div>
 
               <div className="form-row">

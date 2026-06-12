@@ -503,29 +503,129 @@ module.exports = function(db, authenticateToken) {
     });
   });
 
-  router.post('/formateurs', (req, res) => {
-    const { nom, prenom, email, telephone, specialite, bio, photo, status } = req.body;
+  router.post('/formateurs', async (req, res) => {
+    const { nom, prenom, email, telephone, specialite, bio, photo, status, password } = req.body;
     if (!nom || !prenom) return res.status(400).json({ error: 'Nom et prénom requis.' });
-    db.run(
-      `INSERT INTO Formateurs (nom, prenom, email, telephone, specialite, bio, photo, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nom, prenom, email, telephone, specialite, bio, photo, status || 'actif'],
-      function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true, id: this.lastID });
+    if (!email) return res.status(400).json({ error: 'L\'adresse email est requise.' });
+
+    const lowerEmail = email.toLowerCase().trim();
+
+    db.get("SELECT * FROM Users WHERE email = ?", [lowerEmail], async (err, user) => {
+      if (err) return res.status(500).json({ error: "Erreur serveur" });
+
+      const insertFormateur = () => {
+        db.run(
+          `INSERT INTO Formateurs (nom, prenom, email, telephone, specialite, bio, photo, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [nom, prenom, lowerEmail, telephone, specialite, bio, photo, status || 'actif'],
+          function(err) {
+            if (err) {
+              if (err.message.includes('UNIQUE')) {
+                return res.status(400).json({ error: 'Un formateur avec cet email existe déjà.' });
+              }
+              return res.status(500).json({ error: err.message });
+            }
+            res.json({ success: true, id: this.lastID });
+          }
+        );
+      };
+
+      if (user) {
+        // User already exists, update their role to formateur
+        db.run("UPDATE Users SET role = 'formateur' WHERE id = ?", [user.id], (updateErr) => {
+          if (updateErr) return res.status(500).json({ error: updateErr.message });
+          insertFormateur();
+        });
+      } else {
+        // User does not exist, create the account
+        try {
+          const defaultPassword = password || 'password123';
+          const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+          db.run(
+            `INSERT INTO Users (firstName, lastName, email, phone, password, role, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [prenom, nom, lowerEmail, telephone || '', hashedPassword, 'formateur', 'active'],
+            function(insertErr) {
+              if (insertErr) {
+                return res.status(500).json({ error: "Erreur lors de la création du compte utilisateur : " + insertErr.message });
+              }
+              insertFormateur();
+            }
+          );
+        } catch (hashError) {
+          return res.status(500).json({ error: "Erreur lors du hachage du mot de passe." });
+        }
       }
-    );
+    });
   });
 
   router.put('/formateurs/:id', (req, res) => {
-    const { nom, prenom, email, telephone, specialite, bio, photo, status } = req.body;
-    db.run(
-      `UPDATE Formateurs SET nom=?, prenom=?, email=?, telephone=?, specialite=?, bio=?, photo=?, status=? WHERE id=?`,
-      [nom, prenom, email, telephone, specialite, bio, photo, status, req.params.id],
-      (err) => {
+    const { nom, prenom, email, telephone, specialite, bio, photo, status, password } = req.body;
+    const formateurId = req.params.id;
+    if (!email) return res.status(400).json({ error: 'L\'adresse email est requise.' });
+
+    const lowerEmail = email.toLowerCase().trim();
+
+    db.get("SELECT email FROM Formateurs WHERE id = ?", [formateurId], (err, oldFormateur) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!oldFormateur) return res.status(404).json({ error: "Formateur introuvable." });
+
+      const oldEmail = oldFormateur.email;
+
+      const proceedUpdateFormateur = () => {
+        db.run(
+          `UPDATE Formateurs SET nom=?, prenom=?, email=?, telephone=?, specialite=?, bio=?, photo=?, status=? WHERE id=?`,
+          [nom, prenom, lowerEmail, telephone, specialite, bio, photo, status, formateurId],
+          (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
+          }
+        );
+      };
+
+      // Find the corresponding user in the Users table by oldEmail
+      db.get("SELECT * FROM Users WHERE email = ?", [oldEmail.toLowerCase()], async (err, user) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true });
-      }
-    );
+
+        if (user) {
+          // If we want to change their password or details:
+          let updateSql = "UPDATE Users SET firstName = ?, lastName = ?, email = ?, phone = ?, role = 'formateur'";
+          let params = [prenom, nom, lowerEmail, telephone || ''];
+
+          if (password && password.trim().length >= 6) {
+            try {
+              const hashedPassword = await bcrypt.hash(password, 10);
+              updateSql += ", password = ?";
+              params.push(hashedPassword);
+            } catch (hashErr) {
+              return res.status(500).json({ error: "Erreur lors du hachage du mot de passe." });
+            }
+          }
+
+          updateSql += " WHERE id = ?";
+          params.push(user.id);
+
+          db.run(updateSql, params, (updateUserErr) => {
+            if (updateUserErr) return res.status(500).json({ error: updateUserErr.message });
+            proceedUpdateFormateur();
+          });
+        } else {
+          // If the user doesn't exist, create it
+          try {
+            const defaultPassword = password || 'password123';
+            const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+            db.run(
+              `INSERT INTO Users (firstName, lastName, email, phone, password, role, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+              [prenom, nom, lowerEmail, telephone || '', hashedPassword, 'formateur', 'active'],
+              function(insertErr) {
+                if (insertErr) return res.status(500).json({ error: insertErr.message });
+                proceedUpdateFormateur();
+              }
+            );
+          } catch (hashError) {
+            return res.status(500).json({ error: "Erreur de hachage" });
+          }
+        }
+      });
+    });
   });
 
   router.delete('/formateurs/:id', (req, res) => {
