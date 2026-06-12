@@ -243,13 +243,26 @@ const initDb = async () => {
     addColumnIfMissing('Users', 'parentPhone TEXT');
     addColumnIfMissing('Users', 'companyName TEXT');
 
-    // Seed default admin user if empty
+    // Seed default admin and formateurs if empty
     try {
       const uCount = db._db.exec("SELECT COUNT(*) as count FROM Users");
       if (uCount.length > 0 && uCount[0].values[0][0] === 0) {
+        // Admin
         db._db.run(`INSERT INTO Users (firstName, lastName, email, password, role, status) VALUES (?, ?, ?, ?, ?, ?)`,
           ['Admin', 'Novatech', 'admin@novatech.com', '$2b$10$G/h.CXka/3FRJKXp5.ZxLeqdWW4b3iyvTH4BuLh1Jk2cMJvlCezwO', 'admin', 'active']);
-        console.log("Compte administrateur par défaut (admin@novatech.com / password123) injecté.");
+        
+        // Default Formateur
+        db._db.run(`INSERT INTO Users (firstName, lastName, email, password, role, status) VALUES (?, ?, ?, ?, ?, ?)`,
+          ['Test', 'Formateur', 'formateur@novatech.com', '$2b$10$G/h.CXka/3FRJKXp5.ZxLeqdWW4b3iyvTH4BuLh1Jk2cMJvlCezwO', 'formateur', 'active']);
+          
+        // Other seeded Formateurs
+        db._db.run(`INSERT INTO Users (firstName, lastName, email, password, role, status) VALUES (?, ?, ?, ?, ?, ?)`,
+          ['Jean-Marc', 'Togbossi', 'jm.togbossi@novatech.com', '$2b$10$G/h.CXka/3FRJKXp5.ZxLeqdWW4b3iyvTH4BuLh1Jk2cMJvlCezwO', 'formateur', 'active']);
+          
+        db._db.run(`INSERT INTO Users (firstName, lastName, email, password, role, status) VALUES (?, ?, ?, ?, ?, ?)`,
+          ['Marie', 'Ahouandjinou', 'marie.a@novatech.com', '$2b$10$G/h.CXka/3FRJKXp5.ZxLeqdWW4b3iyvTH4BuLh1Jk2cMJvlCezwO', 'formateur', 'active']);
+          
+        console.log("Comptes par défaut (admin + formateurs) injectés.");
       }
     } catch (e) { /* silent */ }
 
@@ -427,6 +440,8 @@ const initDb = async () => {
           ['Togbossi', 'Jean-Marc', 'jm.togbossi@novatech.com', 'Développement Web', "Expert en programmation avec 8 ans d'expérience dans l'enseignement du code aux jeunes.", 'actif']);
         db._db.run('INSERT INTO Formateurs (nom, prenom, email, specialite, bio, status) VALUES (?, ?, ?, ?, ?, ?)',
           ['Ahouandjinou', 'Marie', 'marie.a@novatech.com', 'Intelligence Artificielle', "Passionnée d'IA et de data science, elle rend les concepts complexes accessibles aux ados.", 'actif']);
+        db._db.run('INSERT INTO Formateurs (nom, prenom, email, specialite, bio, status) VALUES (?, ?, ?, ?, ?, ?)',
+          ['Formateur', 'Test', 'formateur@novatech.com', 'Bureautique', "Formateur de test pour valider les connexions et le tableau de bord.", 'actif']);
         console.log("Formateurs initiaux injectés.");
       }
     } catch (e) { /* silent */ }
