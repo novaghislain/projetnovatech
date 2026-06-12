@@ -752,7 +752,7 @@
 .sidebar-card--cta {
   background: linear-gradient(160deg, #112050, #1A1A2E);
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
 .sidebar-card-header {
@@ -808,7 +808,7 @@
 .sidebar-card--ai {
   background: linear-gradient(315deg, #0F3460, #1A1A2E);
   justify-content: center;
-  border-radius: 0 0 var(--radius-lg) 0;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
 }
 
 .sidebar-card-content {
@@ -1267,11 +1267,11 @@
   }
 
   .sidebar-card--cta {
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
 
   .sidebar-card--ai {
-    border-radius: var(--radius-lg);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   }
 
   .hero-text-block h1 {

@@ -194,13 +194,13 @@ const Home = () => {
           </div>
 
           {/* Right sidebar — Premium Panel */}
-          <div className="hero-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="hero-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
 
             {/* Registration Card */}
-            <div className="sidebar-card sidebar-card--primary" style={{ animation: 'fadeUp 0.8s ease 0.2s both' }}>
+            <div className="sidebar-card sidebar-card--cta" style={{ animation: 'fadeUp 0.8s ease 0.2s both' }}>
               <div className="sidebar-card-content">
                 <h3 className="sidebar-card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '1.2rem', marginBottom: '0.5rem' }}>
-                  <Calendar size={22} color="var(--color-primary)" />
+                  <Calendar size={22} color="#38bdf8" />
                   {t('hero_card_title')}
                 </h3>
                 <p className="sidebar-card-subtitle" style={{ marginBottom: '1.2rem', color: 'rgba(255,255,255,0.85)' }}>
