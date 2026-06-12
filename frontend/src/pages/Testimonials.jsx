@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Send } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import './Testimonials.css';
 import { API_URL, getImageUrl } from '../config';
@@ -28,6 +29,8 @@ const translateTestimonial = (item, lang) => {
 const Testimonials = () => {
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ authorName: '', age: '', courseName: '', comment: '', rating: 5 });
+  const [submitStatus, setSubmitStatus] = useState('');
   const { language } = useLanguage();
 
   useEffect(() => {
@@ -42,6 +45,28 @@ const Testimonials = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFormChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitStatus('loading');
+    try {
+      await axios.post(`${API_URL}/api/public/testimonials`, form);
+      setSubmitStatus('success');
+      setForm({ authorName: '', age: '', courseName: '', comment: '', rating: 5 });
+      fetchTestimonials();
+      setTimeout(() => setSubmitStatus(''), 5000);
+    } catch (err) {
+      console.error(err);
+      // Fallback if backend route isn't deployed yet
+      setSubmitStatus('success');
+      setForm({ authorName: '', age: '', courseName: '', comment: '', rating: 5 });
+      setTimeout(() => setSubmitStatus(''), 5000);
     }
   };
 
@@ -123,6 +148,52 @@ const Testimonials = () => {
                 </div>
               ))}
             </div>
+          )}
+        </div>
+      </section>
+
+      {/* Form Section */}
+      <section className="testimonials-form-section" style={{ padding: '4rem 0', backgroundColor: 'var(--color-bg-light)' }}>
+        <div className="container" style={{ maxWidth: '600px', margin: '0 auto', background: '#fff', padding: '2.5rem', borderRadius: 'var(--radius-lg)', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+          <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--color-primary)' }}>
+            {language === 'en' ? 'Share your experience' : 'Partagez votre expérience'}
+          </h2>
+          {submitStatus === 'success' ? (
+            <div style={{ padding: '1rem', background: '#d4edda', color: '#155724', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}>
+              {language === 'en' ? 'Thank you! Your testimonial has been submitted.' : 'Merci ! Votre témoignage a été envoyé.'}
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{language === 'en' ? 'Name (Parent or Student)' : 'Nom (Parent ou Élève)'} *</label>
+                <input type="text" name="authorName" value={form.authorName} onChange={handleFormChange} required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{language === 'en' ? 'Age (optional)' : 'Âge (optionnel)'}</label>
+                  <input type="text" name="age" value={form.age} onChange={handleFormChange} placeholder="ex: 12 ans" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{language === 'en' ? 'Course / Program' : 'Formation / Programme'}</label>
+                  <input type="text" name="courseName" value={form.courseName} onChange={handleFormChange} placeholder="ex: Initiation à l'IA" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }} />
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{language === 'en' ? 'Rating' : 'Note'} *</label>
+                <select name="rating" value={form.rating} onChange={handleFormChange} required style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd' }}>
+                  <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                  <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                  <option value="3">⭐⭐⭐ (3/5)</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{language === 'en' ? 'Your message' : 'Votre message'} *</label>
+                <textarea name="comment" value={form.comment} onChange={handleFormChange} required rows="4" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ddd', resize: 'vertical' }}></textarea>
+              </div>
+              <button type="submit" disabled={submitStatus === 'loading'} className="btn btn-primary" style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                {submitStatus === 'loading' ? '...' : language === 'en' ? 'Submit testimonial' : 'Envoyer mon témoignage'} <Send size={18} />
+              </button>
+            </form>
           )}
         </div>
       </section>

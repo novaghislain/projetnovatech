@@ -750,6 +750,22 @@ app.get('/api/public/testimonials', (req, res) => {
   });
 });
 
+app.post('/api/public/testimonials', (req, res) => {
+  const { authorName, age, courseName, comment, rating } = req.body;
+  if (!authorName || !comment) {
+    return res.status(400).json({ error: 'Name and comment are required' });
+  }
+  
+  db.run(
+    'INSERT INTO Testimonials (authorName, age, courseName, comment, rating) VALUES (?, ?, ?, ?, ?)',
+    [authorName, age || '', courseName || '', comment, rating || 5],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ id: this.lastID, message: 'Témoignage ajouté avec succès !' });
+    }
+  );
+});
+
 app.get('/api/public/gallery', (req, res) => {
   db.all("SELECT * FROM Gallery ORDER BY id DESC", (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
