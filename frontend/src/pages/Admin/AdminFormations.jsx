@@ -513,16 +513,6 @@ const AdminFormations = () => {
                           onChange={e => setFormData({...formData, whatsappLink: e.target.value})}
                         />
                       </div>
-                      <div className="form-group">
-                        <label>🎥 Lien Meet / Zoom</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder="https://meet.google.com/... ou Zoom"
-                          value={formData.meetLink || ''}
-                          onChange={e => setFormData({...formData, meetLink: e.target.value})}
-                        />
-                      </div>
                     </>
                   )}
                 </div>

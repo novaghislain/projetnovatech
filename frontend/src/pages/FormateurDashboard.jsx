@@ -1489,8 +1489,8 @@ const FormateurDashboard = () => {
               finally { setCourseFormLoading(false); }
             }} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
 
-              {[['Titre *', 'title', 'text', true], ['Description', 'description', 'text', false], ['Lien Meet (si en ligne)', 'meetLink', 'text', false], ['Lien WhatsApp', 'whatsappLink', 'text', false], ['Date de début', 'startDate', 'date', false], ['Date de fin', 'endDate', 'date', false], ['Fin des inscriptions', 'enrollmentEndDate', 'date', false]].filter(([frLabel, key]) => {
-                if (courseForm.format === 'physique' && (key === 'meetLink' || key === 'whatsappLink')) return false;
+              {[['Titre *', 'title', 'text', true], ['Description', 'description', 'text', false], ['Lien WhatsApp', 'whatsappLink', 'text', false], ['Date de début', 'startDate', 'date', false], ['Date de fin', 'endDate', 'date', false], ['Fin des inscriptions', 'enrollmentEndDate', 'date', false]].filter(([frLabel, key]) => {
+                if (courseForm.format === 'physique' && (key === 'whatsappLink')) return false;
                 return true;
               }).map(([frLabel, key, type, required]) => (
                 <div key={key}>
