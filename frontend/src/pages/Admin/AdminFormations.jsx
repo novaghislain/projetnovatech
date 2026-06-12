@@ -338,6 +338,7 @@ const AdminFormations = () => {
                     <option value="en_ligne">En Ligne</option>
                     <option value="physique">Présentiel</option>
                     <option value="masse">En masse</option>
+                    <option value="individuelle">Individuel / À domicile</option>
                   </select>
                 </div>
                 {formData.format === 'masse' && (

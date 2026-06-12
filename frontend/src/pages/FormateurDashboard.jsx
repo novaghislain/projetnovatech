@@ -1578,6 +1578,7 @@ const FormateurDashboard = () => {
                     <option value="en_ligne">En ligne</option>
                     <option value="physique">Présentiel</option>
                     <option value="masse">En masse</option>
+                    <option value="individuelle">Individuel / À domicile</option>
                   </select>
                 </div>
                 {courseForm.format === 'masse' && (
