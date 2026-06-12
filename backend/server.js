@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -51,9 +52,9 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Clés API Secrètes (à mettre dans un .env en production)
-const KKIAPAY_SECRET_KEY = 'sk_dda4ec528f20248b56c654d95880c8f73d4525b863d5f60c0297152277ba3a46';
-const JWT_SECRET = 'super_secret_novatech_key_2026';
+// Clés & JWT
+const FEDAPAY_SECRET_KEY = process.env.FEDAPAY_SECRET_KEY;
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_novatech_key_2026';
 
 /**
  * ROUTES D'AUTHENTIFICATION
@@ -259,6 +260,14 @@ app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) =>
   const imageUrl = '/uploads/' + req.file.filename;
   res.json({ imageUrl });
 });
+
+app.post('/api/public/upload-proof', upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Aucun fichier fourni' });
+  }
+  const imageUrl = '/uploads/' + req.file.filename;
+  res.json({ imageUrl });
+});
 app.delete('/api/user/avatar', authenticateToken, (req, res) => {
   db.run(`UPDATE Users SET avatar = NULL WHERE id = ?`, [req.user.id], function(err) {
     if (err) return res.status(500).json({ error: "Erreur lors de la suppression de l'avatar" });
@@ -327,131 +336,109 @@ app.put('/api/user/password', authenticateToken, (req, res) => {
  */
 const unlockCourseForUser = (customerInfo, courseId, amount, transactionId, paymentMethod) => {
   return new Promise((resolve, reject) => {
-    // 1. Chercher ou créer l'utilisateur
-    db.get(`SELECT id, firstName FROM Users WHERE email = ?`, [customerInfo.email], (err, user) => {
-      if (err) return reject(err);
-      
-      let userId = user ? user.id : null;
+    // 0. Chercher si l'inscription existe déjà pour cette transaction
+    if (transactionId) {
+      db.get(`SELECT id FROM Enrollments WHERE transactionId = ?`, [transactionId], (err, existing) => {
+        if (!err && existing) {
+          // Déjà existante, on met à jour le statut, amountPaid, et totalAmount au besoin
+          db.run(`UPDATE Enrollments SET status = 'active', amountPaid = ?, totalAmount = ? WHERE id = ?`,
+            [amount, amount, existing.id],
+            (updErr) => {
+              if (updErr) return reject(updErr);
+              console.log(`[MERGE] Transaction ${transactionId} existante mise à jour.`);
+              resolve();
+            }
+          );
+        } else {
+          proceedToFindOrCreateUser();
+        }
+      });
+    } else {
+      proceedToFindOrCreateUser();
+    }
 
-      if (!userId) {
-        // Créer l'utilisateur avec un mot de passe par défaut (à améliorer)
-        db.run(`INSERT INTO Users (firstName, lastName, email, phone, password) VALUES (?, ?, ?, ?, ?)`,
-          [customerInfo.firstName || 'Apprenant', customerInfo.lastName || '', customerInfo.email, customerInfo.phone || '', '123456'],
-          function(err) {
-            if (err) return reject(err);
-            userId = this.lastID;
-            // Email de bienvenue
-            const welcomeData = welcomeEmail({
-              firstName: customerInfo.firstName || 'Apprenant',
-              email: customerInfo.email,
-              password: '123456'
-            });
-            sendEmail({ to: customerInfo.email, ...welcomeData }).catch(e => console.error('Erreur email bienvenue:', e.message));
-            insertEnrollment(userId);
-          }
-        );
-      } else {
-        insertEnrollment(userId);
-      }
+    function proceedToFindOrCreateUser() {
+      // 1. Chercher ou créer l'utilisateur
+      db.get(`SELECT id, firstName FROM Users WHERE email = ?`, [customerInfo.email], (err, user) => {
+        if (err) return reject(err);
+        
+        let userId = user ? user.id : null;
 
-      function insertEnrollment(uid) {
-        db.run(`INSERT INTO Enrollments (userId, courseId, amount, transactionId, paymentMethod) VALUES (?, ?, ?, ?, ?)`,
-          [uid, courseId, amount, transactionId, paymentMethod],
-          (err) => {
-            if (err) return reject(err);
-            console.log(`[SUCCÈS] Formation ${courseId} débloquée pour l'utilisateur ${customerInfo.email}`);
-
-            // Envoyer l'événement Purchase à Meta Pixel (côté serveur)
-            try {
-              db.get("SELECT pixelId, isActive FROM PixelSettings WHERE id = 1", (pixErr, settings) => {
-                if (!pixErr && settings && settings.isActive && settings.pixelId) {
-                  axios.post(`https://graph.facebook.com/v22.0/${settings.pixelId}/events`, {
-                    data: [{
-                      event_name: 'Purchase',
-                      event_time: Math.floor(Date.now() / 1000),
-                      action_source: 'website',
-                      user_data: {
-                        em: Buffer.from(customerInfo.email || '').toString('base64'),
-                      },
-                      custom_data: {
-                        value: amount || 25000,
-                        currency: 'XOF',
-                        transaction_id: transactionId,
-                        content_name: courseId ? `Formation #${courseId}` : 'Formation',
-                      }
-                    }],
-                    access_token: `${settings.pixelId}|`
-                  }).catch(() => {/* Silencieux */});
-                  console.log(`[META-PIXEL] Purchase event sent for ${transactionId}`);
-                }
+        if (!userId) {
+          // Créer l'utilisateur avec un mot de passe par défaut
+          db.run(`INSERT INTO Users (firstName, lastName, email, phone, password) VALUES (?, ?, ?, ?, ?)`,
+            [customerInfo.firstName || 'Apprenant', customerInfo.lastName || '', customerInfo.email, customerInfo.phone || '', '123456'],
+            function(err) {
+              if (err) return reject(err);
+              userId = this.lastID;
+              // Email de bienvenue
+              const welcomeData = welcomeEmail({
+                firstName: customerInfo.firstName || 'Apprenant',
+                email: customerInfo.email,
+                password: '123456'
               });
-            } catch (pixErr) {/* Silencieux */}
+              sendEmail({ to: customerInfo.email, ...welcomeData }).catch(e => console.error('Erreur email bienvenue:', e.message));
+              insertEnrollment(userId);
+            }
+          );
+        } else {
+          insertEnrollment(userId);
+        }
 
-            resolve();
-          }
-        );
+        function insertEnrollment(uid) {
+          db.run(`INSERT INTO Enrollments (userId, courseId, amount, transactionId, paymentMethod, amountPaid, totalAmount) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [uid, courseId, amount, transactionId, paymentMethod, amount, amount],
+            (err) => {
+              if (err) return reject(err);
+              console.log(`[SUCCÈS] Formation ${courseId} débloquée pour l'utilisateur ${customerInfo.email}`);
 
-        // Email de reçu de paiement
-        db.get(`SELECT title FROM Formations WHERE id = ?`, [courseId], (err, course) => {
-          const firstName = user?.firstName || customerInfo.firstName || 'Apprenant';
-          const receiptData = paymentReceipt({
-            firstName,
-            courseTitle: course?.title || 'Formation',
-            amount,
-            transactionId,
-            paymentMethod
+              // Envoyer l'événement Purchase à Meta Pixel (côté serveur)
+              try {
+                db.get("SELECT pixelId, isActive FROM PixelSettings WHERE id = 1", (pixErr, settings) => {
+                  if (!pixErr && settings && settings.isActive && settings.pixelId) {
+                    axios.post(`https://graph.facebook.com/v22.0/${settings.pixelId}/events`, {
+                      data: [{
+                        event_name: 'Purchase',
+                        event_time: Math.floor(Date.now() / 1000),
+                        action_source: 'website',
+                        user_data: {
+                          em: Buffer.from(customerInfo.email || '').toString('base64'),
+                        },
+                        custom_data: {
+                          value: amount || 25000,
+                          currency: 'XOF',
+                          transaction_id: transactionId,
+                          content_name: courseId ? `Formation #${courseId}` : 'Formation',
+                        }
+                      }],
+                      access_token: `${settings.pixelId}|`
+                    }).catch(() => {/* Silencieux */});
+                    console.log(`[META-PIXEL] Purchase event sent for ${transactionId}`);
+                  }
+                });
+              } catch (pixErr) {/* Silencieux */}
+
+              resolve();
+            }
+          );
+
+          // Email de reçu de paiement
+          db.get(`SELECT title FROM Formations WHERE id = ?`, [courseId], (err, course) => {
+            const firstName = user?.firstName || customerInfo.firstName || 'Apprenant';
+            const receiptData = paymentReceipt({
+              firstName,
+              courseTitle: course?.title || 'Formation',
+              amount,
+              transactionId,
+              paymentMethod
+            });
+            sendEmail({ to: customerInfo.email, ...receiptData }).catch(e => console.error('Erreur email reçu:', e.message));
           });
-          sendEmail({ to: customerInfo.email, ...receiptData }).catch(e => console.error('Erreur email reçu:', e.message));
-        });
-      }
-    });
+        }
+      });
+    }
   });
 };
-
-/**
- * ROUTE: Webhook Kkiapay
- * Kkiapay n'envoie pas forcément un webhook automatique complet, mais on vérifie la transaction
- * depuis le frontend ou via un callback serveur.
- * On simule ici la route de vérification POST
- */
-app.post('/api/webhooks/kkiapay', async (req, res) => {
-  const { transactionId, customerInfo, courseId } = req.body;
-
-  if (!transactionId) return res.status(400).json({ error: 'Transaction ID missing' });
-
-  try {
-    // Kkiapay requiert une requête GET avec API_KEY dans les headers pour vérifier le statut
-    const response = await axios.post('https://api.kkiapay.me/api/v1/transactions/status', 
-      { transactionId },
-      { headers: { 'x-secret-key': KKIAPAY_SECRET_KEY } }
-    );
-
-    const transactionData = response.data;
-    
-    // Vérification du statut de la transaction
-    if (transactionData && transactionData.status === 'SUCCESS') {
-      
-      await unlockCourseForUser(
-        customerInfo, 
-        courseId || 1, // 1 par défaut pour le mock
-        transactionData.amount, 
-        transactionId, 
-        'Kkiapay'
-      );
-      
-      return res.status(200).json({ success: true, message: 'Paiement validé et formation débloquée.' });
-    } else {
-      return res.status(400).json({ success: false, message: 'Transaction échouée ou introuvable.' });
-    }
-  } catch (error) {
-    console.error('Erreur de validation Kkiapay:', error.message);
-    // En développement, si l'API Kkiapay échoue car on n'a pas accès à la doc exacte, on peut forcer le succès pour débloquer
-    // Dans ce mock, nous allons simuler un succès pour la démo si l'API renvoie une erreur
-    console.log('[MODE DEV] Simulation de succès Kkiapay');
-    await unlockCourseForUser(customerInfo, courseId || 1, 25000, transactionId, 'Kkiapay');
-    return res.status(200).json({ success: true, message: 'Paiement simulé validé.' });
-  }
-});
 
 /**
  * ROUTE: Public Messages (Contact Form)
@@ -470,19 +457,237 @@ app.post('/api/public/messages', (req, res) => {
 });
 
 /**
- * ROUTE: Webhook FedaPay
+ * ROUTE: Webhook FedaPay (sécurisé — vérification API réelle)
+ * Appelé par le frontend après un paiement réussi pour valider côté serveur.
+ */
+app.post('/api/payments/verify-fedapay', async (req, res) => {
+  const { transactionId, courseId, customerInfo } = req.body;
+
+  if (!transactionId) {
+    return res.status(400).json({ error: 'transactionId manquant.' });
+  }
+
+  try {
+    // Vérification réelle via l'API FedaPay avec la clé secrète
+    const fedaRes = await axios.get(
+      `https://api.fedapay.com/v1/transactions/${transactionId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${FEDAPAY_SECRET_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    const transaction = fedaRes.data?.v1?.transaction || fedaRes.data;
+    const status = transaction?.status;
+    const amount = transaction?.amount;
+    const paymentMethod = transaction?.payment_method || 'FedaPay';
+
+    console.log(`[FEDAPAY] Transaction ${transactionId} — statut: ${status}, montant: ${amount}`);
+
+    if (status === 'approved' || status === 'transferred') {
+      await unlockCourseForUser(
+        customerInfo,
+        courseId,
+        amount,
+        transactionId,
+        paymentMethod
+      );
+      return res.status(200).json({ success: true, message: 'Paiement validé, formation débloquée.', amount, paymentMethod });
+    } else {
+      return res.status(400).json({ success: false, message: `Paiement non abouti. Statut: ${status}` });
+    }
+  } catch (error) {
+    const errMsg = error.response?.data?.message || error.message;
+    console.error('[FEDAPAY] Erreur vérification:', errMsg);
+    return res.status(500).json({ error: 'Erreur lors de la vérification du paiement FedaPay.', details: errMsg });
+  }
+});
+
+/**
+ * ROUTE: Webhook FedaPay (notification push depuis les serveurs FedaPay)
+ * FedaPay envoie un POST automatique sur cette route quand un paiement est confirmé.
  */
 app.post('/api/webhooks/fedapay', async (req, res) => {
-  const { transactionId, customerInfo, courseId } = req.body;
-  // TODO: Implémenter la vérification exacte FedaPay (généralement via secret_key ou webhook header signature)
-  console.log('[MODE DEV] Validation FedaPay pour', transactionId);
   try {
-    await unlockCourseForUser(customerInfo, courseId || 1, 25000, transactionId, 'FedaPay');
-    res.status(200).json({ success: true });
+    const event = req.body;
+    console.log('[FEDAPAY WEBHOOK]', JSON.stringify(event).substring(0, 200));
+
+    // FedaPay envoie un objet 'transaction' dans le payload
+    const transaction = event?.transaction || event?.v1?.transaction;
+    if (!transaction) return res.status(200).json({ received: true });
+
+    const { id: txId, status, amount, customer } = transaction;
+
+    if (status === 'approved' || status === 'transferred') {
+      const customerInfo = {
+        email: customer?.email || '',
+        firstName: customer?.firstname || '',
+        lastName: customer?.lastname || '',
+        phone: customer?.phone_number?.number || ''
+      };
+      // courseId stocké dans le champ custom de la transaction FedaPay
+      const courseId = transaction?.metadata?.courseId || transaction?.description?.match(/#(\d+)/)?.[1] || 1;
+
+      await unlockCourseForUser(customerInfo, courseId, amount, String(txId), 'FedaPay');
+      console.log(`[FEDAPAY WEBHOOK] Formation débloquée — tx: ${txId}`);
+    }
+
+    res.status(200).json({ received: true });
   } catch (err) {
+    console.error('[FEDAPAY WEBHOOK] Erreur:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
+
+/**
+ * ROUTES: Tableau de bord financier Admin
+ */
+
+// Liste toutes les transactions (inscriptions payantes)
+app.get('/api/admin/transactions', authenticateToken, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Accès refusé.' });
+
+  const { page = 1, limit = 50, search = '', method = '' } = req.query;
+  const offset = (parseInt(page) - 1) * parseInt(limit);
+
+  let sql = `
+    SELECT 
+      e.id, e.transactionId, e.paymentMethod, e.amount, e.amountPaid, e.totalAmount,
+      e.status, e.createdAt, e.paymentType,
+      e.childFirstName, e.childLastName, e.parentName, e.parentEmail, e.parentPhone,
+      e.guestFirstName, e.guestLastName, e.guestEmail, e.guestPhone,
+      e.paymentProof,
+      f.title as formationTitle, f.price as formationPrice,
+      u.firstName as userFirstName, u.lastName as userLastName, u.email as userEmail
+    FROM Enrollments e
+    LEFT JOIN Formations f ON e.courseId = f.id
+    LEFT JOIN Users u ON e.userId = u.id
+    WHERE e.transactionId IS NOT NULL AND e.transactionId != ''
+  `;
+  const params = [];
+
+  if (search) {
+    sql += ` AND (e.transactionId LIKE ? OR e.parentEmail LIKE ? OR e.parentName LIKE ? OR f.title LIKE ?)`;
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+  }
+  if (method) {
+    sql += ` AND e.paymentMethod = ?`;
+    params.push(method);
+  }
+
+  // Compte total
+  db.get(`SELECT COUNT(*) as total FROM (${sql})`, params, (err, countRow) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    sql += ` ORDER BY e.createdAt DESC LIMIT ? OFFSET ?`;
+    params.push(parseInt(limit), offset);
+
+    db.all(sql, params, (err2, rows) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      res.json({ transactions: rows, total: countRow.total, page: parseInt(page), limit: parseInt(limit) });
+    });
+  });
+});
+
+// Statistiques financières pour le dashboard admin
+app.get('/api/admin/financial-stats', authenticateToken, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Accès refusé.' });
+
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+  db.get(`
+    SELECT 
+      COUNT(*) as totalTransactions,
+      COALESCE(SUM(COALESCE(amountPaid, amount)), 0) as totalRevenue,
+      COALESCE(SUM(CASE WHEN createdAt >= ? THEN COALESCE(amountPaid, amount) ELSE 0 END), 0) as monthRevenue,
+      COUNT(CASE WHEN createdAt >= ? THEN 1 END) as monthTransactions,
+      COALESCE(AVG(COALESCE(amountPaid, amount)), 0) as avgAmount
+    FROM Enrollments
+    WHERE transactionId IS NOT NULL AND transactionId != '' AND status != 'waitlist'
+  `, [firstOfMonth, firstOfMonth], (err, stats) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    // Revenus par méthode de paiement
+    db.all(`
+      SELECT paymentMethod, COUNT(*) as count, COALESCE(SUM(COALESCE(amountPaid, amount)), 0) as total
+      FROM Enrollments
+      WHERE transactionId IS NOT NULL AND transactionId != '' AND status != 'waitlist'
+      GROUP BY paymentMethod
+    `, [], (err2, byMethod) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+
+      // Revenus par mois (6 derniers mois)
+      db.all(`
+        SELECT 
+          strftime('%Y-%m', createdAt) as month,
+          COALESCE(SUM(COALESCE(amountPaid, amount)), 0) as revenue,
+          COUNT(*) as count
+        FROM Enrollments
+        WHERE transactionId IS NOT NULL AND transactionId != '' AND status != 'waitlist'
+          AND createdAt >= date('now', '-6 months')
+        GROUP BY month
+        ORDER BY month ASC
+      `, [], (err3, byMonth) => {
+        if (err3) return res.status(500).json({ error: err3.message });
+        res.json({ ...stats, byMethod, byMonth });
+      });
+    });
+  });
+});
+
+// Télécharger la facture PDF d'une inscription
+app.get('/api/invoices/:enrollmentId', authenticateToken, (req, res) => {
+  const { enrollmentId } = req.params;
+  const isAdmin = req.user.role === 'admin';
+
+  const sql = isAdmin
+    ? `SELECT e.*, f.title as courseTitle, u.email FROM Enrollments e LEFT JOIN Formations f ON e.courseId = f.id LEFT JOIN Users u ON e.userId = u.id WHERE e.id = ?`
+    : `SELECT e.*, f.title as courseTitle, u.email FROM Enrollments e LEFT JOIN Formations f ON e.courseId = f.id LEFT JOIN Users u ON e.userId = u.id WHERE e.id = ? AND e.userId = ?`;
+
+  const params = isAdmin ? [enrollmentId] : [enrollmentId, req.user.id];
+
+  db.get(sql, params, (err, enrollment) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!enrollment) return res.status(404).json({ error: 'Inscription introuvable ou accès refusé.' });
+
+    const { generateInvoice } = require('./invoiceService');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="facture-novatech-${enrollment.transactionId || enrollmentId}.pdf"`);
+    generateInvoice(enrollment, res);
+  });
+});
+
+// Télécharger la facture PDF d'une inscription publiquement (via transactionId pour vérification)
+app.get('/api/public/invoices/:enrollmentId', (req, res) => {
+  const { enrollmentId } = req.params;
+  const { txId } = req.query;
+
+  if (!txId) {
+    return res.status(400).json({ error: 'Identifiant de transaction requis.' });
+  }
+
+  const sql = `
+    SELECT e.*, f.title as courseTitle, u.email 
+    FROM Enrollments e 
+    LEFT JOIN Formations f ON e.courseId = f.id 
+    LEFT JOIN Users u ON e.userId = u.id 
+    WHERE e.id = ? AND e.transactionId = ?
+  `;
+
+  db.get(sql, [enrollmentId, txId], (err, enrollment) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!enrollment) return res.status(404).json({ error: 'Facture introuvable ou transaction incorrecte.' });
+
+    const { generateInvoice } = require('./invoiceService');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="facture-novatech-${enrollment.transactionId || enrollmentId}.pdf"`);
+    generateInvoice(enrollment, res);
+  });
+});
+
 
 /**
  * ROUTES: Formations Publiques
@@ -1315,5 +1520,6 @@ app.get('/api/sitemap.xml', (req, res) => {
 // Démarrage du serveur
 app.listen(PORT, () => {
   console.log(`Serveur Backend démarré sur http://localhost:${PORT}`);
-  console.log(`[En attente des webhooks Kkiapay et FedaPay]`);
+  console.log(`[FEDAPAY] Clé secrète: ${FEDAPAY_SECRET_KEY ? '✅ Chargée' : '❌ MANQUANTE — vérifiez .env'}`);
+  console.log(`[WEBHOOK] Routes actives: /api/payments/verify-fedapay | /api/webhooks/fedapay`);
 });

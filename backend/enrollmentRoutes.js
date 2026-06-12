@@ -27,7 +27,7 @@ module.exports = function(db, authenticateToken) {
       courseId, childFirstName, childLastName, childAge, 
       parentName, parentPhone, parentEmail, address, 
       guestFirstName, guestLastName, guestEmail, guestPhone,
-      paymentType, amount, paymentMethod, transactionId
+      paymentType, amount, paymentMethod, transactionId, paymentProof
     } = req.body;
 
     // 1. Vérifier la capacité de la formation
@@ -47,27 +47,72 @@ module.exports = function(db, authenticateToken) {
       const totalAmount = amount;
       const amountPaid = isMensuel ? Math.ceil(amount / 2) : amount;
       const dbPaymentType = isMensuel ? 'partial' : 'full';
+      const checkAndProceed = () => {
+        if (transactionId) {
+          db.get("SELECT id FROM Enrollments WHERE transactionId = ?", [transactionId], (findErr, existingEnroll) => {
+            if (!findErr && existingEnroll) {
+              // Mettre à jour l'inscription existante (créée par le webhook ou FedaPay)
+              const updateQuery = `
+                UPDATE Enrollments SET
+                  userId = COALESCE(userId, ?),
+                  childFirstName = ?,
+                  childLastName = ?,
+                  childAge = ?,
+                  parentName = ?,
+                  parentPhone = ?,
+                  parentEmail = ?,
+                  address = ?,
+                  paymentType = ?,
+                  totalAmount = ?,
+                  amountPaid = ?,
+                  paymentMethod = COALESCE(paymentMethod, ?),
+                  status = ?,
+                  paymentProof = COALESCE(paymentProof, ?)
+                WHERE id = ?
+              `;
+              const updateParams = [
+                userId,
+                childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address,
+                dbPaymentType, totalAmount, amountPaid,
+                paymentMethod, status,
+                paymentProof || null,
+                existingEnroll.id
+              ];
+              db.run(updateQuery, updateParams, function(updateErr) {
+                if (updateErr) return res.status(500).json({ error: "Erreur lors de la mise à jour de l'inscription" });
+                sendConfirmationAndRespond(existingEnroll.id);
+              });
+            } else {
+              insertNewEnrollment();
+            }
+          });
+        } else {
+          insertNewEnrollment();
+        }
+      };
 
-      // 2. Insérer l'inscription
-      const query = `
-        INSERT INTO Enrollments (
-          userId, courseId, amount, transactionId, paymentMethod, status, 
-          childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address, 
-          guestFirstName, guestLastName, guestEmail, guestPhone,
-          paymentType, totalAmount, amountPaid
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      const params = [
-        userId, courseId, amountPaid, transactionId, paymentMethod, status,
-        childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address,
-        guestFirstName || '', guestLastName || '', guestEmail || '', guestPhone || '',
-        dbPaymentType, totalAmount, amountPaid
-      ];
+      const insertNewEnrollment = () => {
+        const query = `
+          INSERT INTO Enrollments (
+            userId, courseId, amount, transactionId, paymentMethod, status, 
+            childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address, 
+            guestFirstName, guestLastName, guestEmail, guestPhone,
+            paymentType, totalAmount, amountPaid, paymentProof
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        const params = [
+          userId, courseId, amountPaid, transactionId, paymentMethod, status,
+          childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address,
+          guestFirstName || '', guestLastName || '', guestEmail || '', guestPhone || '',
+          dbPaymentType, totalAmount, amountPaid, paymentProof || null
+        ];
+        db.run(query, params, function(err) {
+          if (err) return res.status(500).json({ error: "Erreur lors de l'enregistrement de l'inscription" });
+          sendConfirmationAndRespond(this.lastID);
+        });
+      };
 
-      db.run(query, params, function(err) {
-        if (err) return res.status(500).json({ error: "Erreur lors de l'enregistrement de l'inscription" });
-        const enrollId = this.lastID;
-
+      const sendConfirmationAndRespond = (enrollId) => {
         // 3. Mettre à jour le compteur de places si pas sur liste d'attente
         if (!isFull) {
           db.run("UPDATE Formations SET enrolled = enrolled + 1 WHERE id = ?", [courseId], (updateErr) => {
@@ -113,7 +158,9 @@ module.exports = function(db, authenticateToken) {
             console.error('Erreur envoi SMS liste d\'attente:', err.message);
           });
         }
-      });
+      };
+
+      checkAndProceed();
     });
   });
 

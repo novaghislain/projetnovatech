@@ -194,7 +194,7 @@ const translations = {
     fd_spots_left: 'Il reste {spots} place(s) disponible(s)',
     fd_enroll_now: "S'inscrire maintenant",
     fd_secure_pay: 'Paiement 100% sécurisé',
-    fd_secure_desc: 'Transaction cryptée via Kkiapay / FedaPay',
+    fd_secure_desc: 'Transaction cryptée via FedaPay',
 
     // ApprenantDashboard
     dash_welcome: 'Bonjour,',
@@ -478,7 +478,7 @@ const translations = {
     fd_spots_left: '{spots} spot(s) remaining',
     fd_enroll_now: 'Enroll now',
     fd_secure_pay: '100% secure payment',
-    fd_secure_desc: 'Encrypted transaction via Kkiapay / FedaPay',
+    fd_secure_desc: 'Encrypted transaction via FedaPay',
 
     // ApprenantDashboard
     dash_welcome: 'Hello,',

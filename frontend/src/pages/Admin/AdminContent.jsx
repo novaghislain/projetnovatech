@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Image as ImageIcon, MessageSquare, X, Edit } from 'lucide-react';
 import axios from 'axios';
-import { API_URL } from '../../config';
+import { API_URL, getImageUrl } from '../../config';
 
 const AdminContent = () => {
   const [testimonials, setTestimonials] = useState([]);
@@ -14,7 +14,7 @@ const AdminContent = () => {
 
   // Form states
   const [testimonialForm, setTestimonialForm] = useState({ authorName: '', age: '', courseName: '', comment: '', rating: 5, avatar: '', mediaUrl: '', mediaType: 'none' });
-  const [galleryForm, setGalleryForm] = useState({ title: '', imageUrl: '', category: 'Classes' });
+  const [galleryForm, setGalleryForm] = useState({ title: '', imageUrl: '', category: 'Classes', mediaType: 'image' });
 
   // Static pages states
   const [selectedSlug, setSelectedSlug] = useState('apropos');
@@ -153,7 +153,7 @@ const AdminContent = () => {
     try {
       await axios.post(`${API_URL}/api/admin/gallery`, galleryForm, getHeaders());
       setShowGalleryModal(false);
-      setGalleryForm({ title: '', imageUrl: '', category: 'Classes' });
+      setGalleryForm({ title: '', imageUrl: '', category: 'Classes', mediaType: 'image' });
       fetchContent();
     } catch (err) {
       alert("Erreur: " + err.message);
@@ -249,21 +249,29 @@ const AdminContent = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem', padding: '1rem' }}>
             {gallery.length === 0 ? (
               <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>Aucune image dans la galerie.</div>
-            ) : gallery.map(g => (
-              <div key={g.id} style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                <div style={{ height: '150px', backgroundImage: `url(${g.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-                <div style={{ padding: '0.75rem', backgroundColor: '#fff' }}>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>{g.title || 'Sans titre'}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#666' }}>{g.category}</div>
+            ) : gallery.map(g => {
+              const fileUrl = getImageUrl(g.imageUrl);
+              const isVideo = g.mediaType === 'video' || /\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(g.imageUrl);
+              return (
+                <div key={g.id} style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                  {isVideo ? (
+                    <video src={fileUrl} muted playsInline style={{ width: '100%', height: '150px', objectFit: 'cover', backgroundColor: '#000', display: 'block' }} />
+                  ) : (
+                    <div style={{ height: '150px', backgroundImage: `url(${fileUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+                  )}
+                  <div style={{ padding: '0.75rem', backgroundColor: '#fff' }}>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>{g.title || 'Sans titre'}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#666' }}>{g.category}</div>
+                  </div>
+                  <button 
+                    onClick={() => deleteGalleryImage(g.id)}
+                    style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'rgba(231, 76, 60, 0.9)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.25rem', cursor: 'pointer' }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
-                <button 
-                  onClick={() => deleteGalleryImage(g.id)}
-                  style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'rgba(231, 76, 60, 0.9)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.25rem', cursor: 'pointer' }}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -295,8 +303,56 @@ const AdminContent = () => {
                 </div>
                 
                 <div className="form-group">
-                  <label>Avatar URL (Optionnel)</label>
-                  <input type="text" name="avatar" className="form-control" placeholder="/2x.png" onChange={handleTestimonialChange} />
+                  <label>Photo de profil / Avatar (Optionnel)</label>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.25rem' }}>
+                    {testimonialForm.avatar && (
+                      <div style={{ width: '50px', height: '50px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #ddd', flexShrink: 0 }}>
+                        <img 
+                          src={getImageUrl(testimonialForm.avatar)} 
+                          alt="Avatar preview" 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        />
+                      </div>
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="form-control" 
+                        style={{ marginBottom: 0 }}
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          const formData = new FormData();
+                          formData.append('image', file);
+                          try {
+                            const token = localStorage.getItem('nv_token');
+                            const res = await fetch(`${API_URL}/api/upload`, {
+                              method: 'POST',
+                              headers: { 'Authorization': `Bearer ${token}` },
+                              body: formData
+                            });
+                            const data = await res.json();
+                            if (data.imageUrl) {
+                              setTestimonialForm(f => ({ ...f, avatar: data.imageUrl }));
+                            }
+                          } catch (err) {
+                            alert("Erreur lors de l'upload de l'avatar");
+                          }
+                        }} 
+                      />
+                    </div>
+                    {testimonialForm.avatar && (
+                      <button 
+                        type="button" 
+                        className="btn btn-outline" 
+                        style={{ color: '#e74c3c', borderColor: '#e74c3c', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+                        onClick={() => setTestimonialForm(f => ({ ...f, avatar: '' }))}
+                      >
+                        Supprimer
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="form-group">
                   <label>Média du témoignage (Photo ou Vidéo)</label>
@@ -364,8 +420,58 @@ const AdminContent = () => {
                 </div>
                 
                 <div className="form-group">
-                  <label>URL de l'image *</label>
-                  <input type="url" name="imageUrl" className="form-control" required onChange={handleGalleryChange} placeholder="https://..." />
+                  <label>Fichier Média * (Photo ou Vidéo)</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <input 
+                      type="file" 
+                      accept="image/*,video/*" 
+                      className="form-control" 
+                      required={!galleryForm.imageUrl}
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const isVideo = file.type.startsWith('video/');
+                        const formData = new FormData();
+                        formData.append('image', file); // Multer expects 'image'
+                        try {
+                          const token = localStorage.getItem('nv_token');
+                          const res = await fetch(`${API_URL}/api/upload`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}` },
+                            body: formData
+                          });
+                          const data = await res.json();
+                          if (data.imageUrl) {
+                            setGalleryForm(f => ({ ...f, imageUrl: data.imageUrl, mediaType: isVideo ? 'video' : 'image' }));
+                          }
+                        } catch (err) {
+                          alert("Erreur lors de l'upload du fichier");
+                        }
+                      }} 
+                    />
+                    {galleryForm.imageUrl && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                        <div style={{ width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd', flexShrink: 0 }}>
+                          {galleryForm.mediaType === 'video' ? (
+                            <video 
+                              src={getImageUrl(galleryForm.imageUrl)} 
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                              muted
+                            />
+                          ) : (
+                            <img 
+                              src={getImageUrl(galleryForm.imageUrl)} 
+                              alt="Aperçu" 
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                            />
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: '#22c55e', fontWeight: 600 }}>
+                          Fichier téléchargé avec succès ({galleryForm.mediaType})
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="form-group">

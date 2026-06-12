@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 import './Testimonials.css';
-import { API_URL } from '../config';
+import { API_URL, getImageUrl } from '../config';
 
 const translateTestimonial = (item, lang) => {
   if (lang !== 'en') return item;
@@ -104,7 +104,7 @@ const Testimonials = () => {
                     <div className="author-avatar">
                       {t.avatar ? (
                         <img 
-                          src={t.avatar} 
+                          src={getImageUrl(t.avatar)} 
                           alt={t.authorName} 
                           onError={(e) => {
                             e.target.style.display = 'none';

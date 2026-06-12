@@ -277,6 +277,7 @@ const initDb = async () => {
     addColumnIfMissing('Formations', 'isLive BOOLEAN DEFAULT 0');
     addColumnIfMissing('Formations', 'liveRoomName TEXT');
     addColumnIfMissing('Formations', 'enrollmentEndDate DATE');
+    addColumnIfMissing('Formations', 'formateurId INTEGER');
 
     // Create Enrollments
     db.run(`
@@ -296,11 +297,7 @@ const initDb = async () => {
       )
     `);
 
-    // Clear enrollments for dev
-    try {
-      db._db.run('DELETE FROM Enrollments');
-      console.log("Table des inscriptions vidée pour le développement.");
-    } catch (e) { /* silent */ }
+
 
     // Messages
     db.run(`
@@ -329,7 +326,8 @@ const initDb = async () => {
       "installmentsPaid INTEGER DEFAULT 1",
       "totalInstallments INTEGER DEFAULT 3",
       "guestFirstName TEXT", "guestLastName TEXT", "guestEmail TEXT", "guestPhone TEXT",
-      "progress INTEGER DEFAULT 0", "exercises TEXT DEFAULT '[]'"
+      "progress INTEGER DEFAULT 0", "exercises TEXT DEFAULT '[]'",
+      "paymentProof TEXT"
     ];
     enrollCols.forEach(col => addColumnIfMissing('Enrollments', col));
 
@@ -374,6 +372,8 @@ const initDb = async () => {
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    addColumnIfMissing('Gallery', "mediaType TEXT DEFAULT 'image'");
 
     try {
       const gCount = db._db.exec("SELECT COUNT(*) as count FROM Gallery");
@@ -550,7 +550,27 @@ We implement security measures to protect your personal information against unau
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    console.log('Tables initialisées (Users, Enrollments, Advertisements, Modules, Chapters, Lessons, QuizQuestions, Certificates, StaticPages, PixelSettings, PixelCustomEvents).');
+    // --- General Settings ---
+    db.run(`CREATE TABLE IF NOT EXISTS GeneralSettings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      siteName TEXT DEFAULT 'NovaTech Vision',
+      contactEmail TEXT DEFAULT 'contact@novatechvision.com',
+      contactPhone TEXT DEFAULT '+229 0191348557',
+      themeColor TEXT DEFAULT '#8B5CF6',
+      fontFamily TEXT DEFAULT 'Inter',
+      registrationStatus TEXT DEFAULT 'Ouvertes',
+      defaultRole TEXT DEFAULT 'Apprenant'
+    )`);
+    try {
+      const gsCount = db._db.exec("SELECT COUNT(*) as count FROM GeneralSettings");
+      if (gsCount.length > 0 && gsCount[0].values[0][0] === 0) {
+        db._db.run(`INSERT INTO GeneralSettings (id, siteName, contactEmail, contactPhone, themeColor, fontFamily, registrationStatus, defaultRole)
+                    VALUES (1, 'NovaTech Vision', 'contact@novatechvision.com', '+229 0191348557', '#8B5CF6', 'Inter', 'Ouvertes', 'Apprenant')`);
+        console.log("Paramètres généraux initiaux injectés.");
+      }
+    } catch (e) { /* silent */ }
+
+    console.log('Tables initialisées (Users, Enrollments, Advertisements, Modules, Chapters, Lessons, QuizQuestions, Certificates, StaticPages, PixelSettings, PixelCustomEvents, GeneralSettings).');
 
     // --- Categories ---
     db.run(`CREATE TABLE IF NOT EXISTS Categories (

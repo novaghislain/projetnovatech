@@ -1,0 +1,20 @@
+# Node modules
+node_modules/
+dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Databases and logs
+*.sqlite
+*.db
+*.log
+backend/logs/
+backend/backups/
+backend/uploads/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Download, Trash2 } from 'lucide-react';
+import { Search, Download, Trash2, Eye } from 'lucide-react';
 import axios from 'axios';
-import { API_URL } from '../../config';
+import { API_URL, getImageUrl } from '../../config';
 
 const AdminInscriptions = () => {
   const [inscriptions, setInscriptions] = useState([]);
@@ -53,15 +53,17 @@ const AdminInscriptions = () => {
       i.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (i.title || i.courseTitle || '')?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    if (filterStatus === 'active') return matchesSearch && i.status === 'active';
-    if (filterStatus === 'waitlist') return matchesSearch && (i.status === 'waitlist' || i.status === 'pending');
-    if (filterStatus === 'inactive') return matchesSearch && i.status !== 'active' && i.status !== 'waitlist' && i.status !== 'pending';
+    let matchesStatus = true;
+    if (filterStatus === 'active') matchesStatus = i.status === 'active';
+    else if (filterStatus === 'waitlist') matchesStatus = i.status === 'waitlist' || i.status === 'pending';
+    else if (filterStatus === 'inactive') matchesStatus = i.status !== 'active' && i.status !== 'waitlist' && i.status !== 'pending';
 
+    let matchesFormation = true;
     if (filterFormation !== 'all') {
-      return matchesSearch && (i.title === filterFormation || i.courseTitle === filterFormation);
+      matchesFormation = i.title === filterFormation || i.courseTitle === filterFormation;
     }
 
-    return matchesSearch;
+    return matchesSearch && matchesStatus && matchesFormation;
   });
 
   const exportToCSV = () => {
@@ -160,9 +162,21 @@ const AdminInscriptions = () => {
                       </span>
                     </td>
                     <td>
-                      <button className="btn btn-danger" title="Supprimer" onClick={() => handleDelete(insc.id)}>
-                        <Trash2 size={14} />
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        {insc.paymentProof && (
+                          <button 
+                            className="btn btn-outline" 
+                            style={{ padding: '0.3rem 0.5rem', color: '#10B981', borderColor: '#10B981' }} 
+                            title="Voir la preuve de paiement" 
+                            onClick={() => window.open(getImageUrl(insc.paymentProof), '_blank')}
+                          >
+                            <Eye size={14} />
+                          </button>
+                        )}
+                        <button className="btn btn-danger" style={{ padding: '0.3rem 0.5rem' }} title="Supprimer" onClick={() => handleDelete(insc.id)}>
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

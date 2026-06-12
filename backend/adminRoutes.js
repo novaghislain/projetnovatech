@@ -1,6 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { sendEmail } = require('./emailService');
+const fs = require('fs');
+const path = require('path');
 
 module.exports = function(db, authenticateToken) {
   const router = express.Router();
@@ -97,11 +99,13 @@ module.exports = function(db, authenticateToken) {
   // 3. Paiements / Inscriptions
   router.get('/payments', (req, res) => {
     const query = `
-      SELECT e.id, e.id as transactionId, e.amountPaid as amount, e.totalAmount, e.paymentMethod, e.paymentType, e.createdAt, e.status, 
-             u.firstName, u.lastName, u.email,
+      SELECT e.id, e.id as transactionId, e.amountPaid as amount, e.totalAmount, e.paymentMethod, e.paymentType, e.createdAt, e.status, e.paymentProof, 
+             COALESCE(u.firstName, e.guestFirstName) as firstName, 
+             COALESCE(u.lastName, e.guestLastName) as lastName, 
+             COALESCE(u.email, e.parentEmail, e.guestEmail) as email,
              f.title
       FROM Enrollments e
-      JOIN Users u ON e.userId = u.id
+      LEFT JOIN Users u ON e.userId = u.id
       JOIN Formations f ON e.courseId = f.id
       ORDER BY e.id DESC
     `;
@@ -240,32 +244,32 @@ module.exports = function(db, authenticateToken) {
   });
 
   router.post('/formations', (req, res) => {
-    const { title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull,
-            whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode } = req.body;
+    const { title, description, category, ageGroup, level, duration, price, maxParticipants, status, imageUrl, imageUrls, isFull,
+            whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode, formateurId } = req.body;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
     const query = `
-      INSERT INTO Formations (title, slug, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull,
-                              whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO Formations (title, slug, description, category, ageGroup, level, duration, price, maxParticipants, status, imageUrl, imageUrls, isFull,
+                              whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode, formateurId)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    db.run(query, [title, slug, description, category, ageGroup, duration, price, maxParticipants, status || 'published', imageUrl, isFull ? 1 : 0,
-                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', enrollmentEndDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne'], function(err) {
+    db.run(query, [title, slug, description, category, ageGroup, level || 'Tous niveaux', duration, price, maxParticipants, status || 'published', imageUrl, imageUrls || '[]', isFull ? 1 : 0,
+                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', enrollmentEndDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne', formateurId || null], function(err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, id: this.lastID });
     });
   });
 
   router.put('/formations/:id', (req, res) => {
-    const { title, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull,
-            whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode } = req.body;
+    const { title, description, category, ageGroup, level, duration, price, maxParticipants, status, imageUrl, imageUrls, isFull,
+            whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode, formateurId } = req.body;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
     const query = `
-      UPDATE Formations SET title=?, slug=?, description=?, category=?, ageGroup=?, duration=?, price=?, maxParticipants=?, status=?, imageUrl=?, isFull=?,
-                            whatsappLink=?, meetLink=?, startDate=?, endDate=?, enrollmentEndDate=?, location=?, isOnline=?, format=?, locationMode=?
+      UPDATE Formations SET title=?, slug=?, description=?, category=?, ageGroup=?, level=?, duration=?, price=?, maxParticipants=?, status=?, imageUrl=?, imageUrls=?, isFull=?,
+                            whatsappLink=?, meetLink=?, startDate=?, endDate=?, enrollmentEndDate=?, location=?, isOnline=?, format=?, locationMode=?, formateurId=?
       WHERE id=?
     `;
-    db.run(query, [title, slug, description, category, ageGroup, duration, price, maxParticipants, status, imageUrl, isFull ? 1 : 0,
-                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', enrollmentEndDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne',
+    db.run(query, [title, slug, description, category, ageGroup, level || 'Tous niveaux', duration, price, maxParticipants, status, imageUrl, imageUrls || '[]', isFull ? 1 : 0,
+                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', enrollmentEndDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne', formateurId || null,
                    req.params.id], (err) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true });
@@ -401,10 +405,10 @@ module.exports = function(db, authenticateToken) {
 
   // 6. Gallery (Galerie)
   router.post('/gallery', (req, res) => {
-    const { title, imageUrl, category } = req.body;
+    const { title, imageUrl, category, mediaType } = req.body;
     db.run(
-      "INSERT INTO Gallery (title, imageUrl, category) VALUES (?, ?, ?)",
-      [title, imageUrl, category || 'Autre'],
+      "INSERT INTO Gallery (title, imageUrl, category, mediaType) VALUES (?, ?, ?, ?)",
+      [title, imageUrl, category || 'Autre', mediaType || 'image'],
       function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true, id: this.lastID });
@@ -585,6 +589,44 @@ module.exports = function(db, authenticateToken) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true });
     });
+  });
+
+  // 13. General Settings GET & PUT
+  router.get('/settings', (req, res) => {
+    db.get("SELECT * FROM GeneralSettings WHERE id = 1", [], (err, row) => {
+      if (err) return res.status(500).json({ error: err.message });
+      
+      let lastSave = null;
+      try {
+        const dbFilePath = path.resolve(__dirname, 'database.sqlite');
+        if (fs.existsSync(dbFilePath)) {
+          const stats = fs.statSync(dbFilePath);
+          lastSave = stats.mtime;
+        }
+      } catch (statErr) {
+        console.error("Error fetching db modification time:", statErr);
+      }
+      
+      res.json({
+        ...(row || {}),
+        lastBackup: lastSave ? lastSave.toISOString() : null
+      });
+    });
+  });
+
+  router.put('/settings', (req, res) => {
+    const { siteName, contactEmail, contactPhone, themeColor, fontFamily, registrationStatus, defaultRole } = req.body;
+    db.run(
+      `UPDATE GeneralSettings SET 
+        siteName = ?, contactEmail = ?, contactPhone = ?, themeColor = ?, 
+        fontFamily = ?, registrationStatus = ?, defaultRole = ? 
+       WHERE id = 1`,
+      [siteName, contactEmail, contactPhone, themeColor, fontFamily, registrationStatus, defaultRole],
+      (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+      }
+    );
   });
 
   return router;

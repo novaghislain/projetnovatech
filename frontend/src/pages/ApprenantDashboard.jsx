@@ -499,26 +499,7 @@ const PaymentsTab = () => {
   }, []);
 
   const downloadReceipt = (p) => {
-    const doc = new jsPDF();
-    
-    // Header Novatech Vision branding
-    doc.setFillColor(26, 26, 46);
-    doc.rect(0, 0, 210, 40, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.text("NOVATECH VISION", 20, 25);
-    
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(language === 'en' ? "PAYMENT RECEIPT" : "RECU DE PAIEMENT", 145, 25);
-    
-    // Info block
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text(language === 'en' ? "Payment Details" : "Détails du Paiement", 20, 60);
+    const token = localStorage.getItem('nv_token');
     window.open(`${API_URL}/api/enroll/enrollments/${p.id}/invoice?token=${token}`, '_blank');
   };
 

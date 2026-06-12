@@ -46,42 +46,47 @@ const LanguageRouteWatcher = () => {
 
 const AppLayout = () => {
   const location = useLocation();
-  const isDashboard = location.pathname.startsWith('/admin') || 
-                      location.pathname.startsWith('/formateur') || 
-                      location.pathname.startsWith('/mon-espace');
+  const hideNavFooter = location.pathname.startsWith('/admin') || 
+                        location.pathname.startsWith('/formateur') || 
+                        location.pathname.startsWith('/mon-espace') ||
+                        /^\/(fr\/|en\/)?(formations|courses)\/[^\/]+$/.test(location.pathname);
 
   // Remonter en haut de la page à chaque changement de route
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  if (isDashboard) {
+  if (hideNavFooter) {
     return (
       <>
         <MetaPixel />
         <Routes>
-        <Route path="/admin/*" element={
-          <ProtectedRoute allowedRoles={['admin', 'admin_restreint']}>
-            <AdminDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/formateur/*" element={
-          <ProtectedRoute allowedRoles={['formateur', 'admin']}>
-            <FormateurDashboard />
-          </ProtectedRoute>
-        } />
+          <Route path="/admin/*" element={
+            <ProtectedRoute allowedRoles={['admin', 'admin_restreint']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/formateur/*" element={
+            <ProtectedRoute allowedRoles={['formateur', 'admin']}>
+              <FormateurDashboard />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/mon-espace/lecons/:courseId" element={
-          <ProtectedRoute allowedRoles={['apprenant', 'admin']}>
-            <LessonViewer />
-          </ProtectedRoute>
-        } />
-        <Route path="/mon-espace/*" element={
-          <ProtectedRoute allowedRoles={['apprenant', 'admin']}>
-            <ApprenantDashboard />
-          </ProtectedRoute>
-        } />
-      </Routes>
+          <Route path="/mon-espace/lecons/:courseId" element={
+            <ProtectedRoute allowedRoles={['apprenant', 'admin']}>
+              <LessonViewer />
+            </ProtectedRoute>
+          } />
+          <Route path="/mon-espace/*" element={
+            <ProtectedRoute allowedRoles={['apprenant', 'admin']}>
+              <ApprenantDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/formations/:id" element={<FormationDetails />} />
+          <Route path="/fr/formations/:id" element={<FormationDetails />} />
+          <Route path="/en/courses/:id" element={<FormationDetails />} />
+        </Routes>
       </>
     );
   }

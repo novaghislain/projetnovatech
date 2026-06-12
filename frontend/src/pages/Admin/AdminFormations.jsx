@@ -18,17 +18,36 @@ const AdminFormations = () => {
   // Builder State
   const [builderFormation, setBuilderFormation] = useState(null); // { id, title }
   
+  const [formateurs, setFormateurs] = useState([]);
+
   // Form state
   const [formData, setFormData] = useState({
-    id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '',
-    maxParticipants: '', status: 'draft', imageUrl: '', isFull: false,
-    whatsappLink: '', meetLink: '', startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne'
+    id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '', level: 'Tous niveaux',
+    maxParticipants: '', status: 'draft', imageUrl: '', imageUrls: [], isFull: false,
+    whatsappLink: '', meetLink: '', startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne',
+    formateurId: ''
   });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     fetchFormations();
+    fetchFormateurs();
   }, []);
+
+  const fetchFormateurs = async () => {
+    try {
+      const token = localStorage.getItem('nv_token');
+      const response = await fetch(`${API_URL}/api/admin/formateurs`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setFormateurs(data);
+      }
+    } catch (err) {
+      console.error("Erreur de récupération des formateurs:", err);
+    }
+  };
 
   const fetchFormations = async () => {
     try {
@@ -54,12 +73,26 @@ const AdminFormations = () => {
 
   const handleOpenModal = (formation = null) => {
     if (formation) {
-      setFormData(formation);
+      let parsedUrls = [];
+      if (formation.imageUrls) {
+        try {
+          parsedUrls = typeof formation.imageUrls === 'string' ? JSON.parse(formation.imageUrls) : formation.imageUrls;
+        } catch (e) {
+          parsedUrls = [];
+        }
+      }
+      setFormData({
+        ...formation,
+        level: formation.level || 'Tous niveaux',
+        formateurId: formation.formateurId || '',
+        imageUrls: parsedUrls || []
+      });
     } else {
       setFormData({
-        id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '',
-        maxParticipants: '', status: 'draft', imageUrl: '', isFull: false,
-        whatsappLink: '', meetLink: '', startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne'
+        id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '', level: 'Tous niveaux',
+        maxParticipants: '', status: 'draft', imageUrl: '', imageUrls: [], isFull: false,
+        whatsappLink: '', meetLink: '', startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne',
+        formateurId: ''
       });
     }
     setErrors({});
@@ -83,13 +116,18 @@ const AdminFormations = () => {
       const method = formData.id ? 'PUT' : 'POST';
       const url = formData.id ? `${API_URL}/api/admin/formations/${formData.id}` : `${API_URL}/api/admin/formations`;
       
+      const bodyData = {
+        ...formData,
+        imageUrls: JSON.stringify(formData.imageUrls || [])
+      };
+      
       const response = await fetch(url, {
         method,
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(bodyData)
       });
       
       if (!response.ok) throw new Error("Erreur lors de l'enregistrement");
@@ -115,28 +153,43 @@ const AdminFormations = () => {
     }
   };
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleMultipleImagesUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
     
-    const formData = new FormData();
-    formData.append('image', file);
+    const token = localStorage.getItem('nv_token');
+    const uploadedUrls = [];
     
-    try {
-      const token = localStorage.getItem('nv_token');
-      const res = await fetch(`${API_URL}/api/upload`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setFormData({...formData, imageUrl: data.imageUrl});
-      } else {
-        alert("Erreur lors de l'upload de l'image.");
+    for (const file of files) {
+      const uploadData = new FormData();
+      uploadData.append('image', file);
+      try {
+        const res = await fetch(`${API_URL}/api/upload`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: uploadData
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.imageUrl) {
+            uploadedUrls.push(data.imageUrl);
+          }
+        }
+      } catch (err) {
+        console.error("Upload error", err);
       }
-    } catch (err) {
-      alert("Erreur réseau.");
+    }
+    
+    if (uploadedUrls.length > 0) {
+      setFormData(prev => {
+        const currentUrls = prev.imageUrls || [];
+        const newUrls = [...currentUrls, ...uploadedUrls];
+        return {
+          ...prev,
+          imageUrls: newUrls,
+          imageUrl: prev.imageUrl || newUrls[0]
+        };
+      });
     }
   };
 
@@ -316,6 +369,15 @@ const AdminFormations = () => {
                   <input type="text" className="form-control" value={formData.ageGroup || ''} onChange={e => setFormData({...formData, ageGroup: e.target.value})} />
                 </div>
                 <div className="form-group">
+                  <label>Niveau de la formation *</label>
+                  <select className="form-control" value={formData.level || 'Tous niveaux'} onChange={e => setFormData({...formData, level: e.target.value})}>
+                    <option value="Tous niveaux">Tous niveaux</option>
+                    <option value="Débutant">Débutant</option>
+                    <option value="Intermédiaire">Intermédiaire</option>
+                    <option value="Avancé">Avancé</option>
+                  </select>
+                </div>
+                <div className="form-group">
                   <label>Places max *</label>
                   <input type="number" className="form-control" value={formData.maxParticipants} onChange={e => setFormData({...formData, maxParticipants: e.target.value})} />
                   {errors.maxParticipants && <div style={{ color: '#ff4d4f', fontSize: '0.8rem', marginTop: '4px' }}>{errors.maxParticipants}</div>}
@@ -328,6 +390,16 @@ const AdminFormations = () => {
                   <option value="draft">Brouillon</option>
                   <option value="published">Publié (En ligne)</option>
                   <option value="full">Complet (obsolète, utiliser la case ci-dessous)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Formateur assigné</label>
+                <select className="form-control" value={formData.formateurId || ''} onChange={e => setFormData({...formData, formateurId: e.target.value ? parseInt(e.target.value) : ''})}>
+                  <option value="">Aucun (Géré par l'administration)</option>
+                  {formateurs.map(f => (
+                    <option key={f.id} value={f.id}>{f.prenom} {f.nom} ({f.specialite})</option>
+                  ))}
                 </select>
               </div>
 
@@ -345,11 +417,81 @@ const AdminFormations = () => {
               </div>
 
               <div className="form-group">
-                <label>Image de couverture (URL ou /image.jpg)</label>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <input type="text" className="form-control" placeholder="URL de l'image" value={formData.imageUrl || ''} onChange={e => setFormData({...formData, imageUrl: e.target.value})} />
-                  <button className="btn btn-outline" onClick={() => document.getElementById('imageUpload').click()}><ImageIcon size={16} /> Uploader</button>
-                  <input type="file" id="imageUpload" style={{ display: 'none' }} accept="image/*" onChange={handleImageUpload} />
+                <label>Photos de la formation (Défileront en carrousel sur la page détails) *</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button 
+                      type="button" 
+                      className="btn btn-outline" 
+                      onClick={() => document.getElementById('multipleImageUpload').click()}
+                    >
+                      <ImageIcon size={16} style={{ marginRight: '8px' }} /> Sélectionner des photos...
+                    </button>
+                    <input 
+                      type="file" 
+                      id="multipleImageUpload" 
+                      style={{ display: 'none' }} 
+                      accept="image/*" 
+                      multiple 
+                      onChange={handleMultipleImagesUpload} 
+                    />
+                  </div>
+                  
+                  {formData.imageUrls && formData.imageUrls.length > 0 && (
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                      {formData.imageUrls.map((url, idx) => (
+                        <div key={idx} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', border: '1px solid #ddd', overflow: 'hidden' }}>
+                          <img 
+                            src={getImageUrl(url)} 
+                            alt={`Aperçu ${idx + 1}`} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => setFormData(prev => {
+                              const newUrls = prev.imageUrls.filter((_, i) => i !== idx);
+                              const newMain = prev.imageUrl === url ? (newUrls.length > 0 ? newUrls[0] : '') : prev.imageUrl;
+                              return { ...prev, imageUrls: newUrls, imageUrl: newMain };
+                            })}
+                            style={{ 
+                              position: 'absolute', 
+                              top: '2px', 
+                              right: '2px', 
+                              background: '#ef4444', 
+                              color: 'white', 
+                              borderRadius: '50%', 
+                              width: '20px', 
+                              height: '20px', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              border: 'none', 
+                              cursor: 'pointer', 
+                              fontSize: '12px',
+                              fontWeight: 'bold',
+                              lineHeight: 1
+                            }}
+                          >
+                            ×
+                          </button>
+                          {formData.imageUrl === url && (
+                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(34, 197, 94, 0.9)', color: 'white', fontSize: '9px', textAlign: 'center', padding: '1px 0', fontWeight: 600 }}>
+                              Principale
+                            </div>
+                          )}
+                          {formData.imageUrl !== url && (
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, imageUrl: url }))}
+                              style={{ position: 'absolute', top: '22px', left: '2px', right: '2px', background: 'rgba(0,0,0,0.6)', color: 'white', fontSize: '8px', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '1px 0' }}
+                            >
+                              Définir princ.
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

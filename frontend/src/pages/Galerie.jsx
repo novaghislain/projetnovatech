@@ -3,7 +3,7 @@ import { X, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 import './Galerie.css';
-import { API_URL } from '../config';
+import { API_URL, getImageUrl } from '../config';
 import Testimonials from './Testimonials';
 
 const translateGalleryTag = (tag, lang) => {
@@ -51,9 +51,10 @@ const Galerie = () => {
         // Convert API format to the expected format
         const formatted = res.data.map(g => ({
           id: g.id,
-          src: g.imageUrl,
+          src: getImageUrl(g.imageUrl),
           caption: g.title || 'Sans titre',
-          tag: g.category || 'Autre'
+          tag: g.category || 'Autre',
+          mediaType: g.mediaType || (/\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(g.imageUrl) ? 'video' : 'image')
         }));
         setPhotos(formatted);
       } catch (err) {
@@ -139,7 +140,16 @@ const Galerie = () => {
                 aria-label={`Voir: ${photo.caption}`}
                 onKeyDown={e => e.key === 'Enter' && openLightbox(i)}
               >
-                <img src={photo.src} alt={photo.caption} loading="lazy" />
+                {photo.mediaType === 'video' ? (
+                  <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                    <video src={photo.src} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.6)', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ color: 'white', fontSize: '1.2rem', marginLeft: '3px' }}>▶</span>
+                    </div>
+                  </div>
+                ) : (
+                  <img src={photo.src} alt={photo.caption} loading="lazy" />
+                )}
                 <div className="galerie-card-overlay">
                   <span className="galerie-tag">{photo.tag}</span>
                   <div className="galerie-card-bottom">
@@ -168,7 +178,11 @@ const Galerie = () => {
           </button>
 
           <div className="lb-content" onClick={e => e.stopPropagation()}>
-            <img src={filtered[lightboxIdx].src} alt={filtered[lightboxIdx].caption} />
+            {filtered[lightboxIdx].mediaType === 'video' ? (
+              <video src={filtered[lightboxIdx].src} controls autoPlay style={{ maxWidth: '100%', maxHeight: '80vh', display: 'block', margin: '0 auto', backgroundColor: '#000' }} />
+            ) : (
+              <img src={filtered[lightboxIdx].src} alt={filtered[lightboxIdx].caption} />
+            )}
             <div className="lb-info">
               <span className="galerie-tag">
                 {translateGalleryTag(filtered[lightboxIdx].tag, language)}

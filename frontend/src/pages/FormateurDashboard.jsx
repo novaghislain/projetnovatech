@@ -7,7 +7,7 @@ import './FormateurDashboard.css';
 import './Admin/AdminDashboard.css';
 import { API_URL } from '../config';
 
-const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Débutant', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne', meetLink: '', whatsappLink: '', imageUrl: '', imageUrls: [], sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
+const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Tous niveaux', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne', meetLink: '', whatsappLink: '', imageUrl: '', imageUrls: [], sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
 
 const localT = {
   fr: {
@@ -1592,6 +1592,15 @@ const FormateurDashboard = () => {
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Age Group' : "Tranche d'âge"}</label>
                   <select value={courseForm.ageGroup} onChange={e => setCourseForm(f => ({ ...f, ageGroup: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
                     {['8-10 ans', '10-12 ans', '12-14 ans', '14-16 ans', '16-18 ans', 'Tous âges'].map(c => <option key={c} value={c}>{ageGroupDisplay[c]}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Level' : "Niveau"}</label>
+                  <select value={courseForm.level || 'Tous niveaux'} onChange={e => setCourseForm(f => ({ ...f, level: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
+                    <option value="Tous niveaux">{language === 'en' ? 'All levels' : 'Tous niveaux'}</option>
+                    <option value="Débutant">{language === 'en' ? 'Beginner' : 'Débutant'}</option>
+                    <option value="Intermédiaire">{language === 'en' ? 'Intermediate' : 'Intermédiaire'}</option>
+                    <option value="Avancé">{language === 'en' ? 'Advanced' : 'Avancé'}</option>
                   </select>
                 </div>
                 <div>

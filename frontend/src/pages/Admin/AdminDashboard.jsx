@@ -19,7 +19,8 @@ import {
   BarChart3,
   Search,
   Mail,
-  Settings
+  Settings,
+  Download
 } from 'lucide-react';
 import {
   LineChart,
@@ -45,7 +46,7 @@ import AdminCandidatures from './AdminCandidatures';
 import AdminMetaPixel from './AdminMetaPixel';
 import AdminParametres from './AdminParametres';
 import { useAuth } from '../../contexts/AuthContext';
-import { API_URL } from '../../config';
+import { API_URL, getImageUrl } from '../../config';
 import { ToastProvider } from '../../components/Toast';
 
 
@@ -59,6 +60,16 @@ const AdminDashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
 
+  // --- Finances State ---
+  const [financialStats, setFinancialStats] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [transactionTotal, setTransactionTotal] = useState(0);
+  const [financePage, setFinancePage] = useState(1);
+  const [financeSearch, setFinanceSearch] = useState('');
+  const [financeSearchInput, setFinanceSearchInput] = useState('');
+  const [financeMethod, setFinanceMethod] = useState('');
+  const [financeLoading, setFinanceLoading] = useState(false);
+
   // ── Sliding indicator sidebar ──
   const sidebarRef = useRef(null);
   const navRef = useRef(null);
@@ -69,7 +80,7 @@ const AdminDashboard = () => {
     { tab: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { tab: 'formations', icon: BookOpen, label: 'Formations' },
     { tab: 'inscriptions', icon: Users, label: 'Inscriptions' },
-    { tab: 'paiements', icon: CreditCard, label: 'Paiements' },
+    { tab: 'finances', icon: CreditCard, label: 'Finances' },
     { tab: 'meta-pixel', icon: BarChart3, label: 'Marketing › Meta Pixel' },
     { tab: 'contenu', icon: Edit, label: 'Contenu' },
     { tab: 'messages', icon: Edit, label: 'Messages' },
@@ -182,6 +193,46 @@ const AdminDashboard = () => {
     };
     fetchAdminData();
   }, []);
+
+  const fetchFinanceData = async () => {
+    try {
+      setFinanceLoading(true);
+      const token = localStorage.getItem('nv_token');
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      // 1. Fetch financial stats
+      const statsRes = await fetch(`${API_URL}/api/admin/financial-stats`, { headers });
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setFinancialStats(statsData);
+      }
+
+      // 2. Fetch transactions
+      const queryParams = new URLSearchParams({
+        page: financePage,
+        limit: 10,
+        search: financeSearch,
+        method: financeMethod
+      });
+
+      const txRes = await fetch(`${API_URL}/api/admin/transactions?${queryParams}`, { headers });
+      if (txRes.ok) {
+        const txData = await txRes.json();
+        setTransactions(txData.transactions || []);
+        setTransactionTotal(txData.total || 0);
+      }
+    } catch (err) {
+      console.error('Error fetching finance data:', err);
+    } finally {
+      setFinanceLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'finances') {
+      fetchFinanceData();
+    }
+  }, [activeTab, financePage, financeMethod, financeSearch]);
 
   const handleDeletePayment = async (id) => {
     if (window.confirm('Voulez-vous vraiment supprimer ce paiement ?')) {
@@ -513,91 +564,266 @@ const AdminDashboard = () => {
           {activeTab === 'inscriptions' && <AdminInscriptions />}
           {activeTab === 'parametres' && <AdminParametres />}
 
-          {/* TAB: PAIEMENTS */}
-          {activeTab === 'paiements' && (
+          {/* TAB: FINANCES */}
+          {activeTab === 'finances' && (
             <div className="fade-in">
-              <div className="kpi-grid">
-                <div className="stat-card primary">
-                  <div className="stat-icon">
-                    <CheckCircle size={24} />
-                  </div>
-                  <div className="stat-info">
-                    <div className="stat-value">{payments.length}</div>
-                    <div className="stat-label">Paiements Validés</div>
-                  </div>
+              {/* Financial KPI stats grid */}
+              {financeLoading && !financialStats ? (
+                <div style={{ textAlign: 'center', padding: '3rem' }}>
+                  <div className="spin" style={{ margin: '0 auto 1rem', width: 32, height: 32, border: '3px solid var(--gray)', borderTopColor: 'var(--primary)', borderRadius: '50%' }} />
+                  <p>Chargement des statistiques financières...</p>
                 </div>
-                <div className="stat-card">
-                  <div className="stat-icon purple">
-                    <CreditCard size={24} />
+              ) : (
+                <>
+                  <div className="kpi-grid">
+                    <div className="stat-card primary">
+                      <div className="stat-icon">
+                        <TrendingUp size={24} />
+                      </div>
+                      <div className="stat-info">
+                        <div className="stat-value">{(financialStats?.totalRevenue || 0).toLocaleString()} FCFA</div>
+                        <div className="stat-label">Revenus Totaux</div>
+                      </div>
+                    </div>
+                    <div className="stat-card accent">
+                      <div className="stat-icon">
+                        <CreditCard size={24} />
+                      </div>
+                      <div className="stat-info">
+                        <div className="stat-value">{(financialStats?.monthRevenue || 0).toLocaleString()} FCFA</div>
+                        <div className="stat-label">Revenus ce mois</div>
+                      </div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-icon blue">
+                        <Users size={24} />
+                      </div>
+                      <div className="stat-info">
+                        <div className="stat-value">{financialStats?.totalTransactions || 0}</div>
+                        <div className="stat-label">Inscriptions Confirmées</div>
+                      </div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-icon green">
+                        <CheckCircle size={24} />
+                      </div>
+                      <div className="stat-info">
+                        <div className="stat-value">{Math.round(financialStats?.avgAmount || 0).toLocaleString()} FCFA</div>
+                        <div className="stat-label">Panier Moyen</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="stat-info">
-                    <div className="stat-value">{(stats.totalRevenue || 0).toLocaleString()}</div>
-                    <div className="stat-label">Total Encaissé (FCFA)</div>
-                  </div>
-                </div>
-              </div>
 
-              <div className="table-container">
-                <div className="table-header">
-                  <h3>Historique des Transactions</h3>
+                  {/* Payment Methods Breakdown */}
+                  <div style={{ background: 'white', padding: '1.5rem', borderRadius: '20px', boxShadow: '0 5px 20px rgba(0,0,0,0.03)', marginBottom: '24px', border: '1px solid #f1f5f9' }}>
+                    <h4 style={{ margin: '0 0 1rem 0', color: 'var(--dark)', fontWeight: 700, fontSize: '0.95rem' }}>Modes de paiement</h4>
+                    <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                      {financialStats?.byMethod?.map(m => (
+                        <div key={m.paymentMethod} style={{ background: '#f8fafc', padding: '0.75rem 1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0', minWidth: '150px' }}>
+                          <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+                            {m.paymentMethod || 'Inconnu'}
+                          </div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--dark)', marginTop: '4px' }}>
+                            {m.total?.toLocaleString()} FCFA
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
+                            {m.count} paiement(s)
+                          </div>
+                        </div>
+                      ))}
+                      {(!financialStats?.byMethod || financialStats.byMethod.length === 0) && (
+                        <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '0.9rem' }}>Aucune donnée par mode de paiement.</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Chart for Monthly evolution */}
+                  {financialStats?.byMonth && financialStats.byMonth.length > 0 && (
+                    <div className="chart-container">
+                      <div className="chart-header">
+                        <h3>Évolution Mensuelle des Revenus (6 derniers mois)</h3>
+                      </div>
+                      <div style={{ width: '100%', height: 250 }}>
+                        <ResponsiveContainer>
+                          <LineChart data={financialStats.byMonth} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} dy={10} />
+                            <YAxis axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} dx={-10} />
+                            <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
+                            <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} dot={{r: 4, fill: '#10b981'}} activeDot={{r: 6}} name="Revenus (FCFA)" />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Transactions List */}
+              <div className="table-container" style={{ borderTop: '4px solid #1A1A2E' }}>
+                <div className="table-header" style={{ background: 'none', borderBottom: '1px solid #f1f5f9', padding: '1.25rem 1.5rem' }}>
+                  <h3 style={{ color: 'var(--dark)', fontSize: '1.05rem', fontWeight: 700 }}>Historique des Transactions</h3>
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <form onSubmit={(e) => { e.preventDefault(); setFinanceSearch(financeSearchInput); setFinancePage(1); }} style={{ display: 'flex', gap: '0.5rem' }}>
+                      <div className="search-box" style={{ width: '240px', padding: '6px 15px', borderRadius: '8px', marginBottom: 0 }}>
+                        <Search size={16} color="#9CA3AF" />
+                        <input 
+                          type="text" 
+                          placeholder="Rechercher..." 
+                          value={financeSearchInput}
+                          onChange={(e) => setFinanceSearchInput(e.target.value)}
+                        />
+                      </div>
+                      <button type="submit" className="tab-btn" style={{ padding: '0.4rem 1rem', borderRadius: '8px' }}>
+                        Filtrer
+                      </button>
+                    </form>
+                    <select 
+                      className="form-control" 
+                      style={{ width: '150px', marginBottom: 0, padding: '0.4rem', borderRadius: '8px' }} 
+                      value={financeMethod} 
+                      onChange={(e) => { setFinanceMethod(e.target.value); setFinancePage(1); }}
+                    >
+                      <option value="">Tous les modes</option>
+                      <option value="FedaPay Mobile Money">Mobile Money</option>
+                      <option value="FedaPay">FedaPay</option>
+                      <option value="FedaPay Card">Carte Bancaire</option>
+                    </select>
+                  </div>
                 </div>
+
                 <div className="admin-table-wrapper">
                   <table className="admin-table">
                     <thead>
                       <tr>
-                        <th>ID Transaction</th>
-                        <th>Apprenant</th>
+                        <th>ID Inscription</th>
+                        <th>Transaction FedaPay</th>
+                        <th>Apprenant & Client</th>
                         <th>Formation</th>
-                        <th>Montant</th>
+                        <th>Type</th>
+                        <th>Montant Payé</th>
                         <th>Méthode</th>
                         <th>Date</th>
-                        <th>Statut</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {payments.map(trx => (
-                        <tr key={trx.transactionId}>
-                          <td style={{ fontFamily: 'monospace', color: '#6B7280' }}>TRX-{trx.transactionId}</td>
-                          <td style={{ fontWeight: 600 }}>{trx.firstName} {trx.lastName}</td>
-                          <td>{trx.courseTitle}</td>
-                          <td>{trx.amount?.toLocaleString()} FCFA</td>
-                          <td>
-                            <span style={{ background: '#F3F4F6', padding: '4px 10px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600 }}>
-                              {trx.paymentMethod || 'Mobile Money'}
-                            </span>
-                          </td>
-                          <td>{new Date(trx.createdAt).toLocaleDateString()}</td>
-                          <td>
-                            {trx.status === 'active' ? (
-                              <span className="status-badge active">
-                                <CheckCircle size={12} /> Succès
-                              </span>
-                            ) : (
-                              <span className="status-badge pending">
-                                <XCircle size={12} /> En attente
-                              </span>
-                            )}
-                          </td>
-                          <td>
-                            <button
-                              onClick={() => handleDeletePayment(trx.transactionId)}
-                              className="btn-danger"
-                              title="Supprimer"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                      {payments.length === 0 && (
+                      {financeLoading ? (
                         <tr>
-                          <td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: '#9CA3AF' }}>Aucune transaction trouvée.</td>
+                          <td colSpan="9" style={{ textAlign: 'center', padding: '2rem', color: '#9CA3AF' }}>Chargement...</td>
                         </tr>
+                      ) : transactions.length === 0 ? (
+                        <tr>
+                          <td colSpan="9" style={{ textAlign: 'center', padding: '2rem', color: '#9CA3AF' }}>Aucune transaction trouvée.</td>
+                        </tr>
+                      ) : (
+                        transactions.map(trx => {
+                          const token = localStorage.getItem('nv_token');
+                          // Determine Learner/Client name
+                          const learnerName = (trx.childFirstName || trx.childLastName)
+                            ? `${trx.childFirstName || ''} ${trx.childLastName || ''}`.trim()
+                            : (trx.guestFirstName || trx.guestLastName)
+                              ? `${trx.guestFirstName || ''} ${trx.guestLastName || ''}`.trim()
+                              : `${trx.userFirstName || 'N/A'} ${trx.userLastName || ''}`.trim();
+
+                          // Determine Client email/info
+                          const clientInfo = trx.parentName 
+                            ? `Parent: ${trx.parentName}` 
+                            : (trx.userEmail || trx.guestEmail || trx.parentEmail || '');
+
+                          return (
+                            <tr key={trx.id}>
+                              <td style={{ fontWeight: 600 }}>#{trx.id}</td>
+                              <td style={{ fontFamily: 'monospace', color: '#6B7280' }}>
+                                {trx.transactionId || 'N/A'}
+                              </td>
+                              <td>
+                                <div style={{ fontWeight: 600 }}>{learnerName}</div>
+                                {clientInfo && (
+                                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+                                    {clientInfo}
+                                  </div>
+                                )}
+                              </td>
+                              <td>{trx.formationTitle}</td>
+                              <td>
+                                <span className={`status-badge ${trx.paymentType === 'full' ? 'active' : 'pending'}`} style={{ padding: '2px 8px', fontSize: '0.75rem' }}>
+                                  {trx.paymentType === 'full' ? 'Complet' : 'Mensuel'}
+                                </span>
+                              </td>
+                              <td>
+                                <div style={{ fontWeight: 700 }}>
+                                  {(trx.amountPaid || trx.amount)?.toLocaleString()} FCFA
+                                </div>
+                                {trx.paymentType === 'partial' && (
+                                  <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                                    sur {trx.totalAmount?.toLocaleString()} FCFA
+                                  </div>
+                                )}
+                              </td>
+                              <td>
+                                <span style={{ background: '#F3F4F6', padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600 }}>
+                                  {trx.paymentMethod || 'Mobile Money'}
+                                </span>
+                              </td>
+                              <td>{new Date(trx.createdAt).toLocaleDateString()}</td>
+                              <td style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                {trx.paymentProof && (
+                                  <button
+                                    onClick={() => window.open(getImageUrl(trx.paymentProof), '_blank')}
+                                    style={{ background: 'none', border: 'none', color: '#10B981', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                                    title="Voir la preuve de paiement"
+                                  >
+                                    <Eye size={16} /> Preuve
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => window.open(`${API_URL}/api/invoices/${trx.id}?token=${token}`, '_blank')}
+                                  style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                                  title="Facture PDF"
+                                >
+                                  <Download size={16} /> Facture
+                                </button>
+                                <button
+                                  onClick={() => handleDeletePayment(trx.id)}
+                                  style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', padding: '4px' }}
+                                  title="Supprimer la transaction"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination footer */}
+                {transactionTotal > 10 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.5rem', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                    <button 
+                      disabled={financePage === 1}
+                      onClick={() => setFinancePage(p => Math.max(1, p - 1))}
+                      className="tab-btn"
+                      style={{ padding: '0.4rem 1rem', borderRadius: '8px', fontSize: '0.8rem', opacity: financePage === 1 ? 0.5 : 1, cursor: financePage === 1 ? 'not-allowed' : 'pointer' }}
+                    >
+                      Précédent
+                    </button>
+                    <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                      Page <strong>{financePage}</strong> sur <strong>{Math.ceil(transactionTotal / 10)}</strong> ({transactionTotal} transactions)
+                    </span>
+                    <button 
+                      disabled={financePage * 10 >= transactionTotal}
+                      onClick={() => setFinancePage(p => p + 1)}
+                      className="tab-btn"
+                      style={{ padding: '0.4rem 1rem', borderRadius: '8px', fontSize: '0.8rem', opacity: financePage * 10 >= transactionTotal ? 0.5 : 1, cursor: financePage * 10 >= transactionTotal ? 'not-allowed' : 'pointer' }}
+                    >
+                      Suivant
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
