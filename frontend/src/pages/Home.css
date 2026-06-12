@@ -1268,7 +1268,7 @@
 
   .hero-main {
     border-radius: var(--radius-lg);
-    min-height: 420px;
+    min-height: 660px;
   }
 
   .sidebar-card--cta {
@@ -1317,11 +1317,17 @@
 
 @media (max-width: 640px) {
   .hero-text-block {
-    padding: 2.5rem 1.5rem;
+    padding: 2rem 1.25rem;
   }
 
   .hero-text-block h1 {
-    font-size: 1.9rem;
+    font-size: 1.7rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .hero-text-block p {
+    font-size: 0.88rem;
+    margin-bottom: 1.2rem;
   }
 
   .hero-sidebar {
@@ -1348,12 +1354,29 @@
   .hero-programs {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1rem 0.5rem;
+    gap: 0.8rem 0.4rem;
     justify-items: center;
+    margin-bottom: 1.2rem;
+  }
+
+  .hero-program-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
   }
 
   .hero-program-item {
     max-width: 85px;
+    gap: 0.2rem;
+  }
+
+  .hero-program-item span {
+    font-size: 0.62rem;
+  }
+
+  .hero-cta-btn {
+    padding: 0.8rem 1.8rem;
+    font-size: 0.9rem;
   }
 
   .section-title {
