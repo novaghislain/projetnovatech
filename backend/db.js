@@ -35,6 +35,17 @@ class Database {
       const id = lastID.length > 0 ? lastID[0].values[0][0] : null;
       result = { changes, lastID: id };
       success = true;
+
+      // Force synchronous save to disk for write queries to keep files in sync
+      const isWriteQuery = /^\s*(insert|update|delete|create|alter|drop|replace)/i.test(sql);
+      if (isWriteQuery) {
+        try {
+          const data = this._db.export();
+          fs.writeFileSync(dbPath, Buffer.from(data));
+        } catch (saveErr) {
+          console.error("Erreur lors de la sauvegarde immédiate de la DB:", saveErr.message);
+        }
+      }
     } catch (err) {
       if (callback) callback(err);
       return this;

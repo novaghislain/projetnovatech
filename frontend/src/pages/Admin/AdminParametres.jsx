@@ -53,6 +53,7 @@ const AdminParametres = () => {
       });
       if (!response.ok) throw new Error("Erreur lors de l'enregistrement des paramètres");
       setMessage({ text: "Paramètres sauvegardés avec succès !", type: 'success' });
+      await fetchSettings();
       setTimeout(() => setMessage({ text: '', type: '' }), 4000);
     } catch (err) {
       console.error(err);
