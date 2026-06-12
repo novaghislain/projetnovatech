@@ -28,7 +28,7 @@ const Apropos = () => {
           <div className="apropos-img" style={{ textAlign: 'center' }}>
             <img 
               src="/image2-removebg-preview.png" 
-              alt="Ghislain Jules EDA — Fondateur et Directeur" 
+              alt="Directeur" 
               style={{ 
                 width: '100%', 
                 maxWidth: '400px', 
@@ -47,8 +47,8 @@ const Apropos = () => {
             </h2>
             <p style={{ fontSize: '1.1rem', lineHeight: '1.7', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
               {language === 'en' 
-                ? "Founded by Ghislain Jules EDA, its Director, Novatech Vision is fundamentally a technology company with strong digital expertise: software development, IT automation, and tech equipment. We help businesses optimize their processes through innovative solutions on a daily basis."
-                : "Fondée par Ghislain Jules EDA, son Directeur, Novatech Vision est avant tout une entreprise technologique dotée d'une forte expertise numérique : développement logiciel, automatisation et fourniture d'équipements informatiques."}
+                ? "Novatech Vision is fundamentally a technology company with strong digital expertise: software development, IT automation, and tech equipment. We help businesses optimize their processes through innovative solutions on a daily basis."
+                : "Novatech Vision est avant tout une entreprise technologique dotée d'une forte expertise numérique : développement logiciel, automatisation et fourniture d'équipements informatiques."}
             </p>
             <p style={{ fontSize: '1.1rem', lineHeight: '1.7', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
               {language === 'en'
