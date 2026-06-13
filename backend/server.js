@@ -87,11 +87,22 @@ app.post('/api/auth/register', async (req, res) => {
           return res.status(500).json({ error: 'Erreur lors de la création du compte.' });
         }
 
-        const token = jwt.sign({ id: this.lastID, email, role: userRole }, JWT_SECRET, { expiresIn: '7d' });
-        res.json({
-          user: { id: this.lastID, firstName, lastName, email, role: userRole, phone: phone || '' },
-          token
-        });
+        const newUserId = this.lastID;
+        const token = jwt.sign({ id: newUserId, email, role: userRole }, JWT_SECRET, { expiresIn: '7d' });
+        
+        // Lier les anciennes inscriptions (faites en tant qu'invité) à ce nouveau compte
+        db.run(
+          `UPDATE Enrollments SET userId = ? WHERE (LOWER(guestEmail) = ? OR LOWER(parentEmail) = ?) AND userId IS NULL`,
+          [newUserId, email.toLowerCase(), email.toLowerCase()],
+          (updateErr) => {
+            if (updateErr) console.error("Erreur liaison inscriptions:", updateErr);
+            
+            res.json({
+              user: { id: newUserId, firstName, lastName, email, role: userRole, phone: phone || '' },
+              token
+            });
+          }
+        );
       }
     );
   } catch (error) {
