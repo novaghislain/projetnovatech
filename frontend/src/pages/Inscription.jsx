@@ -38,7 +38,7 @@ const Inscription = () => {
     address: '',
     paymentType: 'complet',
     transactionId: location.state?.transactionId || null,
-    paymentProof: null
+    paymentProof: location.state?.paymentProof || null
   });
 
   const [uploadingProof, setUploadingProof] = useState(false);
@@ -692,10 +692,10 @@ const Inscription = () => {
                     {language === 'en' ? 'You must be logged in to register a student and access your dashboard.' : 'Vous devez avoir un compte pour enregistrer l\'enfant et accéder à votre espace parent.'}
                   </p>
                   <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                    <button className="btn btn-primary" onClick={() => navigate('/register', { state: { from: '/inscription', transactionId: formData.transactionId, formationId: selectedCourseId } })}>
+                    <button className="btn btn-primary" onClick={() => navigate('/register', { state: { from: '/inscription', transactionId: formData.transactionId, paymentProof: formData.paymentProof, formationId: selectedCourseId } })}>
                       {language === 'en' ? 'Create an account' : 'Créer un compte'}
                     </button>
-                    <button className="btn btn-outline" onClick={() => navigate('/login', { state: { from: '/inscription', transactionId: formData.transactionId, formationId: selectedCourseId } })}>
+                    <button className="btn btn-outline" onClick={() => navigate('/login', { state: { from: '/inscription', transactionId: formData.transactionId, paymentProof: formData.paymentProof, formationId: selectedCourseId } })}>
                       {language === 'en' ? 'Log in' : 'Se connecter'}
                     </button>
                   </div>

@@ -17,7 +17,7 @@ const Register = () => {
   useEffect(() => {
     if (auth.user) {
       if (location.state?.formationId && auth.user.role === 'apprenant') {
-        navigate('/inscription', { state: { ...location.state, formationId: location.state.formationId }, replace: true });
+        navigate('/inscription', { state: { ...location.state }, replace: true });
         return;
       }
       const role = auth.user.role;
@@ -42,7 +42,7 @@ const Register = () => {
       // Déclencher l'événement Meta Pixel CompleteRegistration
       try { if (window.fbq) window.fbq('track', 'CompleteRegistration'); } catch(e) {}
       if (location.state?.formationId) {
-        navigate('/inscription', { state: { formationId: location.state.formationId } });
+        navigate('/inscription', { state: { ...location.state } });
         return;
       }
       if (location.state?.from) {

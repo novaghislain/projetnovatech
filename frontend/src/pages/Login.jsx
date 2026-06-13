@@ -26,7 +26,7 @@ const Login = () => {
       }
 
       if (location.state?.formationId && role === 'apprenant') {
-        navigate('/inscription', { state: { ...location.state, formationId: location.state.formationId }, replace: true });
+        navigate('/inscription', { state: { ...location.state }, replace: true });
         return;
       }
       if (location.state?.from) {
@@ -55,7 +55,7 @@ const Login = () => {
 
       // Route based on intent for apprenant
       if (location.state?.formationId && role === 'apprenant') {
-        navigate('/inscription', { state: { formationId: location.state.formationId } });
+        navigate('/inscription', { state: { ...location.state } });
         return;
       }
       if (location.state?.from) {
