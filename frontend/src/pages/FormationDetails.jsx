@@ -117,7 +117,7 @@ const FormationDetails = () => {
     if (formation.format === 'physique' || formation.format === 'présentiel') {
       return (language === 'en' ? 'In-person ' : 'Présentiel ') + (formation.location ? '(' + formation.location + ')' : '');
     } else if (formation.format === 'en_ligne' || formation.format === 'hybride') {
-      return language === 'en' ? 'Online (Google Meet / WhatsApp)' : 'En ligne (Google Meet / WhatsApp)';
+      return language === 'en' ? 'Online' : 'En ligne';
     } else if (formation.format === 'masse') {
       return (language === 'en' ? 'Vacation Camp / Mass ' : 'Camp de vacance / Masse ') + (formation.location ? '(' + formation.location + ')' : '');
     } else if (formation.format === 'individuelle') {
