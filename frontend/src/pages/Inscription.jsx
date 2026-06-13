@@ -107,19 +107,6 @@ const Inscription = () => {
     }
   }, [selectedCourseId, formations]);
 
-  // Rediriger vers l'inscription / création de compte si non connecté
-  useEffect(() => {
-    if (!auth.loading && !auth.user) {
-      navigate('/register', { 
-        state: { 
-          from: '/inscription', 
-          formationId: selectedCourseId || initialFormationId || null 
-        },
-        replace: true
-      });
-    }
-  }, [auth.loading, auth.user, navigate, selectedCourseId, initialFormationId]);
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -127,7 +114,33 @@ const Inscription = () => {
   const processEnrollment = async (paymentMethod = null, transactionId = null) => {
     setSubmitLoading(true);
     try {
-      const token = localStorage.getItem('nv_token');
+      let token = localStorage.getItem('nv_token');
+
+      // Si l'utilisateur n'est pas connecté, on crée d'abord son compte parent
+      if (!auth.user) {
+        if (!formData.guestPassword || formData.guestPassword.length < 8) {
+           throw new Error(language === 'en' ? 'Password must be at least 8 characters' : 'Le mot de passe doit faire au moins 8 caractères');
+        }
+        const regRes = await fetch(`${API_URL}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: formData.guestFirstName,
+            lastName: formData.guestLastName,
+            email: formData.guestEmail,
+            phone: formData.guestPhone,
+            password: formData.guestPassword,
+            role: 'apprenant'
+          })
+        });
+        const regData = await regRes.json();
+        if (!regRes.ok) throw new Error((language === 'en' ? "Account creation error: " : "Erreur de création de compte : ") + (regData.error || "Unknown"));
+        
+        token = regData.token;
+        localStorage.setItem('nv_token', token);
+        // Note: we don't await auth.login to avoid race conditions with the redirect, we just use the token
+      }
+
       const response = await fetch(`${API_URL}/api/enroll`, {
         method: 'POST',
         headers: {
@@ -421,10 +434,17 @@ const Inscription = () => {
                                   <input type="tel" className="form-input" name="guestPhone" value={formData.guestPhone} onChange={handleChange} required />
                                 </div>
                               </div>
+                              <div className="form-group" style={{ marginTop: '1rem' }}>
+                                <label>{language === 'en' ? 'Create a Password (for your parent account)' : 'Créez un mot de passe (pour votre espace parent)'} *</label>
+                                <input type="password" className="form-input" name="guestPassword" value={formData.guestPassword || ''} onChange={handleChange} required placeholder="••••••••" />
+                                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.4rem' }}>
+                                  {language === 'en' ? 'Minimum 8 characters. We will automatically create your account to track the enrollment.' : 'Minimum 8 caractères. Nous allons créer votre compte automatiquement pour suivre l\\'inscription.'}
+                                </div>
+                              </div>
                             </div>
                           )}
                           
-                          {(!auth.user && (!formData.guestFirstName || !formData.guestEmail || !formData.guestPhone)) ? (
+                          {(!auth.user && (!formData.guestFirstName || !formData.guestEmail || !formData.guestPhone || !formData.guestPassword || formData.guestPassword.length < 8)) ? (
                             <button className="btn btn-primary" disabled style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', opacity: 0.5, cursor: 'not-allowed' }}>
                               {language === 'en' ? 'Fill contact details first' : 'Remplissez vos informations d\'abord'}
                             </button>
@@ -689,36 +709,18 @@ const Inscription = () => {
                   <div>
                     <h4 style={{ color: '#16a34a', margin: '0 0 0.5rem 0', fontSize: '1.2rem' }}>{language === 'en' ? 'Payment Successful!' : 'Paiement Réussi !'}</h4>
                     <p style={{ color: '#15803d', margin: 0 }}>
-                      {language === 'en' ? 'Your spot is secured.' : 'Votre place est sécurisée.'} {!auth.user ? (language === 'en' ? 'Please log in to continue.' : 'Veuillez vous connecter pour continuer.') : (language === 'en' ? 'Please fill out the student details below to finalize the enrollment.' : 'Veuillez remplir les informations de l\'étudiant ci-dessous pour finaliser l\'inscription.')}
+                      {language === 'en' ? 'Your spot is secured. Please fill out the student details below to finalize the enrollment.' : 'Votre place est sécurisée. Veuillez remplir les informations de l\'étudiant ci-dessous pour finaliser l\'inscription.'}
                     </p>
                   </div>
                 </div>
               )}
 
-              {!auth.user ? (
-                <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                  <User size={48} color="var(--color-primary)" style={{ margin: '0 auto 1rem', opacity: 0.8 }} />
-                  <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>
-                    {language === 'en' ? 'Authentication Required' : 'Authentification Requise'}
-                  </h3>
-                  <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                    {language === 'en' ? 'You must be logged in to register a student and access your dashboard.' : 'Vous devez avoir un compte pour enregistrer l\'enfant et accéder à votre espace parent.'}
-                  </p>
-                  <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                    <button className="btn btn-primary" onClick={() => navigate('/register', { state: { from: '/inscription', transactionId: formData.transactionId, paymentProof: formData.paymentProof, formationId: selectedCourseId } })}>
-                      {language === 'en' ? 'Create an account' : 'Créer un compte'}
-                    </button>
-                    <button className="btn btn-outline" onClick={() => navigate('/login', { state: { from: '/inscription', transactionId: formData.transactionId, paymentProof: formData.paymentProof, formationId: selectedCourseId } })}>
-                      {language === 'en' ? 'Log in' : 'Se connecter'}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <form onSubmit={(e) => { e.preventDefault(); processEnrollment(isFull ? 'waitlist' : (selectedMethod === 'fedapay' ? 'FedaPay' : 'Mobile Money'), formData.transactionId || null); }}>
-                <div className="form-section">
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
-                    <User size={20} /> {t('ins_child_info')}
-                  </h3>
+              {/* Step 2 form for Child Details, visible to everyone (auth or guest) */}
+              <form onSubmit={(e) => { e.preventDefault(); processEnrollment(isFull ? 'waitlist' : (selectedMethod === 'fedapay' ? 'FedaPay' : 'Mobile Money'), formData.transactionId || null); }}>
+              <div className="form-section">
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
+                  <User size={20} /> {t('ins_child_info')}
+                </h3>
                   <div className="form-row">
                     <div className="form-group">
                       <label>{t('ins_child_firstname')}</label>
