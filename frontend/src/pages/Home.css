@@ -1311,17 +1311,11 @@
 }
 
 @media (max-width: 640px) {
-  .hero-layout {
-    padding: 0; /* Supprime le bord blanc autour du bloc hero */
-  }
-
   .hero-main {
-    min-height: auto;
-    background-color: var(--color-primary);
-    display: flex;
-    flex-direction: column;
-    padding-top: 66vw; /* Espace exact pour l'image 3:2 */
-    border-radius: 0; /* Touche les bords de l'écran */
+    min-height: 480px; /* Hauteur ajustée pour un bon compromis sans trop couper */
+    background-color: transparent;
+    display: block;
+    padding-top: 0;
   }
 
   .hero-bg-img {
@@ -1329,15 +1323,14 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 66vw;
-    object-fit: contain;
-    object-position: top center;
-    background-color: #0f172a; /* Fond bleu très foncé sous l'image au cas où */
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
   }
 
   .hero-overlay {
-    height: 66vw;
-    background: linear-gradient(180deg, rgba(26, 26, 46, 0.2) 0%, rgba(15, 52, 96, 0.5) 100%);
+    height: 100%;
+    background: linear-gradient(180deg, rgba(26, 26, 46, 0.2) 0%, rgba(15, 52, 96, 0.65) 100%);
   }
 
   .hero-text-block {
