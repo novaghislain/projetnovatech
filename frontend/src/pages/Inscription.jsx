@@ -124,7 +124,7 @@ const Inscription = () => {
         body: JSON.stringify({
           ...formData,
           courseId: selectedCourseId,
-          amount: course.price,
+          amount: course.registrationFee || 0,
           paymentMethod,
           transactionId
         })
@@ -188,9 +188,9 @@ const Inscription = () => {
                 <strong style={{ color: '#1A1A2E', fontFamily: 'monospace' }}>{formData.transactionId || 'N/A'}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem', marginTop: '0.75rem' }}>
-                <span style={{ color: '#64748b' }}>{language === 'en' ? 'Amount Paid:' : 'Montant payé :'}</span>
+                <span style={{ color: '#64748b' }}>{language === 'en' ? 'Registration Fee Paid:' : 'Frais d\'inscription payés :'}</span>
                 <strong style={{ color: '#10b981', fontSize: '1.1rem' }}>
-                  {(formData.paymentType === 'mensuel' ? Math.ceil(course?.price / 2) : course?.price)?.toLocaleString()} FCFA
+                  {course?.registrationFee?.toLocaleString()} FCFA
                 </strong>
               </div>
             </div>
@@ -334,7 +334,7 @@ const Inscription = () => {
                       <select className="form-input" value={selectedCourseId} onChange={e => setSelectedCourseId(e.target.value)} required>
                         <option value="">{t('ins_choose_opt')}</option>
                         {formations.map(f => (
-                          <option key={f.id} value={f.id}>{f.title} ({f.price?.toLocaleString()} FCFA)</option>
+                          <option key={f.id} value={f.id}>{f.title} (Frais d'inscription: {f.registrationFee?.toLocaleString() || 0} FCFA)</option>
                         ))}
                       </select>
                     </div>
@@ -415,7 +415,7 @@ const Inscription = () => {
                             <button className="btn btn-primary" disabled style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', opacity: 0.5, cursor: 'not-allowed' }}>
                               {language === 'en' ? 'Fill contact details first' : 'Remplissez vos informations d\'abord'}
                             </button>
-                          ) : (!course.price || course.price === 0) ? (
+                          ) : (!course.registrationFee || course.registrationFee === 0) ? (
                             <button className="btn btn-primary" onClick={async () => {
                               if (isPhysicalCourse) {
                                 await processEnrollment('Gratuit');
@@ -507,8 +507,8 @@ const Inscription = () => {
 
                             {selectedMethod === 'fedapay' ? (
                               <FedapayWidget 
-                                amount={formData.paymentType === 'mensuel' ? Math.ceil(course.price / 2) : course.price} 
-                                description={`Inscription: ${course.title} #${course.id} ${formData.paymentType === 'mensuel' ? '(1ère tranche 50%)' : '(Paiement complet)'}`}
+                                amount={course.registrationFee} 
+                                description={`Frais d'inscription: ${course.title} #${course.id}`}
                                 customerInfo={
                                   auth.user ? {
                                     email: auth.user.email,
@@ -565,8 +565,8 @@ const Inscription = () => {
                                 </h4>
                                 <p style={{ fontSize: '0.95rem', lineHeight: '1.5', color: '#334155', marginBottom: '1rem' }}>
                                   {language === 'en' 
-                                    ? `Please send the amount of ${formData.paymentType === 'mensuel' ? Math.ceil(course.price / 2).toLocaleString() : course.price?.toLocaleString()} FCFA to the following Mobile Money account:`
-                                    : `Veuillez envoyer la somme de ${formData.paymentType === 'mensuel' ? Math.ceil(course.price / 2).toLocaleString() : course.price?.toLocaleString()} FCFA sur le compte Mobile Money suivant :`
+                                    ? `Please send the registration fee amount of ${course.registrationFee?.toLocaleString() || 0} FCFA to the following Mobile Money account:`
+                                    : `Veuillez envoyer les frais d'inscription de ${course.registrationFee?.toLocaleString() || 0} FCFA sur le compte Mobile Money suivant :`
                                   }
                                 </p>
                                 <div style={{ backgroundColor: '#fff', padding: '1rem', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '1.5rem' }}>
@@ -769,9 +769,13 @@ const Inscription = () => {
                   <li><span>{t('ins_format')}</span><strong>{course.isOnline ? t('ins_online') : t('ins_in_person')}</strong></li>
                   {isFull && <li><span style={{ color: '#ef4444', fontWeight: 700 }}>{t('ins_waitlist_warning')}</span></li>}
                 </ul>
-                <div className="summary-total">
+                <div className="summary-total" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem', marginBottom: '1rem' }}>
                   <span>{t('ins_total_price')}</span>
                   <strong>{course.price?.toLocaleString()} FCFA</strong>
+                </div>
+                <div className="summary-total" style={{ color: 'var(--color-primary)' }}>
+                  <span>{language === 'en' ? 'Registration Fee' : "Frais d'inscription (à payer)"}</span>
+                  <strong>{course.registrationFee?.toLocaleString() || 0} FCFA</strong>
                 </div>
               </>
             ) : (
