@@ -44,17 +44,8 @@ require('./publicSettings')(app);
 app.use(bodyParser.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Configuration Multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = path.join(__dirname, 'uploads');
-    cb(null, dir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, req.user?.id + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Configuration
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // Clés & JWT
@@ -249,40 +240,55 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-app.post('/api/user/avatar', authenticateToken, upload.single('avatar'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'Aucun fichier fourni' });
-  }
-
-  const avatarUrl = '/uploads/' + req.file.filename;
-
-  db.run(`UPDATE Users SET avatar = ? WHERE id = ?`, [avatarUrl, req.user.id], function(err) {
-    if (err) return res.status(500).json({ error: "Erreur lors de la mise à jour de l'avatar" });
-    res.json({ avatar: avatarUrl });
+app.get('/api/images/:id', (req, res) => {
+  db.get(`SELECT mimeType, data FROM UploadedImages WHERE id = ?`, [req.params.id], (err, row) => {
+    if (err || !row) return res.status(404).send('Image non trouvée');
+    const imgBuffer = Buffer.from(row.data, 'base64');
+    res.writeHead(200, {
+      'Content-Type': row.mimeType,
+      'Content-Length': imgBuffer.length
+    });
+    res.end(imgBuffer);
   });
 });
 
-app.delete('/api/user/avatar', authenticateToken, (req, res) => {
-  db.run(`UPDATE Users SET avatar = NULL WHERE id = ?`, [req.user.id], function(err) {
-    if (err) return res.status(500).json({ error: "Erreur lors de la suppression de l'avatar" });
-    res.json({ message: "Avatar supprimé" });
+const saveImageToDb = (file, callback) => {
+  const id = Date.now() + '-' + Math.round(Math.random() * 1E9);
+  const base64Data = file.buffer.toString('base64');
+  db.run(`INSERT INTO UploadedImages (id, mimeType, data) VALUES (?, ?, ?)`, [id, file.mimetype, base64Data], (err) => {
+    if (err) callback(err, null);
+    else callback(null, `/api/images/${id}`);
+  });
+};
+
+app.post('/api/user/avatar', authenticateToken, upload.single('avatar'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Aucun fichier fourni' });
+  
+  saveImageToDb(req.file, (err, imageUrl) => {
+    if (err) return res.status(500).json({ error: "Erreur lors de la sauvegarde de l'image" });
+    db.run(`UPDATE Users SET avatar = ? WHERE id = ?`, [imageUrl, req.user.id], function(err) {
+      if (err) return res.status(500).json({ error: "Erreur lors de la mise à jour de l'avatar" });
+      res.json({ avatar: imageUrl });
+    });
   });
 });
 
 app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'Aucun fichier fourni' });
-  }
-  const imageUrl = '/uploads/' + req.file.filename;
-  res.json({ imageUrl });
+  if (!req.file) return res.status(400).json({ error: 'Aucun fichier fourni' });
+  
+  saveImageToDb(req.file, (err, imageUrl) => {
+    if (err) return res.status(500).json({ error: "Erreur lors de la sauvegarde de l'image" });
+    res.json({ imageUrl });
+  });
 });
 
 app.post('/api/public/upload-proof', upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'Aucun fichier fourni' });
-  }
-  const imageUrl = '/uploads/' + req.file.filename;
-  res.json({ imageUrl });
+  if (!req.file) return res.status(400).json({ error: 'Aucun fichier fourni' });
+  
+  saveImageToDb(req.file, (err, imageUrl) => {
+    if (err) return res.status(500).json({ error: "Erreur lors de la sauvegarde de l'image" });
+    res.json({ imageUrl });
+  });
 });
 app.delete('/api/user/avatar', authenticateToken, (req, res) => {
   db.run(`UPDATE Users SET avatar = NULL WHERE id = ?`, [req.user.id], function(err) {
