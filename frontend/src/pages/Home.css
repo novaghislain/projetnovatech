@@ -1354,11 +1354,16 @@
   }
 
   .formation-card-img {
-    height: 240px; /* Légèrement plus petit pour éviter qu'il prenne tout l'écran */
+    height: auto; /* S'adapte à la taille de l'image */
+    min-height: 200px;
   }
 
   .formation-card-img img {
-    object-position: center center;
+    height: auto;
+    width: 100%;
+    object-fit: contain; /* L'image entière est affichée sans être coupée */
+    max-height: 400px; /* Limite la hauteur max pour éviter un défilement infini */
+    background-color: #f8fafc; /* Couleur de fond propre si l'image ne prend pas toute la place */
   }
 
   .key-figures-grid {
