@@ -152,4 +152,4 @@ const ParametresCEO = () => {
   );
 };
 
-export default AdminParametres;
+export default ParametresCEO;
