@@ -276,32 +276,57 @@ module.exports = function(db, authenticateToken) {
     });
   });
 
-  router.post('/formations', (req, res) => {
+  async function translateText(text, targetLang = 'en') {
+    if (!text) return '';
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data[0].map(item => item[0]).join('');
+    } catch (err) {
+      console.error("Translation error:", err);
+      return '';
+    }
+  }
+
+  router.post('/formations', async (req, res) => {
     const { title, description, descriptionEn, category, ageGroup, level, duration, price, registrationFee, maxParticipants, status, imageUrl, imageUrls, isFull,
             whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode, formateurId, contactInstruction } = req.body;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+    
+    let finalDescriptionEn = descriptionEn;
+    if (!finalDescriptionEn && description) {
+      finalDescriptionEn = await translateText(description, 'en');
+    }
+
     const query = `
       INSERT INTO Formations (title, slug, description, descriptionEn, category, ageGroup, level, duration, price, registrationFee, maxParticipants, status, imageUrl, imageUrls, isFull,
                               whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode, formateurId, contactInstruction)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    db.run(query, [title, slug, description, descriptionEn || '', category, ageGroup, level || 'Tous niveaux', duration, price, registrationFee || 0, maxParticipants, status || 'published', imageUrl, imageUrls || '[]', isFull ? 1 : 0,
+    db.run(query, [title, slug, description, finalDescriptionEn || '', category, ageGroup, level || 'Tous niveaux', duration, price, registrationFee || 0, maxParticipants, status || 'published', imageUrl, imageUrls || '[]', isFull ? 1 : 0,
                    whatsappLink || '', meetLink || '', startDate || '', endDate || '', enrollmentEndDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne', formateurId || null, contactInstruction || ''], function(err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, id: this.lastID });
     });
   });
 
-  router.put('/formations/:id', (req, res) => {
+  router.put('/formations/:id', async (req, res) => {
     const { title, description, descriptionEn, category, ageGroup, level, duration, price, registrationFee, maxParticipants, status, imageUrl, imageUrls, isFull,
             whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode, formateurId, contactInstruction } = req.body;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+    
+    let finalDescriptionEn = descriptionEn;
+    if (!finalDescriptionEn && description) {
+      finalDescriptionEn = await translateText(description, 'en');
+    }
+
     const query = `
       UPDATE Formations SET title=?, slug=?, description=?, descriptionEn=?, category=?, ageGroup=?, level=?, duration=?, price=?, registrationFee=?, maxParticipants=?, status=?, imageUrl=?, imageUrls=?, isFull=?,
                             whatsappLink=?, meetLink=?, startDate=?, endDate=?, enrollmentEndDate=?, location=?, isOnline=?, format=?, locationMode=?, formateurId=?, contactInstruction=?
       WHERE id=?
     `;
-    db.run(query, [title, slug, description, descriptionEn || '', category, ageGroup, level || 'Tous niveaux', duration, price, registrationFee || 0, maxParticipants, status, imageUrl, imageUrls || '[]', isFull ? 1 : 0,
+    db.run(query, [title, slug, description, finalDescriptionEn || '', category, ageGroup, level || 'Tous niveaux', duration, price, registrationFee || 0, maxParticipants, status, imageUrl, imageUrls || '[]', isFull ? 1 : 0,
                    whatsappLink || '', meetLink || '', startDate || '', endDate || '', enrollmentEndDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne', formateurId || null, contactInstruction || '',
                    req.params.id], (err) => {
       if (err) return res.status(500).json({ error: err.message });
