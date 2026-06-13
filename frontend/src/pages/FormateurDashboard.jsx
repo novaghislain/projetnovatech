@@ -662,23 +662,23 @@ const FormateurDashboard = () => {
       <main className="formateur-main">
         
         {/* HEADER */}
-        <header className="formateur-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <header className="formateur-header" style={{ backgroundColor: 'var(--color-secondary)', padding: '2rem', borderRadius: '12px', color: 'white', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ fontSize: '2rem', color: '#0f172a', margin: '0 0 0.5rem 0' }}>{t('welcome_greeting').replace('{name}', user?.firstName || '')}</h1>
-            <p style={{ color: '#64748b', margin: 0, fontSize: '1.1rem' }}>{t('welcome_desc')}</p>
+            <h1 style={{ margin: '0 0 0.5rem 0', fontSize: '2.2rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.5px' }}>{t('welcome_greeting').replace('{name}', user?.firstName || '')}</h1>
+            <p style={{ margin: 0, opacity: 0.85, fontSize: '1.05rem', color: '#e2e8f0' }}>{t('welcome_desc')}</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div style={{ 
               width: '50px', height: '50px', borderRadius: '50%', 
-              backgroundColor: 'var(--color-primary)', color: 'white',
+              backgroundColor: 'white', color: 'var(--color-secondary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
               fontSize: '1.2rem', fontWeight: 'bold'
             }}>
               {user?.avatar ? (
                 <img src={getImageUrl(user.avatar)} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                user?.firstName ? user.firstName.charAt(0).toUpperCase() : <User size={24} />
+                user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'
               )}
             </div>
           </div>
