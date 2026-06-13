@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Download, Trash2, Eye } from 'lucide-react';
+import { Search, Download, Trash2, Eye, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 import { API_URL, getImageUrl } from '../../config';
 
@@ -39,6 +39,20 @@ const AdminInscriptions = () => {
         fetchInscriptions();
       } catch(err) {
         alert("Erreur lors de la suppression : " + err.message);
+      }
+    }
+  };
+
+  const handleApprove = async (id) => {
+    if(window.confirm('Voulez-vous valider ce paiement et activer l\\'inscription ?')) {
+      try {
+        const token = localStorage.getItem('nv_token');
+        await axios.put(`${API_URL}/api/admin/payments/${id}/status`, { status: 'active' }, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        fetchInscriptions();
+      } catch(err) {
+        alert("Erreur lors de la validation : " + err.message);
       }
     }
   };
@@ -166,11 +180,21 @@ const AdminInscriptions = () => {
                         {insc.paymentProof && (
                           <button 
                             className="btn btn-outline" 
-                            style={{ padding: '0.3rem 0.5rem', color: '#10B981', borderColor: '#10B981' }} 
+                            style={{ padding: '0.3rem 0.5rem', color: '#3B82F6', borderColor: '#3B82F6' }} 
                             title="Voir la preuve de paiement" 
                             onClick={() => window.open(getImageUrl(insc.paymentProof), '_blank')}
                           >
                             <Eye size={14} />
+                          </button>
+                        )}
+                        {insc.status === 'pending' && (
+                          <button 
+                            className="btn btn-outline" 
+                            style={{ padding: '0.3rem 0.5rem', color: '#10B981', borderColor: '#10B981' }} 
+                            title="Valider le paiement" 
+                            onClick={() => handleApprove(insc.id)}
+                          >
+                            <CheckCircle size={14} />
                           </button>
                         )}
                         <button className="btn btn-danger" style={{ padding: '0.3rem 0.5rem' }} title="Supprimer" onClick={() => handleDelete(insc.id)}>
