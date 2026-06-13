@@ -35,10 +35,7 @@ module.exports = function(db, authenticateToken) {
       if (err) return res.status(500).json({ error: "Erreur serveur" });
       if (!course) return res.status(404).json({ error: "Formation introuvable" });
 
-      const isPhysical = course.format === 'physique' || (course.format === 'masse' && course.locationMode === 'physique');
-      if (!userId && !isPhysical) {
-        return res.status(401).json({ error: "Authentification requise pour s'inscrire à cette formation" });
-      }
+      // Authentification non requise pour s'inscrire, même pour les formations en ligne (invité autorisé)
 
       const isFull = course.enrolled >= course.maxParticipants;
       let status = isFull ? 'waitlist' : 'active';
