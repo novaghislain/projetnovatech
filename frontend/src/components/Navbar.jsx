@@ -120,10 +120,8 @@ const Navbar = () => {
       <div className="container navbar-container">
 
         {/* Logo */}
-        <Link to="/" className="navbar-logo" style={{ textDecoration: 'none' }}>
-          <span style={{fontWeight: "800", fontSize: "1.5rem", color: "#fff", cursor: "pointer"}} onClick={() => window.location.href = "/"}>
-            Formation<span style={{ color: "var(--color-accent)" }}>Nova</span>
-          </span>
+        <Link to="/" className="navbar-logo">
+          <img src="/4x.png" alt="FormationNova" style={{ height: '40px', objectFit: 'contain', cursor: 'pointer' }} />
         </Link>
 
         {/* Mobile Nav Overlay */}

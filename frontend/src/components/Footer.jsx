@@ -17,7 +17,7 @@ const Footer = () => {
     <footer className="footer">
       <div className="container footer-container">
         <div className="footer-section">
-          <h3 style={{ color: 'var(--color-white)', marginBottom: '1rem', fontFamily: 'var(--font-heading)', fontSize: '1.5rem' }}>FormationNova</h3>
+          <img src="/4x.png" alt="FormationNova" style={{ height: '45px', objectFit: 'contain', marginBottom: '1rem' }} />
           <p className="footer-desc">
             {t('footer_desc')}
           </p>
