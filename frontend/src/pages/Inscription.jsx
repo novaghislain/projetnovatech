@@ -521,7 +521,7 @@ const Inscription = () => {
                               <h4 style={{ color: 'var(--color-primary)', marginBottom: '1rem' }}>
                                 {language === 'en' ? 'Select Payment Mode' : 'Sélectionnez le mode de paiement'}
                               </h4>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                              <div style={{ display: 'grid', gap: '1rem', marginBottom: '2rem' }}>
                                 <label style={{ 
                                   display: 'flex', 
                                   alignItems: 'center', 
@@ -541,10 +541,10 @@ const Inscription = () => {
                                   />
                                   <div>
                                     <strong style={{ display: 'block', color: 'var(--color-primary)' }}>
-                                      {language === 'en' ? 'Online Payment (FedaPay)' : 'Paiement en ligne (FedaPay)'}
+                                      {language === 'en' ? 'Quick Payment (Mobile Money & Cards)' : 'Paiement Rapide (Mobile Money & Cartes)'}
                                     </strong>
                                     <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                                      {language === 'en' ? 'Cards, MTN MoMo, Wave, Moov Flooz' : 'Carte Bancaire, MTN Mobile Money, Wave, Moov Flooz'}
+                                      {language === 'en' ? 'Pay instantly via MTN, Moov, Wave, Visa, Mastercard' : 'Payez instantanément via MTN, Moov, Wave, Visa, Mastercard'}
                                     </span>
                                   </div>
                                 </label>
@@ -568,10 +568,10 @@ const Inscription = () => {
                                   />
                                   <div>
                                     <strong style={{ display: 'block', color: 'var(--color-primary)' }}>
-                                      {language === 'en' ? 'Direct Mobile Money Transfer' : 'Transfert Mobile Money Direct'}
+                                      {language === 'en' ? 'Manual Payment (Screenshot)' : 'Paiement Manuel (Capture d\'écran)'}
                                     </strong>
                                     <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                                      {language === 'en' ? 'MTN / Moov / Wave to +229 0191348557' : 'MTN / Moov / Wave au +229 0191348557'}
+                                      {language === 'en' ? 'Send manually and upload the receipt' : 'Envoyez manuellement et téléchargez le reçu'}
                                     </span>
                                   </div>
                                 </label>

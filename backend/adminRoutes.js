@@ -175,6 +175,39 @@ module.exports = function(db, authenticateToken) {
               }
             });
           });
+
+          // Envoyer l'email d'approbation
+          db.get(
+            "SELECT e.*, f.title as courseTitle FROM Enrollments e JOIN Formations f ON e.courseId = f.id WHERE e.id = ?",
+            [enrollmentId],
+            (err, enrollData) => {
+              if (!err && enrollData) {
+                const { sendEmail } = require('./emailService');
+                const childName = enrollData.childFirstName ? `${enrollData.childFirstName} ${enrollData.childLastName || ''}`.trim() : "Apprenant";
+                const parentName = enrollData.parentName || enrollData.guestFirstName || "Parent";
+                const emailToUse = enrollData.parentEmail || enrollData.guestEmail || enrollData.email;
+                if (emailToUse) {
+                  sendEmail({
+                    to: emailToUse,
+                    subject: "Paiement Approuvé - FormationNova",
+                    html: `
+                      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1f2937;">
+                        <h2 style="color: #10b981;">Paiement Approuvé !</h2>
+                        <p>Bonjour ${parentName},</p>
+                        <p>Nous avons bien reçu et validé votre paiement pour la formation <strong>${enrollData.courseTitle}</strong>.</p>
+                        <p>L'inscription de <strong>${childName}</strong> est maintenant <strong>ACTIVE</strong>.</p>
+                        <p>Vous pouvez dès à présent vous connecter à votre espace pour accéder à la formation.</p>
+                        <br/>
+                        <a href="https://formationnova.vercel.app/login" style="background-color:#10b981;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">Accéder à mon espace</a>
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin-top: 30px; margin-bottom: 20px;" />
+                        <p style="color: #9ca3af; font-size: 12px; text-align: center;">FormationNova - Cotonou, Bénin</p>
+                      </div>
+                    `
+                  }).catch(e => console.error("Erreur envoi email approbation:", e.message));
+                }
+              }
+            }
+          );
         }
 
         res.json({ success: true });
