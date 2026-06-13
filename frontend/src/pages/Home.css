@@ -1324,8 +1324,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center center; /* On centre parfaitement pour voir les enfants sur les côtés */
+    object-fit: fill; /* Étire l'image pour remplir exactement le cadre sans RIEN couper sur les côtés */
   }
 
   .hero-overlay {
