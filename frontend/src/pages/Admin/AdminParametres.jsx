@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Globe, Shield, Palette, Database } from 'lucide-react';
+import { Settings, Globe, Shield, Palette, Database, Search, Mail } from 'lucide-react';
 import { API_URL } from '../../config';
 
 const AdminParametres = () => {
@@ -10,7 +10,13 @@ const AdminParametres = () => {
     themeColor: '',
     fontFamily: '',
     registrationStatus: 'Ouvertes',
-    defaultRole: 'Apprenant'
+    defaultRole: 'Apprenant',
+    seoTitle: '',
+    seoDescription: '',
+    seoKeywords: '',
+    smtpUser: '',
+    smtpPass: '',
+    contactReceiverEmail: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -262,7 +268,7 @@ const AdminParametres = () => {
             </div>
           </div>
 
-          {/* SECTION 4: Maintenance */}
+          {/* SECTION 4: Référencement (SEO) */}
           <div style={{
             background: '#F9FAFB',
             borderRadius: '16px',
@@ -272,11 +278,122 @@ const AdminParametres = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <div style={{
                 width: 38, height: 38, borderRadius: 10,
-                background: 'rgba(139, 92, 246, 0.1)',
-                color: 'var(--primary)',
+                background: 'rgba(236, 72, 153, 0.1)',
+                color: '#EC4899',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <Database size={20} style={{ color: '#3B82F6' }} />
+                <Search size={20} />
+              </div>
+              <div>
+                <h4 style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--dark)' }}>Référencement (SEO)</h4>
+                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#9CA3AF' }}>Optimisation pour Google et les réseaux sociaux</p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.75rem' }}>
+              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
+                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Titre de la page (Balise Title)</label>
+                <input
+                  type="text"
+                  value={settings.seoTitle || ''}
+                  onChange={e => setSettings({ ...settings, seoTitle: e.target.value })}
+                  placeholder="Ex: FormationNova - L'informatique à la portée de tous"
+                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none' }}
+                />
+              </div>
+              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
+                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Description de la page (Meta Description)</label>
+                <textarea
+                  value={settings.seoDescription || ''}
+                  onChange={e => setSettings({ ...settings, seoDescription: e.target.value })}
+                  placeholder="Petite description qui s'affiche dans Google..."
+                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 500, color: 'var(--dark)', width: '100%', outline: 'none', resize: 'vertical', minHeight: '60px' }}
+                />
+              </div>
+              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
+                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Mots-clés (Meta Keywords)</label>
+                <input
+                  type="text"
+                  value={settings.seoKeywords || ''}
+                  onChange={e => setSettings({ ...settings, seoKeywords: e.target.value })}
+                  placeholder="Ex: formation, code, ia, informatique"
+                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 500, color: 'var(--dark)', width: '100%', outline: 'none' }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 5: Configuration Email */}
+          <div style={{
+            background: '#F9FAFB',
+            borderRadius: '16px',
+            padding: '1.25rem 1.5rem',
+            border: '1px solid #E5E7EB',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: 10,
+                background: 'rgba(245, 158, 11, 0.1)',
+                color: '#F59E0B',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Mail size={20} />
+              </div>
+              <div>
+                <h4 style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--dark)' }}>Configuration Email (SMTP)</h4>
+                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#9CA3AF' }}>Gestion des envois de mails et réception des messages</p>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '0.75rem', marginTop: '0.75rem' }}>
+              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB', gridColumn: '1 / -1' }}>
+                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Adresse Email de Réception (Formulaire de contact)</label>
+                <input
+                  type="email"
+                  value={settings.contactReceiverEmail || ''}
+                  onChange={e => setSettings({ ...settings, contactReceiverEmail: e.target.value })}
+                  placeholder="admin@formationnova.com"
+                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none' }}
+                />
+              </div>
+              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
+                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Gmail d'envoi (SMTP User)</label>
+                <input
+                  type="text"
+                  value={settings.smtpUser || ''}
+                  onChange={e => setSettings({ ...settings, smtpUser: e.target.value })}
+                  placeholder="Laisser vide pour utiliser .env"
+                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 500, color: 'var(--dark)', width: '100%', outline: 'none' }}
+                />
+              </div>
+              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
+                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Mot de passe d'application (SMTP Pass)</label>
+                <input
+                  type="password"
+                  value={settings.smtpPass || ''}
+                  onChange={e => setSettings({ ...settings, smtpPass: e.target.value })}
+                  placeholder="••••••••••••••••"
+                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 500, color: 'var(--dark)', width: '100%', outline: 'none' }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 6: Maintenance */}
+          <div style={{
+            background: '#F9FAFB',
+            borderRadius: '16px',
+            padding: '1.25rem 1.5rem',
+            border: '1px solid #E5E7EB',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: 10,
+                background: 'rgba(59, 130, 246, 0.1)',
+                color: '#3B82F6',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Database size={20} />
               </div>
               <div>
                 <h4 style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--dark)' }}>Maintenance</h4>
@@ -287,12 +404,12 @@ const AdminParametres = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '0.75rem', marginTop: '0.75rem' }}>
               <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
                 <div style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, marginBottom: '0.2rem' }}>Base de données</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)' }}>SQLite</div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)' }}>Turso (libSQL)</div>
               </div>
               <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
                 <div style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, marginBottom: '0.2rem' }}>Dernière sauvegarde</div>
                 <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)' }}>
-                  {settings.lastBackup ? new Date(settings.lastBackup).toLocaleString() : '—'}
+                  {settings.lastBackup ? new Date(settings.lastBackup).toLocaleString() : 'Automatique'}
                 </div>
               </div>
             </div>

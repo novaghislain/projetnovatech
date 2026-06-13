@@ -22,6 +22,8 @@ const { generateCertificate } = require('./certificateService');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+
+
 // Dossiers utiles (Logs, Backups, Uploads)
 const logsDir = path.join(__dirname, 'logs');
 if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
@@ -36,6 +38,9 @@ app.use(morgan('combined', { stream: accessLogStream }));
 
 // Middleware généraux
 app.use(cors());
+
+// Public Settings route for SEO
+require('./publicSettings')(app);
 app.use(bodyParser.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -451,6 +456,26 @@ app.post('/api/public/messages', (req, res) => {
     [name, email, subject, body],
     function(err) {
       if (err) return res.status(500).json({ error: 'Erreur lors de l\'envoi du message.' });
+      
+      // Notify the admin if configured
+      db.get("SELECT contactReceiverEmail FROM GeneralSettings WHERE id = 1", [], (errSettings, settings) => {
+        const receiver = (settings && settings.contactReceiverEmail) ? settings.contactReceiverEmail : process.env.EMAIL_USER;
+        if (receiver) {
+          const { sendEmail } = require('./emailService');
+          sendEmail({
+            to: receiver,
+            subject: `Nouveau message de contact : ${subject || 'Sans objet'}`,
+            html: `
+              <h3>Nouveau message depuis le formulaire de contact</h3>
+              <p><strong>De:</strong> ${name} (${email})</p>
+              <p><strong>Sujet:</strong> ${subject}</p>
+              <p><strong>Message:</strong></p>
+              <p style="white-space: pre-wrap;">${body}</p>
+            `
+          }).catch(e => console.error("Erreur d'envoi de notification admin:", e.message));
+        }
+      });
+
       res.json({ success: true, message: 'Message envoyé avec succès.' });
     }
   );

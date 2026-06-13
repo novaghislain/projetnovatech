@@ -380,14 +380,37 @@ const initDb = async () => {
     themeColor TEXT DEFAULT '#8B5CF6',
     fontFamily TEXT DEFAULT 'Inter',
     registrationStatus TEXT DEFAULT 'Ouvertes',
-    defaultRole TEXT DEFAULT 'Apprenant'
+    defaultRole TEXT DEFAULT 'Apprenant',
+    seoTitle TEXT DEFAULT 'FormationNova - L''informatique à la portée de tous',
+    seoDescription TEXT DEFAULT 'FormationNova propose des formations en code, IA et bureautique adaptées aux enfants et adultes.',
+    seoKeywords TEXT DEFAULT 'formation, code, IA, informatique, apprentissage',
+    smtpUser TEXT DEFAULT '',
+    smtpPass TEXT DEFAULT '',
+    contactReceiverEmail TEXT DEFAULT 'contact@formationnova.com'
   )`);
+
+  try {
+    await runSql(`ALTER TABLE GeneralSettings ADD COLUMN seoTitle TEXT DEFAULT 'FormationNova - L''informatique à la portée de tous'`);
+    await runSql(`ALTER TABLE GeneralSettings ADD COLUMN seoDescription TEXT DEFAULT 'FormationNova propose des formations en code, IA et bureautique adaptées aux enfants et adultes.'`);
+    await runSql(`ALTER TABLE GeneralSettings ADD COLUMN seoKeywords TEXT DEFAULT 'formation, code, IA, informatique, apprentissage'`);
+    await runSql(`ALTER TABLE GeneralSettings ADD COLUMN smtpUser TEXT DEFAULT ''`);
+    await runSql(`ALTER TABLE GeneralSettings ADD COLUMN smtpPass TEXT DEFAULT ''`);
+    await runSql(`ALTER TABLE GeneralSettings ADD COLUMN contactReceiverEmail TEXT DEFAULT 'contact@formationnova.com'`);
+  } catch(e) {}
 
   try {
     const gsCountRes = await client.execute("SELECT COUNT(*) as count FROM GeneralSettings");
     if (gsCountRes.rows[0].count === 0) {
-      await runSql(`INSERT INTO GeneralSettings (id, siteName, contactEmail, contactPhone, themeColor, fontFamily, registrationStatus, defaultRole)
-                  VALUES (1, 'FormationNova', 'contact@FormationNovavision.com', '+229 0191348557', '#8B5CF6', 'Inter', 'Ouvertes', 'Apprenant')`);
+      await runSql(`INSERT INTO GeneralSettings (
+        id, siteName, contactEmail, contactPhone, themeColor, fontFamily, registrationStatus, defaultRole,
+        seoTitle, seoDescription, seoKeywords, smtpUser, smtpPass, contactReceiverEmail
+      ) VALUES (
+        1, 'FormationNova', 'contact@FormationNovavision.com', '+229 0191348557', '#8B5CF6', 'Inter', 'Ouvertes', 'Apprenant',
+        'FormationNova - L''informatique à la portée de tous',
+        'FormationNova propose des formations en code, IA et bureautique adaptées aux enfants et adultes.',
+        'formation, code, IA, informatique, apprentissage',
+        '', '', 'contact@formationnova.com'
+      )`);
       console.log("Paramètres généraux initiaux injectés.");
     }
   } catch(e){}

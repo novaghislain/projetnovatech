@@ -28,6 +28,44 @@ import MetaPixel from './components/MetaPixel';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { API_URL } from './config';
+
+const SEOWatcher = () => {
+  useEffect(() => {
+    fetch(`${API_URL}/api/public/settings`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.seoTitle) {
+          document.title = data.seoTitle;
+        } else if (data.siteName) {
+          document.title = data.siteName;
+        }
+
+        if (data.seoDescription) {
+          let metaDesc = document.querySelector('meta[name="description"]');
+          if (!metaDesc) {
+            metaDesc = document.createElement('meta');
+            metaDesc.name = 'description';
+            document.head.appendChild(metaDesc);
+          }
+          metaDesc.content = data.seoDescription;
+        }
+
+        if (data.seoKeywords) {
+          let metaKey = document.querySelector('meta[name="keywords"]');
+          if (!metaKey) {
+            metaKey = document.createElement('meta');
+            metaKey.name = 'keywords';
+            document.head.appendChild(metaKey);
+          }
+          metaKey.content = data.seoKeywords;
+        }
+      })
+      .catch(err => console.error('Erreur lors du chargement SEO:', err));
+  }, []);
+  
+  return null;
+};
 
 const LanguageRouteWatcher = () => {
   const location = useLocation();
@@ -164,6 +202,7 @@ function App() {
   return (
     <Router>
       <LanguageProvider>
+        <SEOWatcher />
         <LanguageRouteWatcher />
         <AuthProvider>
           <AppLayout />

@@ -715,13 +715,15 @@ module.exports = function(db, authenticateToken) {
   });
 
   router.put('/settings', (req, res) => {
-    const { siteName, contactEmail, contactPhone, themeColor, fontFamily, registrationStatus, defaultRole } = req.body;
+    const { siteName, contactEmail, contactPhone, themeColor, fontFamily, registrationStatus, defaultRole, seoTitle, seoDescription, seoKeywords, smtpUser, smtpPass, contactReceiverEmail } = req.body;
     db.run(
       `UPDATE GeneralSettings SET 
         siteName = ?, contactEmail = ?, contactPhone = ?, themeColor = ?, 
-        fontFamily = ?, registrationStatus = ?, defaultRole = ? 
+        fontFamily = ?, registrationStatus = ?, defaultRole = ?,
+        seoTitle = ?, seoDescription = ?, seoKeywords = ?,
+        smtpUser = ?, smtpPass = ?, contactReceiverEmail = ?
        WHERE id = 1`,
-      [siteName, contactEmail, contactPhone, themeColor, fontFamily, registrationStatus, defaultRole],
+      [siteName, contactEmail, contactPhone, themeColor, fontFamily, registrationStatus, defaultRole, seoTitle, seoDescription, seoKeywords, smtpUser, smtpPass, contactReceiverEmail],
       (err) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true });
