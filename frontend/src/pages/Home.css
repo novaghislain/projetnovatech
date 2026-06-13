@@ -1316,15 +1316,13 @@
   }
 
   .hero-bg-img {
-    object-position: top center;
-    object-fit: contain; /* Assure que toute l'image est visible */
-    height: auto;
-    aspect-ratio: 16/9; /* Garde la proportion de l'image environ */
+    object-position: center 20%;
+    object-fit: cover;
   }
 
   .hero-main {
-    min-height: auto;
-    background-color: var(--color-primary);
+    min-height: 600px; /* On agrandit considérablement le cadre principal sur mobile */
+    background-color: transparent;
   }
 
   .hero-text-block {
@@ -1362,16 +1360,14 @@
   }
 
   .formation-card-img {
-    height: auto; /* S'adapte à la taille de l'image */
-    min-height: 200px;
+    height: 400px; /* On agrandit le rectangle pour afficher l'image au maximum */
   }
 
   .formation-card-img img {
-    height: auto;
+    object-fit: cover;
+    object-position: top center; /* On garde le haut de l'image (le titre souvent) bien visible */
     width: 100%;
-    object-fit: contain; /* L'image entière est affichée sans être coupée */
-    max-height: 400px; /* Limite la hauteur max pour éviter un défilement infini */
-    background-color: #f8fafc; /* Couleur de fond propre si l'image ne prend pas toute la place */
+    height: 100%;
   }
 
   .key-figures-grid {
