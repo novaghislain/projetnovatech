@@ -247,7 +247,7 @@ const AdminFormations = () => {
                   <td style={{ fontWeight: 600 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                       <div style={{ width: 40, height: 40, borderRadius: 8, background: '#eee', overflow: 'hidden' }}>
-                        {f.imageUrl && <img src={getImageUrl(f.imageUrl)} alt={f.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                        {f.imageUrl && <img src={getImageUrl(f.imageUrl)} alt={f.title} onError={(e) => { e.target.onerror = null; e.target.src = '/10x.jpg'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                       </div>
                       <div>
                         <div>{f.title}</div>
@@ -438,12 +438,8 @@ const AdminFormations = () => {
                   {formData.imageUrls && formData.imageUrls.length > 0 && (
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
                       {formData.imageUrls.map((url, idx) => (
-                        <div key={idx} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', border: '1px solid #ddd', overflow: 'hidden' }}>
-                          <img 
-                            src={getImageUrl(url)} 
-                            alt={`Aperçu ${idx + 1}`} 
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                          />
+                        <div key={idx} style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: formData.imageUrl === url ? '2px solid var(--color-primary)' : '1px solid #e2e8f0' }}>
+                          <img src={getImageUrl(url)} alt="preview" onError={(e) => { e.target.onerror = null; e.target.src = '/10x.jpg'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           <button 
                             type="button"
                             onClick={() => setFormData(prev => {

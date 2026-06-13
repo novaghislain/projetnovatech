@@ -56,6 +56,7 @@ const CourseImageSlider = ({ formation, height = '180px' }) => {
           key={idx}
           src={img}
           alt={formation?.title || 'Formation image'}
+          onError={(e) => { e.target.onerror = null; e.target.src = '/10x.jpg'; }}
           style={{
             position: 'absolute',
             top: 0,

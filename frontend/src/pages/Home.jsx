@@ -320,8 +320,8 @@ const Home = () => {
                         {course.price ? `${course.price.toLocaleString(language === 'en' ? 'en-US' : 'fr-FR')} FCFA` : t('courses_free')}
                       </strong>
                     </div>
-                    <Link to={language === 'en' ? '/en/enroll' : '/inscription'} state={{ formationId: course.id }} className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
-                      {t('courses_enroll')}
+                    <Link to={language === 'en' ? `/en/courses/${course.id}` : `/formations/${course.id}`} className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
+                      {language === 'en' ? 'See Details' : 'Voir les détails'}
                     </Link>
                   </div>
                 </div>

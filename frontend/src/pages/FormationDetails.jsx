@@ -163,14 +163,17 @@ const FormationDetails = () => {
         {images.map((img, idx) => (
           <div key={idx} style={{ 
             position: 'absolute', inset: 0, 
-            backgroundImage: `url(${img})`, 
-            backgroundSize: 'cover', 
-            backgroundPosition: 'center', 
             backgroundColor: 'var(--color-primary)',
             opacity: currentImageIndex === idx ? 1 : 0,
             transition: 'opacity 1s ease-in-out',
             zIndex: 1
           }}>
+            <img 
+              src={img} 
+              alt={formation.title} 
+              onError={(e) => { e.target.onerror = null; e.target.src = '/10x.jpg'; }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} 
+            />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(16, 24, 40, 0.8) 0%, rgba(16, 24, 40, 0.5) 50%, rgba(16, 24, 40, 0.1) 100%)' }} />
           </div>
         ))}
