@@ -80,6 +80,7 @@ const Inscription = () => {
   );
   const [physicalSuccess, setPhysicalSuccess] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [pendingSuccess, setPendingSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState('');
   const [enrollmentId, setEnrollmentId] = useState(null);
   const [selectedMethod, setSelectedMethod] = useState('fedapay');
@@ -138,6 +139,8 @@ const Inscription = () => {
         setPhysicalSuccess(true);
       } else if (result.status === 'waitlist') {
         setWaitlistSuccess(true);
+      } else if (result.status === 'pending') {
+        setPendingSuccess(true);
       } else {
         setEnrollmentId(result.enrollmentId);
         setPaymentSuccess(true);
@@ -247,6 +250,38 @@ const Inscription = () => {
                 {language === 'en' ? 'Go to my learning space' : 'Accéder à mon espace de cours'}
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (pendingSuccess) {
+    return (
+      <div className="inscription-page" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center' }}>
+        <div className="container" style={{ maxWidth: '600px', textAlign: 'center' }}>
+          <div style={{ backgroundColor: 'white', padding: '3rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+            <CheckCircle size={64} color="#f59e0b" style={{ margin: '0 auto 1rem' }} />
+            <h2 style={{ marginBottom: '1rem', color: '#b45309' }}>{language === 'en' ? 'Registration Pending' : "Inscription en Attente"}</h2>
+            <p style={{ color: '#666', marginBottom: '2rem' }}>
+              {language === 'en' 
+                ? 'Your registration request has been received. Your Mobile Money payment is currently pending verification. We will send you an email as soon as it is validated!' 
+                : "Votre demande d'inscription a bien été reçue. Votre paiement par Mobile Money est en cours de vérification. Nous vous enverrons un e-mail dès qu'il sera validé !"}
+            </p>
+
+            {!auth.user && (
+              <div style={{ marginBottom: '2rem', padding: '1.5rem', backgroundColor: '#e0f2fe', borderRadius: '12px', color: '#0369a1', textAlign: 'center' }}>
+                <h4 style={{ marginBottom: '0.5rem', fontWeight: 700 }}>{language === 'en' ? 'Last Step: Create your account' : 'Dernière étape : Créez votre compte'}</h4>
+                <p style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>
+                  {language === 'en' ? 'Create an account with the same email to track your enrollment.' : 'Créez un compte avec le même email pour suivre votre inscription.'}
+                </p>
+                <Link to={`/register?email=${encodeURIComponent(formData.guestEmail || '')}`} className="btn btn-primary" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px' }}>
+                  {language === 'en' ? 'Create my account' : 'Créer mon compte'}
+                </Link>
+              </div>
+            )}
+
+            <button className="btn btn-outline" onClick={() => navigate(language === 'en' ? '/en' : '/')}>{language === 'en' ? 'Back to Home' : 'Retour à l\'accueil'}</button>
           </div>
         </div>
       </div>
