@@ -1316,7 +1316,15 @@
   }
 
   .hero-bg-img {
-    object-position: center center;
+    object-position: top center;
+    object-fit: contain; /* Assure que toute l'image est visible */
+    height: auto;
+    aspect-ratio: 16/9; /* Garde la proportion de l'image environ */
+  }
+
+  .hero-main {
+    min-height: auto;
+    background-color: var(--color-primary);
   }
 
   .hero-text-block {
