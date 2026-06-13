@@ -1312,21 +1312,27 @@
 
 @media (max-width: 640px) {
   .hero-main {
-    min-height: auto; /* Permet au bloc de s'adapter au contenu */
+    min-height: auto;
+    background-color: var(--color-primary); /* Fond sombre pour le texte */
+    display: flex;
+    flex-direction: column;
+    padding-top: 66vw; /* Laisse exactement l'espace pour l'image au format paysage 3:2 */
   }
 
   .hero-bg-img {
-    object-position: center 20%;
-    object-fit: cover;
+    object-fit: contain; /* Assure que 100% de l'image est visible */
+    object-position: top center;
+    height: 66vw; /* Hauteur adaptative basée sur la largeur de l'écran */
+    background-color: #0f172a; /* Évite les bords blancs si l'image n'est pas exactement 3:2 */
   }
 
-  .hero-main {
-    min-height: 600px; /* On agrandit considérablement le cadre principal sur mobile */
-    background-color: transparent;
+  .hero-overlay {
+    height: 66vw; /* L'overlay sombre ne couvre que l'image */
   }
 
   .hero-text-block {
-    padding: 3rem 1.25rem 4rem 1.25rem;
+    position: relative;
+    padding: 2rem 1.25rem 3rem 1.25rem;
     height: auto;
   }
 
