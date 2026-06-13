@@ -130,19 +130,8 @@ const AdminFormations = () => {
       });
       
       if (!response.ok) {
-        let errorMsg = "Erreur lors de l'enregistrement";
-        try {
-          const errorData = await response.json();
-          errorMsg = errorData.error || errorMsg;
-        } catch (e) {
-          const rawText = await response.text().catch(() => '');
-          if (rawText) {
-            errorMsg = `Erreur HTTP ${response.status}: ${rawText.substring(0, 100)}`;
-          } else {
-            errorMsg = `Erreur HTTP ${response.status}`;
-          }
-        }
-        throw new Error(errorMsg);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Erreur lors de l'enregistrement");
       }
       await fetchFormations();
       setIsModalOpen(false);
