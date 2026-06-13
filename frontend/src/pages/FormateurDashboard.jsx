@@ -8,7 +8,7 @@ import './FormateurDashboard.css';
 import './Admin/AdminDashboard.css';
 import Parametres from './Parametres';
 
-const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Tous niveaux', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne', meetLink: '', whatsappLink: '', imageUrl: '', imageUrls: [], sessionsPerWeek: 2, sessionDuration: '2h', status: 'published', contactInstruction: '' };
+const EMPTY_FORM = { title: '', description: '', category: 'Développement', ageGroup: '10-14 ans', level: 'Tous niveaux', duration: '4 semaines', price: '', registrationFee: '', maxParticipants: 20, startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne', meetLink: '', whatsappLink: '', imageUrl: '', imageUrls: [], sessionsPerWeek: 2, sessionDuration: '2h', status: 'published' };
 
 const localT = {
   fr: {
@@ -1422,7 +1422,7 @@ const FormateurDashboard = () => {
                             startDate: raw.startDate || '', endDate: raw.endDate || '', location: raw.location || '',
                             format: raw.format || 'en_ligne', locationMode: raw.locationMode || 'en_ligne', meetLink: raw.meetLink || '', whatsappLink: raw.whatsappLink || '', 
                             imageUrl: raw.imageUrl || '', imageUrls: raw.imageUrls ? JSON.parse(raw.imageUrls) : [], sessionsPerWeek: raw.sessionsPerWeek || 2, sessionDuration: raw.sessionDuration || '',
-                            status: raw.status || 'published', contactInstruction: raw.contactInstruction || ''
+                            status: raw.status || 'published'
                           });
                           setEditingCourse(course.id);
                           setShowCourseForm(true);
@@ -1629,10 +1629,6 @@ const FormateurDashboard = () => {
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Description' : 'Description'}</label>
                   <textarea rows="3" value={courseForm.description} onChange={e => setCourseForm(f => ({ ...f, description: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', resize: 'vertical', minHeight: '80px', boxSizing: 'border-box' }}></textarea>
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Special Enrollment Instructions' : "Instructions spéciales d'inscription (Remplace le bouton de paiement en ligne)"}</label>
-                  <input type="text" placeholder={language === 'en' ? 'Leave empty to allow normal online payment' : 'Laissez vide pour autoriser le paiement en ligne normal'} value={courseForm.contactInstruction || ''} onChange={e => setCourseForm(f => ({ ...f, contactInstruction: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box' }} />
                 </div>
               </div>
 
