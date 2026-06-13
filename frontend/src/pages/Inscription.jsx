@@ -116,55 +116,6 @@ const Inscription = () => {
     try {
       let token = localStorage.getItem('nv_token');
 
-      // Si l'utilisateur n'est pas connecté, on crée d'abord son compte parent
-      if (!auth.user) {
-        if (!formData.guestPassword || formData.guestPassword.length < 8) {
-           throw new Error(language === 'en' ? 'Password must be at least 8 characters' : 'Le mot de passe doit faire au moins 8 caractères');
-        }
-        let regRes = await fetch(`${API_URL}/api/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            firstName: formData.guestFirstName,
-            lastName: formData.guestLastName,
-            email: formData.guestEmail,
-            phone: formData.guestPhone,
-            password: formData.guestPassword,
-            role: 'apprenant'
-          })
-        });
-        
-        let regData = await regRes.json();
-        
-        if (!regRes.ok) {
-          // Si l'email existe déjà, on tente de se connecter avec le mot de passe fourni
-          if (regData.error && regData.error.includes('déjà utilisé')) {
-            const loginRes = await fetch(`${API_URL}/api/auth/login`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: formData.guestEmail,
-                password: formData.guestPassword
-              })
-            });
-            const loginData = await loginRes.json();
-            if (!loginRes.ok) {
-              throw new Error(language === 'en' 
-                ? "This account already exists. Incorrect password. Please log in first." 
-                : "Ce compte existe déjà. Mot de passe incorrect. Veuillez vous connecter.");
-            }
-            token = loginData.token;
-          } else {
-            throw new Error((language === 'en' ? "Account creation error: " : "Erreur de création de compte : ") + (regData.error || "Unknown"));
-          }
-        } else {
-          token = regData.token;
-        }
-        
-        localStorage.setItem('nv_token', token);
-        // Note: we don't await auth.login to avoid race conditions with the redirect, we just use the token
-      }
-
       const response = await fetch(`${API_URL}/api/enroll`, {
         method: 'POST',
         headers: {
@@ -245,6 +196,18 @@ const Inscription = () => {
               </div>
             </div>
 
+            {!auth.user && (
+              <div style={{ marginBottom: '2rem', padding: '1.5rem', backgroundColor: '#e0f2fe', borderRadius: '12px', color: '#0369a1', textAlign: 'center' }}>
+                <h4 style={{ marginBottom: '0.5rem', fontWeight: 700 }}>{language === 'en' ? 'Last Step: Create your account' : 'Dernière étape : Créez votre compte'}</h4>
+                <p style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>
+                  {language === 'en' ? 'Create an account with the same email to track your enrollment and access the courses.' : 'Créez un compte avec le même email pour suivre votre inscription et accéder aux formations.'}
+                </p>
+                <Link to={`/register?email=${encodeURIComponent(formData.guestEmail || '')}`} className="btn btn-primary" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px' }}>
+                  {language === 'en' ? 'Create my account' : 'Créer mon compte'}
+                </Link>
+              </div>
+            )}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {enrollmentId && formData.transactionId && (
                 <a 
@@ -302,7 +265,21 @@ const Inscription = () => {
                 ? 'The selected course is currently full. You have been successfully added to the waitlist. We will contact you as soon as a spot opens up!' 
                 : "La formation sélectionnée est actuellement complète. Vous avez été ajouté(e) avec succès à la liste d'attente. Nous vous contacterons dès qu'une place se libère !"}
             </p>
-            <button className="btn btn-primary" onClick={() => navigate(language === 'en' ? '/en' : '/mon-espace')}>{language === 'en' ? 'Go to my space' : 'Aller à mon espace'}</button>
+
+
+            {!auth.user && (
+              <div style={{ marginBottom: '2rem', padding: '1.5rem', backgroundColor: '#e0f2fe', borderRadius: '12px', color: '#0369a1', textAlign: 'center' }}>
+                <h4 style={{ marginBottom: '0.5rem', fontWeight: 700 }}>{language === 'en' ? 'Last Step: Create your account' : 'Dernière étape : Créez votre compte'}</h4>
+                <p style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>
+                  {language === 'en' ? 'Create an account with the same email to track your enrollment.' : 'Créez un compte avec le même email pour suivre votre inscription.'}
+                </p>
+                <Link to={`/register?email=${encodeURIComponent(formData.guestEmail || '')}`} className="btn btn-primary" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px' }}>
+                  {language === 'en' ? 'Create my account' : 'Créer mon compte'}
+                </Link>
+              </div>
+            )}
+
+            <button className="btn btn-outline" onClick={() => navigate(language === 'en' ? '/en' : '/')}>{language === 'en' ? 'Back to Home' : 'Retour à l\'accueil'}</button>
           </div>
         </div>
       </div>
@@ -329,7 +306,18 @@ const Inscription = () => {
               <p style={{ color: '#d97706', fontWeight: 600 }}>Le lien WhatsApp sera bientôt disponible. Nous vous contacterons.</p>
             )}
             <br />
-            <button className="btn btn-outline" onClick={() => navigate(language === 'en' ? '/en' : '/')} style={{ marginTop: '2rem' }}>
+            {!auth.user && (
+              <div style={{ marginTop: '2rem', marginBottom: '2rem', padding: '1.5rem', backgroundColor: '#e0f2fe', borderRadius: '12px', color: '#0369a1', textAlign: 'center' }}>
+                <h4 style={{ marginBottom: '0.5rem', fontWeight: 700 }}>{language === 'en' ? 'Create your account' : 'Créez votre compte'}</h4>
+                <p style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>
+                  {language === 'en' ? 'Create an account with the same email to access the portal.' : 'Créez un compte avec le même email pour accéder au portail.'}
+                </p>
+                <Link to={`/register?email=${encodeURIComponent(formData.guestEmail || '')}`} className="btn btn-primary" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px' }}>
+                  {language === 'en' ? 'Create my account' : 'Créer mon compte'}
+                </Link>
+              </div>
+            )}
+            <button className="btn btn-outline" onClick={() => navigate(language === 'en' ? '/en' : '/')} style={{ marginTop: '1rem' }}>
               {language === 'en' ? 'Back to Home' : 'Retour à l\'accueil'}
             </button>
           </div>
@@ -458,17 +446,10 @@ const Inscription = () => {
                                   <input type="tel" className="form-input" name="guestPhone" value={formData.guestPhone} onChange={handleChange} required />
                                 </div>
                               </div>
-                              <div className="form-group" style={{ marginTop: '1rem' }}>
-                                <label>{language === 'en' ? 'Create a Password (for your parent account)' : 'Créez un mot de passe (pour votre espace parent)'} *</label>
-                                <input type="password" className="form-input" name="guestPassword" value={formData.guestPassword || ''} onChange={handleChange} required placeholder="••••••••" />
-                                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.4rem' }}>
-                                  {language === 'en' ? 'Minimum 8 characters. We will automatically create your account to track the enrollment.' : "Minimum 8 caractères. Nous allons créer votre compte automatiquement pour suivre l'inscription."}
-                                </div>
-                              </div>
                             </div>
                           )}
                           
-                          {(!auth.user && (!formData.guestFirstName || !formData.guestEmail || !formData.guestPhone || !formData.guestPassword || formData.guestPassword.length < 8)) ? (
+                          {(!auth.user && (!formData.guestFirstName || !formData.guestEmail || !formData.guestPhone)) ? (
                             <button className="btn btn-primary" disabled style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', opacity: 0.5, cursor: 'not-allowed' }}>
                               {language === 'en' ? 'Fill contact details first' : "Remplissez vos informations d'abord"}
                             </button>
