@@ -1313,8 +1313,8 @@
 @media (max-width: 640px) {
   .hero-main {
     min-height: 600px;
-    background-color: var(--color-primary);
-    display: block; /* Retour à l'overlay */
+    background-color: transparent;
+    display: block;
     padding-top: 0;
   }
 
@@ -1324,20 +1324,19 @@
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain; /* L'image est affichée en entier */
-    object-position: top center; /* Alignée en haut */
-    background-color: var(--color-primary);
+    object-fit: cover; /* L'image couvre tout le cadre */
+    object-position: center 20%; /* On centre sur les visages */
   }
 
   .hero-overlay {
     height: 100%;
-    /* Dégradé vertical pour masquer la coupure nette de l'image en bas */
-    background: linear-gradient(to bottom, rgba(26, 26, 46, 0.1) 0%, rgba(26, 26, 46, 0.6) 35%, var(--color-primary) 60%);
+    /* Retour au dégradé sombre classique sur toute l'image */
+    background: linear-gradient(180deg, rgba(26, 26, 46, 0.3) 0%, rgba(15, 52, 96, 0.7) 100%);
   }
 
   .hero-text-block {
     position: relative;
-    padding: 2.5rem 1.25rem 3rem 1.25rem;
+    padding: 3rem 1.25rem 4rem 1.25rem;
     height: auto;
     z-index: 2;
   }
