@@ -219,6 +219,7 @@ const initDb = async () => {
   await addColumnIfMissing('Formations', "locationMode TEXT DEFAULT 'en_ligne'");
   await addColumnIfMissing('Formations', "imageUrls TEXT");
   await addColumnIfMissing('Formations', "contactInstruction TEXT");
+  await addColumnIfMissing('Formations', "descriptionEn TEXT");
 
   await runSql(`
     CREATE TABLE IF NOT EXISTS Enrollments (

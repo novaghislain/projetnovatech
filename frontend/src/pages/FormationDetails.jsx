@@ -215,7 +215,7 @@ const FormationDetails = () => {
           <div style={{ backgroundColor: 'var(--color-white)', padding: '3rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
             <h2 style={{ fontSize: '1.8rem', color: 'var(--color-primary)', marginBottom: '1.5rem' }}>{t('fd_about')}</h2>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem', lineHeight: 1.8, marginBottom: '2.5rem', whiteSpace: 'pre-line' }}>
-              {translateDescription(formation.description, language) || t('fd_default_desc')}
+              {language === 'en' ? (formation.descriptionEn || formation.description || t('fd_default_desc')) : (formation.description || t('fd_default_desc'))}
             </p>
 
             <h3 style={{ fontSize: '1.4rem', color: 'var(--color-primary)', marginBottom: '1.5rem' }}>{t('fd_practical')}</h3>

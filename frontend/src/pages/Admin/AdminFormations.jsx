@@ -352,8 +352,13 @@ const AdminFormations = () => {
               </div>
 
               <div className="form-group">
-                <label>Description</label>
+                <label>Description (Français) *</label>
                 <textarea className="form-control" rows="3" value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})}></textarea>
+              </div>
+
+              <div className="form-group">
+                <label>Description (Anglais)</label>
+                <textarea className="form-control" rows="3" placeholder="Optionnel : Remplissez si vous voulez que le site soit bilingue" value={formData.descriptionEn || ''} onChange={e => setFormData({...formData, descriptionEn: e.target.value})}></textarea>
               </div>
 
               <div className="form-group">

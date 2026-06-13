@@ -171,7 +171,7 @@ const InscriptionFormation = () => {
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Layers size={16} /> {translateLevel(f.level, language) || t('fd_all_levels')}</span>
                     </div>
                     <h3>{translateTitle(f.title, language)}</h3>
-                    <p>{translateDescription(f.description, language)}</p>
+                    <p>{language === 'en' ? (f.descriptionEn || f.description || t('fd_default_desc')) : (f.description || t('fd_default_desc'))}</p>
                     
                     {/* Jauge de remplissage & alerte places */}
                     <div style={{ margin: '1rem 0' }}>
