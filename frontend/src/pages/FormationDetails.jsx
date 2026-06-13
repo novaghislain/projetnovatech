@@ -120,6 +120,8 @@ const FormationDetails = () => {
       return language === 'en' ? 'Online (Google Meet / WhatsApp)' : 'En ligne (Google Meet / WhatsApp)';
     } else if (formation.format === 'masse') {
       return (language === 'en' ? 'Vacation Camp / Mass ' : 'Camp de vacance / Masse ') + (formation.location ? '(' + formation.location + ')' : '');
+    } else if (formation.format === 'individuelle') {
+      return language === 'en' ? 'Individual, at home' : 'Individuel, à domicile';
     }
     return formation.isOnline ? (language === 'en' ? 'Online' : 'En ligne') : (formation.location || (language === 'en' ? 'In-person' : 'Présentiel'));
   };
