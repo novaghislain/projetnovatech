@@ -83,7 +83,7 @@ const Inscription = () => {
   const [pendingSuccess, setPendingSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState('');
   const [enrollmentId, setEnrollmentId] = useState(null);
-  const [selectedMethod, setSelectedMethod] = useState('fedapay');
+
 
   const fetchFormations = async () => {
     try {
@@ -516,69 +516,6 @@ const Inscription = () => {
                               </div>
                             )}
 
-                            {/* SELECTEUR DU MODE DE PAIEMENT */}
-                            <div className="form-section" style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem', marginTop: '1rem' }}>
-                              <h4 style={{ color: 'var(--color-primary)', marginBottom: '1rem' }}>
-                                {language === 'en' ? 'Select Payment Mode' : 'Sélectionnez le mode de paiement'}
-                              </h4>
-                              <div style={{ display: 'grid', gap: '1rem', marginBottom: '2rem' }}>
-                                <label style={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  gap: '0.75rem', 
-                                  padding: '1rem', 
-                                  border: '1px solid #e2e8f0', 
-                                  borderRadius: '8px', 
-                                  cursor: 'pointer',
-                                  backgroundColor: selectedMethod === 'fedapay' ? '#f0f9ff' : '#fff',
-                                  borderColor: selectedMethod === 'fedapay' ? 'var(--color-primary)' : '#e2e8f0'
-                                }}>
-                                  <input 
-                                    type="radio" 
-                                    name="paymentMethodSelect" 
-                                    checked={selectedMethod === 'fedapay'} 
-                                    onChange={() => { setSelectedMethod('fedapay'); setPaymentError(''); }} 
-                                  />
-                                  <div>
-                                    <strong style={{ display: 'block', color: 'var(--color-primary)' }}>
-                                      {language === 'en' ? 'Quick Payment (Mobile Money & Cards)' : 'Paiement Rapide (Mobile Money & Cartes)'}
-                                    </strong>
-                                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                                      {language === 'en' ? 'Pay instantly via MTN, Moov, Wave, Visa, Mastercard' : 'Payez instantanément via MTN, Moov, Wave, Visa, Mastercard'}
-                                    </span>
-                                  </div>
-                                </label>
-
-                                <label style={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  gap: '0.75rem', 
-                                  padding: '1rem', 
-                                  border: '1px solid #e2e8f0', 
-                                  borderRadius: '8px', 
-                                  cursor: 'pointer',
-                                  backgroundColor: selectedMethod === 'momo_direct' ? '#f0f9ff' : '#fff',
-                                  borderColor: selectedMethod === 'momo_direct' ? 'var(--color-primary)' : '#e2e8f0'
-                                }}>
-                                  <input 
-                                    type="radio" 
-                                    name="paymentMethodSelect" 
-                                    checked={selectedMethod === 'momo_direct'} 
-                                    onChange={() => { setSelectedMethod('momo_direct'); setPaymentError(''); }} 
-                                  />
-                                  <div>
-                                    <strong style={{ display: 'block', color: 'var(--color-primary)' }}>
-                                      {language === 'en' ? 'Manual Payment (Screenshot)' : 'Paiement Manuel (Capture d\'écran)'}
-                                    </strong>
-                                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                                      {language === 'en' ? 'Send manually and upload the receipt' : 'Envoyez manuellement et téléchargez le reçu'}
-                                    </span>
-                                  </div>
-                                </label>
-                              </div>
-                            </div>
-
-                            {selectedMethod === 'fedapay' ? (
                               <FedapayWidget 
                                 amount={course.registrationFee} 
                                 description={`Frais d'inscription: ${course.title} #${course.id}`}
@@ -631,101 +568,6 @@ const Inscription = () => {
                                   );
                                 }}
                               />
-                            ) : (
-                              <div style={{ backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginTop: '1.5rem' }} className="fade-in">
-                                <h4 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>
-                                  {language === 'en' ? 'Payment Instructions' : 'Instructions de paiement'}
-                                </h4>
-                                <p style={{ fontSize: '0.95rem', lineHeight: '1.5', color: '#334155', marginBottom: '1rem' }}>
-                                  {language === 'en' 
-                                    ? `Please send the registration fee amount of ${course.registrationFee?.toLocaleString() || 0} FCFA to the following Mobile Money account:`
-                                    : `Veuillez envoyer les frais d'inscription de ${course.registrationFee?.toLocaleString() || 0} FCFA sur le compte Mobile Money suivant :`
-                                  }
-                                </p>
-                                <div style={{ backgroundColor: '#fff', padding: '1rem', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '1.5rem' }}>
-                                  <div style={{ marginBottom: '0.5rem' }}><strong>{language === 'en' ? 'Momo Number:' : 'Numéro Mobile Money :'}</strong> <span style={{ color: '#0284c7', fontSize: '1.1rem', fontWeight: 'bold' }}>+229 0191348557</span> (MTN / Moov / Wave)</div>
-                                  <div><strong>{language === 'en' ? 'Beneficiary:' : 'Nom du bénéficiaire :'}</strong> <span style={{ fontWeight: 'bold' }}>GHISLAIN JULES EDA</span></div>
-                                </div>
-                                <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '1rem' }}>
-                                  {language === 'en'
-                                    ? 'Once the transfer is done, copy the reference/transaction ID from the SMS and paste it below:'
-                                    : 'Une fois le transfert effectué, copiez la référence/ID de transaction reçu par SMS et collez-la ci-dessous :'}
-                                </p>
-                                <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-                                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                    {language === 'en' ? 'Upload Payment Screenshot (Proof) *' : 'Capture d\'écran du paiement (Preuve obligatoire) *'}
-                                  </label>
-                                  <input 
-                                    type="file" 
-                                    accept="image/*"
-                                    onChange={handleProofUpload}
-                                    style={{ display: 'none' }}
-                                    id="paymentProofUpload"
-                                  />
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
-                                    <button 
-                                      type="button" 
-                                      className="btn btn-outline" 
-                                      onClick={() => document.getElementById('paymentProofUpload').click()}
-                                      disabled={uploadingProof}
-                                      style={{ padding: '0.6rem 1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, borderRadius: '8px', cursor: 'pointer' }}
-                                    >
-                                      {uploadingProof ? (language === 'en' ? 'Uploading...' : 'Chargement...') : (language === 'en' ? 'Choose Image' : 'Choisir une image')}
-                                    </button>
-                                    {formData.paymentProof && (
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <img 
-                                          src={getImageUrl(formData.paymentProof)} 
-                                          alt="Payment proof" 
-                                          style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '6px', border: '2px solid #22c55e' }} 
-                                        />
-                                        <span style={{ fontSize: '0.85rem', color: '#22c55e', fontWeight: 600 }}>✓ Téléchargé</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="form-group">
-                                  <label>{language === 'en' ? 'Transfer Reference / Transaction ID (Optional)' : 'Référence du transfert / ID de transaction (Optionnel)'}</label>
-                                  <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    placeholder="Ex: Ref: 983728941" 
-                                    value={formData.transactionId || ''} 
-                                    onChange={(e) => setFormData(prev => ({ ...prev, transactionId: e.target.value }))}
-                                  />
-                                </div>
-                                <button 
-                                  type="button" 
-                                  className="btn btn-primary" 
-                                  onClick={async () => {
-                                    if (!formData.paymentProof) {
-                                      setPaymentError(
-                                        language === 'en' 
-                                          ? 'Please upload your payment screenshot (proof) to continue.' 
-                                          : 'Veuillez charger une capture d\'écran du paiement pour continuer.'
-                                      );
-                                      return;
-                                    }
-                                    
-                                    const finalTxId = (formData.transactionId && formData.transactionId.trim()) 
-                                      ? formData.transactionId 
-                                      : `MM-PROOF-${Date.now()}`;
-                                    
-                                    setFormData(prev => ({ ...prev, transactionId: finalTxId }));
-                                    setPaymentError('');
-                                    
-                                    if (isPhysicalCourse) {
-                                      await processEnrollment('Mobile Money', finalTxId);
-                                    } else {
-                                      setStep(2);
-                                    }
-                                  }}
-                                  style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', marginTop: '1rem' }}
-                                >
-                                  {language === 'en' ? 'Confirm Transfer & Continue' : 'Valider mon transfert et continuer'}
-                                </button>
-                              </div>
-                            )}
                           </>
                           )}
                         </div>
@@ -756,7 +598,7 @@ const Inscription = () => {
               )}
 
               {/* Step 2 form for Child Details, visible to everyone (auth or guest) */}
-              <form onSubmit={(e) => { e.preventDefault(); processEnrollment(isFull ? 'waitlist' : (selectedMethod === 'fedapay' ? 'FedaPay' : 'Mobile Money'), formData.transactionId || null); }}>
+              <form onSubmit={(e) => { e.preventDefault(); processEnrollment(isFull ? 'waitlist' : 'FedaPay', formData.transactionId || null); }}>
               <div className="form-section">
                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
                   <User size={20} /> {t('ins_child_info')}
