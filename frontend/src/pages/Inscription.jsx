@@ -790,7 +790,7 @@ const Inscription = () => {
           <div className="summary-card">
             {course ? (
               <>
-                <div style={{ height: '160px', backgroundImage: `url(${course.imageUrl || '/10x.jpg'})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: '12px', marginBottom: '1.5rem' }}></div>
+                <div style={{ height: '160px', backgroundImage: `url(${course.imageUrl ? getImageUrl(course.imageUrl) : '/10x.jpg'})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: '12px', marginBottom: '1.5rem' }}></div>
                 <h3>{course.title}</h3>
                 <ul className="summary-details">
                   <li><span>{t('ins_duration')}</span><strong>{course.duration || '—'}</strong></li>

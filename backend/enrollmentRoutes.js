@@ -107,7 +107,10 @@ module.exports = function(db, authenticateToken) {
           dbPaymentType, totalAmount, amountPaid, paymentProof || null
         ];
         db.run(query, params, function(err) {
-          if (err) return res.status(500).json({ error: "Erreur lors de l'enregistrement de l'inscription" });
+          if (err) {
+            console.error("SQL Insert Error:", err);
+            return res.status(500).json({ error: "Erreur DB: " + err.message });
+          }
           sendConfirmationAndRespond(this.lastID);
         });
       };
