@@ -22,7 +22,7 @@ const AdminFormations = () => {
 
   // Form state
   const [formData, setFormData] = useState({
-    id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '', level: 'Tous niveaux',
+    id: null, title: '', description: '', category: mockCategories[0], price: '', registrationFee: '', duration: '', ageGroup: '', level: 'Tous niveaux',
     maxParticipants: '', status: 'draft', imageUrl: '', imageUrls: [], isFull: false,
     whatsappLink: '', meetLink: '', startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne',
     formateurId: ''
@@ -89,7 +89,7 @@ const AdminFormations = () => {
       });
     } else {
       setFormData({
-        id: null, title: '', description: '', category: mockCategories[0], price: '', duration: '', ageGroup: '', level: 'Tous niveaux',
+        id: null, title: '', description: '', category: mockCategories[0], price: '', registrationFee: '', duration: '', ageGroup: '', level: 'Tous niveaux',
         maxParticipants: '', status: 'draft', imageUrl: '', imageUrls: [], isFull: false,
         whatsappLink: '', meetLink: '', startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne',
         formateurId: ''
@@ -355,6 +355,10 @@ const AdminFormations = () => {
                   <label>Prix (FCFA) *</label>
                   <input type="number" className="form-control" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
                   {errors.price && <div style={{ color: '#ff4d4f', fontSize: '0.8rem', marginTop: '4px' }}>{errors.price}</div>}
+                </div>
+                <div className="form-group">
+                  <label>Frais d'inscription (FCFA)</label>
+                  <input type="number" className="form-control" value={formData.registrationFee} onChange={e => setFormData({...formData, registrationFee: e.target.value})} />
                 </div>
                 <div className="form-group">
                   <label>Durée (ex: 4 semaines)</label>
