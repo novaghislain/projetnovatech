@@ -523,7 +523,7 @@ const AdminMetaPixel = () => {
           Architecture extensible
         </h4>
         <p style={{ margin: 0, fontSize: '0.85rem', color: '#9CA3AF' }}>
-          Prochainement : Google Analytics 4 · Google Tag Manager · TikTok Pixel · LinkedIn Insight Tag
+          Prochainement : Google Analytics 4 · Tag Manager · TikTok Pixel · LinkedIn Insight Tag
         </p>
       </div>
     </div>

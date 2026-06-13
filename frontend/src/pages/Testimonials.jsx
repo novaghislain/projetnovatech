@@ -7,7 +7,7 @@ import { API_URL, getImageUrl } from '../config';
 
 const translateTestimonial = (item, lang) => {
   if (lang !== 'en') return item;
-  
+
   const dict = {
     "J'ai adoré créer mon propre jeu vidéo ! Les animateurs sont super sympas.": "I loved creating my own video game! The instructors are super friendly.",
     "C'est incroyable de voir comment fonctionne une intelligence artificielle.": "It's amazing to see how artificial intelligence works.",
@@ -55,7 +55,7 @@ const Testimonials = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitStatus('loading');
-    
+
     const newTestimonial = {
       id: Date.now(),
       authorName: form.authorName,
@@ -92,7 +92,7 @@ const Testimonials = () => {
             {language === 'en' ? 'They ventured into digital' : 'Ils ont osé le numérique'}
           </h1>
           <p className="testimonials-subtitle">
-            {language === 'en' 
+            {language === 'en'
               ? 'Discover how our training programs transform curiosity into real technical skills. Let yourself be inspired by our brilliant learners.'
               : 'Découvrez comment nos formations transforment la curiosité en véritables compétences techniques. Laissez-vous inspirer par nos brillants apprenants.'}
           </p>
@@ -118,11 +118,11 @@ const Testimonials = () => {
               {testimonials.map(t => translateTestimonial(t, language)).map((t, index) => (
                 <div key={t.id} className="premium-testimonial-card" style={{ animationDelay: `${index * 0.1}s` }}>
                   <div className="card-quote-mark">"</div>
-                  
+
                   <div className="card-rating">
                     {'★'.repeat(t.rating)}<span className="empty-star">{'★'.repeat(5 - t.rating)}</span>
                   </div>
-                  
+
                   {t.mediaUrl && (
                     <div style={{ margin: '1rem 0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
                       {t.mediaType === 'video' ? (
@@ -132,17 +132,17 @@ const Testimonials = () => {
                       )}
                     </div>
                   )}
-                  
+
                   <p className="card-comment">
                     {t.comment}
                   </p>
- 
+
                   <div className="card-author-info">
                     <div className="author-avatar">
                       {t.avatar ? (
-                        <img 
-                          src={getImageUrl(t.avatar)} 
-                          alt={t.authorName} 
+                        <img
+                          src={getImageUrl(t.avatar)}
+                          alt={t.authorName}
                           onError={(e) => {
                             e.target.style.display = 'none';
                             e.target.parentElement.innerHTML = t.authorName.charAt(0);
@@ -174,7 +174,7 @@ const Testimonials = () => {
           <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginBottom: '2.5rem' }}>
             {language === 'en' ? 'Your feedback helps us improve and inspires others!' : 'Votre avis nous aide à nous améliorer et inspire d\'autres parents !'}
           </p>
-          
+
           {submitStatus === 'success' ? (
             <div style={{ padding: '2rem', background: '#f0fdf4', color: '#166534', borderRadius: '16px', textAlign: 'center', border: '1px solid #bbf7d0' }}>
               <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
@@ -190,7 +190,7 @@ const Testimonials = () => {
                 </label>
                 <input type="text" name="authorName" value={form.authorName} onChange={handleFormChange} required placeholder={language === 'en' ? 'e.g. Sarah M.' : 'ex: Sarah M.'} style={{ width: '100%', padding: '1rem 1.2rem', borderRadius: '12px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '1rem', transition: 'all 0.3s ease', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'} onBlur={(e) => e.target.style.borderColor = '#e2e8f0'} />
               </div>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)' }}>
@@ -206,7 +206,7 @@ const Testimonials = () => {
                   <input type="text" name="courseName" value={form.courseName} onChange={handleFormChange} placeholder={language === 'en' ? 'e.g. AI Intro' : 'ex: Initiation à l\'IA'} style={{ width: '100%', padding: '1rem 1.2rem', borderRadius: '12px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '1rem', transition: 'all 0.3s ease', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'} onBlur={(e) => e.target.style.borderColor = '#e2e8f0'} />
                 </div>
               </div>
-              
+
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)' }}>
                   {language === 'en' ? 'Rating' : 'Note'} *
@@ -225,7 +225,7 @@ const Testimonials = () => {
                   <span style={{ marginLeft: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', fontSize: '1.1rem' }}>{form.rating}/5</span>
                 </div>
               </div>
-              
+
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-text)' }}>
                   <MessageSquare size={18} color="var(--color-primary)" />
@@ -233,9 +233,9 @@ const Testimonials = () => {
                 </label>
                 <textarea name="comment" value={form.comment} onChange={handleFormChange} required rows="4" placeholder={language === 'en' ? 'Tell us about your experience...' : 'Racontez-nous comment s\'est passée votre formation...'} style={{ width: '100%', padding: '1rem 1.2rem', borderRadius: '12px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '1rem', transition: 'all 0.3s ease', outline: 'none', resize: 'vertical' }} onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'} onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}></textarea>
               </div>
-              
+
               <button type="submit" disabled={submitStatus === 'loading'} className="btn btn-primary" style={{ width: '100%', padding: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 600, boxShadow: '0 8px 20px rgba(15, 52, 96, 0.2)' }}>
-                {submitStatus === 'loading' ? (language === 'en' ? 'Sending...' : 'Envoi en cours...') : (language === 'en' ? 'Submit testimonial' : 'Envoyer mon témoignage')} 
+                {submitStatus === 'loading' ? (language === 'en' ? 'Sending...' : 'Envoi en cours...') : (language === 'en' ? 'Submit testimonial' : 'Envoyer mon témoignage')}
                 <Send size={20} />
               </button>
             </form>

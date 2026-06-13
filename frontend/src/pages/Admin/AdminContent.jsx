@@ -61,7 +61,7 @@ const AdminContent = () => {
   const parseMarkdown = (markdown) => {
     if (!markdown) return '';
     let html = markdown;
-    
+
     // HTML escaping
     html = html
       .replace(/&/g, "&amp;")
@@ -171,7 +171,7 @@ const AdminContent = () => {
 
   return (
     <div className="fade-in">
-      
+
       {/* Tabs */}
       <div className="tab-nav">
         <button
@@ -245,7 +245,7 @@ const AdminContent = () => {
               <Plus size={18} /> Ajouter une Image
             </button>
           </div>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem', padding: '1rem' }}>
             {gallery.length === 0 ? (
               <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>Aucune image dans la galerie.</div>
@@ -263,7 +263,7 @@ const AdminContent = () => {
                     <div style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>{g.title || 'Sans titre'}</div>
                     <div style={{ fontSize: '0.8rem', color: '#666' }}>{g.category}</div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => deleteGalleryImage(g.id)}
                     style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'rgba(231, 76, 60, 0.9)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.25rem', cursor: 'pointer' }}
                   >
@@ -296,29 +296,29 @@ const AdminContent = () => {
                     <input type="text" name="age" className="form-control" onChange={handleTestimonialChange} />
                   </div>
                 </div>
-                
+
                 <div className="form-group">
                   <label>Formation suivie *</label>
                   <input type="text" name="courseName" className="form-control" required onChange={handleTestimonialChange} />
                 </div>
-                
+
                 <div className="form-group">
                   <label>Photo de profil / Avatar (Optionnel)</label>
                   <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.25rem' }}>
                     {testimonialForm.avatar && (
                       <div style={{ width: '50px', height: '50px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #ddd', flexShrink: 0 }}>
-                        <img 
-                          src={getImageUrl(testimonialForm.avatar)} 
-                          alt="Avatar preview" 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        <img
+                          src={getImageUrl(testimonialForm.avatar)}
+                          alt="Avatar preview"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       </div>
                     )}
                     <div style={{ flex: 1 }}>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        className="form-control" 
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="form-control"
                         style={{ marginBottom: 0 }}
                         onChange={async (e) => {
                           const file = e.target.files[0];
@@ -339,13 +339,13 @@ const AdminContent = () => {
                           } catch (err) {
                             alert("Erreur lors de l'upload de l'avatar");
                           }
-                        }} 
+                        }}
                       />
                     </div>
                     {testimonialForm.avatar && (
-                      <button 
-                        type="button" 
-                        className="btn btn-outline" 
+                      <button
+                        type="button"
+                        className="btn btn-outline"
                         style={{ color: '#e74c3c', borderColor: '#e74c3c', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
                         onClick={() => setTestimonialForm(f => ({ ...f, avatar: '' }))}
                       >
@@ -383,18 +383,18 @@ const AdminContent = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="form-group">
                   <label>Note (sur 5) *</label>
                   <input type="number" name="rating" className="form-control" min="1" max="5" required onChange={handleTestimonialChange} value={testimonialForm.rating} />
                 </div>
-                
+
                 <div className="form-group">
                   <label>Commentaire *</label>
                   <textarea name="comment" className="form-control" rows="4" required onChange={handleTestimonialChange}></textarea>
                 </div>
               </div>
-              
+
               <div className="admin-modal-footer">
                 <button type="button" className="btn btn-outline" onClick={() => setShowTestimonialModal(false)}>Annuler</button>
                 <button type="submit" className="btn btn-primary">Enregistrer le témoignage</button>
@@ -418,14 +418,14 @@ const AdminContent = () => {
                   <label>Titre (Optionnel)</label>
                   <input type="text" name="title" className="form-control" onChange={handleGalleryChange} />
                 </div>
-                
+
                 <div className="form-group">
                   <label>Fichier Média * (Photo ou Vidéo)</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <input 
-                      type="file" 
-                      accept="image/*,video/*" 
-                      className="form-control" 
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      className="form-control"
                       required={!galleryForm.imageUrl}
                       onChange={async (e) => {
                         const file = e.target.files[0];
@@ -447,22 +447,22 @@ const AdminContent = () => {
                         } catch (err) {
                           alert("Erreur lors de l'upload du fichier");
                         }
-                      }} 
+                      }}
                     />
                     {galleryForm.imageUrl && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
                         <div style={{ width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd', flexShrink: 0 }}>
                           {galleryForm.mediaType === 'video' ? (
-                            <video 
-                              src={getImageUrl(galleryForm.imageUrl)} 
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                            <video
+                              src={getImageUrl(galleryForm.imageUrl)}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                               muted
                             />
                           ) : (
-                            <img 
-                              src={getImageUrl(galleryForm.imageUrl)} 
-                              alt="Aperçu" 
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                            <img
+                              src={getImageUrl(galleryForm.imageUrl)}
+                              alt="Aperçu"
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
                           )}
                         </div>
@@ -473,7 +473,7 @@ const AdminContent = () => {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="form-group">
                   <label>Catégorie *</label>
                   <select name="category" className="form-control" onChange={handleGalleryChange} value={galleryForm.category}>
@@ -484,7 +484,7 @@ const AdminContent = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div className="admin-modal-footer">
                 <button type="button" className="btn btn-outline" onClick={() => setShowGalleryModal(false)}>Annuler</button>
                 <button type="submit" className="btn btn-primary">Ajouter l'image</button>
@@ -500,8 +500,8 @@ const AdminContent = () => {
           <div className="admin-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
             <h3 className="admin-panel-title" style={{ margin: 0 }}>Gestion des Pages Statiques</h3>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <select 
-                className="form-control" 
+              <select
+                className="form-control"
                 style={{ width: '250px', marginBottom: 0, padding: '0.5rem' }}
                 value={selectedSlug}
                 onChange={(e) => setSelectedSlug(e.target.value)}
@@ -520,12 +520,12 @@ const AdminContent = () => {
             <form onSubmit={handleSavePage} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div className="form-group">
                 <label style={{ fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>Titre de la Page</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  value={pageTitle} 
-                  onChange={(e) => setPageTitle(e.target.value)} 
-                  required 
+                <input
+                  type="text"
+                  className="form-control"
+                  value={pageTitle}
+                  onChange={(e) => setPageTitle(e.target.value)}
+                  required
                   style={{ maxWidth: '400px' }}
                 />
               </div>
@@ -564,7 +564,7 @@ const AdminContent = () => {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem', fontWeight: 600 }}>Aperçu en direct</span>
-                      <div 
+                      <div
                         style={{
                           flex: 1,
                           border: '1px solid #ddd',
@@ -580,7 +580,7 @@ const AdminContent = () => {
                     </div>
                   </div>
                 ) : (
-                  <div 
+                  <div
                     style={{
                       border: '1px solid #ddd',
                       borderRadius: '8px',

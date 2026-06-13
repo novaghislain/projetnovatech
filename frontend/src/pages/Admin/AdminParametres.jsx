@@ -100,7 +100,7 @@ const AdminParametres = () => {
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '0.5rem' }}>
-          
+
           {/* SECTION 1: Informations Générales */}
           <div style={{
             background: '#F9FAFB',
@@ -126,30 +126,30 @@ const AdminParametres = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '0.75rem', marginTop: '0.75rem' }}>
               <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
                 <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Nom du site</label>
-                <input 
-                  type="text" 
-                  value={settings.siteName || ''} 
-                  onChange={e => setSettings({...settings, siteName: e.target.value})}
+                <input
+                  type="text"
+                  value={settings.siteName || ''}
+                  onChange={e => setSettings({ ...settings, siteName: e.target.value })}
                   style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none' }}
                   required
                 />
               </div>
               <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
                 <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Email de contact</label>
-                <input 
-                  type="email" 
-                  value={settings.contactEmail || ''} 
-                  onChange={e => setSettings({...settings, contactEmail: e.target.value})}
+                <input
+                  type="email"
+                  value={settings.contactEmail || ''}
+                  onChange={e => setSettings({ ...settings, contactEmail: e.target.value })}
                   style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none' }}
                   required
                 />
               </div>
               <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
                 <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Téléphone</label>
-                <input 
-                  type="text" 
-                  value={settings.contactPhone || ''} 
-                  onChange={e => setSettings({...settings, contactPhone: e.target.value})}
+                <input
+                  type="text"
+                  value={settings.contactPhone || ''}
+                  onChange={e => setSettings({ ...settings, contactPhone: e.target.value })}
                   style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none' }}
                   required
                 />
@@ -183,26 +183,26 @@ const AdminParametres = () => {
               <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Couleur principale</label>
-                  <input 
-                    type="text" 
-                    value={settings.themeColor || ''} 
-                    onChange={e => setSettings({...settings, themeColor: e.target.value})}
+                  <input
+                    type="text"
+                    value={settings.themeColor || ''}
+                    onChange={e => setSettings({ ...settings, themeColor: e.target.value })}
                     style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', outline: 'none', width: '100%' }}
                     required
                   />
                 </div>
-                <input 
-                  type="color" 
-                  value={settings.themeColor || '#8B5CF6'} 
-                  onChange={e => setSettings({...settings, themeColor: e.target.value})}
+                <input
+                  type="color"
+                  value={settings.themeColor || '#8B5CF6'}
+                  onChange={e => setSettings({ ...settings, themeColor: e.target.value })}
                   style={{ border: 'none', background: 'none', width: '32px', height: '32px', cursor: 'pointer', padding: 0 }}
                 />
               </div>
               <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
                 <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Police</label>
-                <select 
-                  value={settings.fontFamily || 'Inter'} 
-                  onChange={e => setSettings({...settings, fontFamily: e.target.value})}
+                <select
+                  value={settings.fontFamily || 'Inter'}
+                  onChange={e => setSettings({ ...settings, fontFamily: e.target.value })}
                   style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none', background: 'none', cursor: 'pointer' }}
                 >
                   <option value="Inter">Inter</option>
@@ -239,9 +239,9 @@ const AdminParametres = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '0.75rem', marginTop: '0.75rem' }}>
               <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
                 <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Inscriptions</label>
-                <select 
-                  value={settings.registrationStatus || 'Ouvertes'} 
-                  onChange={e => setSettings({...settings, registrationStatus: e.target.value})}
+                <select
+                  value={settings.registrationStatus || 'Ouvertes'}
+                  onChange={e => setSettings({ ...settings, registrationStatus: e.target.value })}
                   style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none', background: 'none', cursor: 'pointer' }}
                 >
                   <option value="Ouvertes">Ouvertes</option>
@@ -250,9 +250,9 @@ const AdminParametres = () => {
               </div>
               <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
                 <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Rôle par défaut</label>
-                <select 
-                  value={settings.defaultRole || 'Apprenant'} 
-                  onChange={e => setSettings({...settings, defaultRole: e.target.value})}
+                <select
+                  value={settings.defaultRole || 'Apprenant'}
+                  onChange={e => setSettings({ ...settings, defaultRole: e.target.value })}
                   style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none', background: 'none', cursor: 'pointer' }}
                 >
                   <option value="Apprenant">Apprenant</option>
