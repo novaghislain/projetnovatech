@@ -254,7 +254,7 @@ const AdminFormateurs = () => {
                     type="email" className="form-control"
                     value={formData.email || ''}
                     onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="formateur@novatech.com"
+                    placeholder="formateur@FormationNova.com"
                   />
                   {errors.email && <div style={{ color: '#dc2626', fontSize: '0.8rem', marginTop: '4px' }}>{errors.email}</div>}
                 </div>

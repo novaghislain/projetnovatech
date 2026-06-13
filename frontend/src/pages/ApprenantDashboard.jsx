@@ -84,7 +84,7 @@ const ApprenantDashboard = () => {
       {/* SIDEBAR */}
       <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
-          <img src="/4x.png" alt="Novatech Vision" onClick={() => navigate('/')} />
+          <img src="/4x.png" alt="FormationNova" onClick={() => navigate('/')} />
         </div>
         <div className="sidebar-nav-wrap">
           {navItems.map(item => (

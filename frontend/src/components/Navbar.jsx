@@ -121,7 +121,7 @@ const Navbar = () => {
 
         {/* Logo */}
         <Link to="/" className="navbar-logo">
-          <img src="/4x.png" alt="Novatech Vision Logo" className="logo-image" />
+          <img src="/4x.png" alt="FormationNova Logo" className="logo-image" />
         </Link>
 
         {/* Mobile Nav Overlay */}

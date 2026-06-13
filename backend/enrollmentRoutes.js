@@ -153,7 +153,7 @@ module.exports = function(db, authenticateToken) {
             console.error('Erreur envoi SMS confirmation:', err.message);
           });
         } else if (status === 'waitlist') {
-          const smsText = `Bonjour ${parentName || req.user?.firstName || guestFirstName || 'Apprenant'}, la formation ${course.title} etant complete, vous avez ete ajoute(e) a la liste d'attente. Novatech Vision.`;
+          const smsText = `Bonjour ${parentName || req.user?.firstName || guestFirstName || 'Apprenant'}, la formation ${course.title} etant complete, vous avez ete ajoute(e) a la liste d'attente. FormationNova.`;
           sendSMS({ to: parentPhone || req.user?.phone || guestPhone, message: smsText }).catch(err => {
             console.error('Erreur envoi SMS liste d\'attente:', err.message);
           });
@@ -265,7 +265,7 @@ module.exports = function(db, authenticateToken) {
 
       const { generateInvoice } = require('./invoiceService');
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="facture-novatech-${row.id}.pdf"`);
+      res.setHeader('Content-Disposition', `attachment; filename="facture-FormationNova-${row.id}.pdf"`);
       
       generateInvoice(row, res);
     });
@@ -376,7 +376,7 @@ module.exports = function(db, authenticateToken) {
                     const childName = nextEnrollment.childFirstName ? `${nextEnrollment.childFirstName} ${nextEnrollment.childLastName || ''}`.trim() : null;
                     sendEmail({
                       to: nextEnrollment.parentEmail || nextEnrollment.email,
-                      subject: `Une place se libère ! Inscription active - Novatech Vision`,
+                      subject: `Une place se libère ! Inscription active - FormationNova`,
                       html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                           <h2 style="color: #10b981;">Bonne nouvelle !</h2>
@@ -385,13 +385,13 @@ module.exports = function(db, authenticateToken) {
                           <p>L'inscription de votre enfant <strong>${childName || 'Apprenant'}</strong> a été automatiquement activée et retirée de la liste d'attente.</p>
                           <p>Vous pouvez désormais accéder à son espace de cours en ligne.</p>
                           <hr style="border: none; border-top: 1px solid #e5e7eb;" />
-                          <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
+                          <p style="color: #9ca3af; font-size: 12px;">FormationNova - Cotonou, Bénin</p>
                         </div>`
                     }).catch(e => console.error("Erreur envoi email promotion liste d'attente:", e.message));
 
                     // Envoyer un SMS de notification
                     const { sendSMS } = require('./smsService');
-                    const smsText = `Bonne nouvelle ! Une place s'est liberee pour ${nextEnrollment.courseTitle}. L'inscription de votre enfant est active. Novatech Vision.`;
+                    const smsText = `Bonne nouvelle ! Une place s'est liberee pour ${nextEnrollment.courseTitle}. L'inscription de votre enfant est active. FormationNova.`;
                     sendSMS({ to: nextEnrollment.parentPhone, message: smsText }).catch(err => {
                       console.error('Erreur envoi SMS promotion:', err.message);
                     });

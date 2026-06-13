@@ -141,7 +141,7 @@ module.exports = function(db, authenticateToken) {
                     const childName = nextEnrollment.childFirstName ? `${nextEnrollment.childFirstName} ${nextEnrollment.childLastName || ''}`.trim() : null;
                     sendEmail({
                       to: nextEnrollment.parentEmail || nextEnrollment.email,
-                      subject: `Une place se libère ! Inscription active - Novatech Vision`,
+                      subject: `Une place se libère ! Inscription active - FormationNova`,
                       html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                           <h2 style="color: #10b981;">Bonne nouvelle !</h2>
@@ -150,13 +150,13 @@ module.exports = function(db, authenticateToken) {
                           <p>L'inscription de votre enfant <strong>${childName || 'Apprenant'}</strong> a été automatiquement activée.</p>
                           <p>Vous pouvez désormais accéder à son espace de cours en ligne.</p>
                           <hr style="border: none; border-top: 1px solid #e5e7eb;" />
-                          <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
+                          <p style="color: #9ca3af; font-size: 12px;">FormationNova - Cotonou, Bénin</p>
                         </div>
                       `
                     }).catch(e => console.error("Erreur envoi email promotion:", e.message));
 
                     const { sendSMS } = require('./smsService');
-                    const smsText = `Bonne nouvelle ! Une place s'est liberee pour ${nextEnrollment.courseTitle}. L'inscription de votre enfant est active. Novatech Vision.`;
+                    const smsText = `Bonne nouvelle ! Une place s'est liberee pour ${nextEnrollment.courseTitle}. L'inscription de votre enfant est active. FormationNova.`;
                     sendSMS({ to: nextEnrollment.parentPhone, message: smsText }).catch(err => {
                       console.error('Erreur envoi SMS promotion:', err.message);
                     });
@@ -203,7 +203,7 @@ module.exports = function(db, authenticateToken) {
                     const childName = nextEnrollment.childFirstName ? `${nextEnrollment.childFirstName} ${nextEnrollment.childLastName || ''}`.trim() : null;
                     sendEmail({
                       to: nextEnrollment.parentEmail || nextEnrollment.email,
-                      subject: `Une place se libère ! Inscription active - Novatech Vision`,
+                      subject: `Une place se libère ! Inscription active - FormationNova`,
                       html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                           <h2 style="color: #10b981;">Bonne nouvelle !</h2>
@@ -212,13 +212,13 @@ module.exports = function(db, authenticateToken) {
                           <p>L'inscription de votre enfant <strong>${childName || 'Apprenant'}</strong> a été automatiquement activée.</p>
                           <p>Vous pouvez désormais accéder à son espace de cours en ligne.</p>
                           <hr style="border: none; border-top: 1px solid #e5e7eb;" />
-                          <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
+                          <p style="color: #9ca3af; font-size: 12px;">FormationNova - Cotonou, Bénin</p>
                         </div>
                       `
                     }).catch(e => console.error("Erreur envoi email promotion:", e.message));
 
                     const { sendSMS } = require('./smsService');
-                    const smsText = `Bonne nouvelle ! Une place s'est liberee pour ${nextEnrollment.courseTitle}. L'inscription de votre enfant est active. Novatech Vision.`;
+                    const smsText = `Bonne nouvelle ! Une place s'est liberee pour ${nextEnrollment.courseTitle}. L'inscription de votre enfant est active. FormationNova.`;
                     sendSMS({ to: nextEnrollment.parentPhone, message: smsText }).catch(err => {
                       console.error('Erreur envoi SMS promotion:', err.message);
                     });
@@ -460,10 +460,10 @@ module.exports = function(db, authenticateToken) {
 
       sendEmail({
         to: message.email,
-        subject: `Re: ${message.subject || 'Votre message - Novatech Vision'}`,
+        subject: `Re: ${message.subject || 'Votre message - FormationNova'}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #2563eb;">Novatech Vision</h2>
+            <h2 style="color: #2563eb;">FormationNova</h2>
             <p>Bonjour ${message.name},</p>
             <div style="background: #f3f4f6; padding: 16px; border-radius: 6px; margin: 16px 0;">
               <p style="margin: 0; color: #6b7280; font-size: 14px;"><strong>Votre message :</strong></p>
@@ -475,7 +475,7 @@ module.exports = function(db, authenticateToken) {
             </div>
             <p style="color: #6b7280; font-size: 14px;">N'hésitez pas à nous recontacter si vous avez d'autres questions.</p>
             <hr style="border: none; border-top: 1px solid #e5e7eb;" />
-            <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
+            <p style="color: #9ca3af; font-size: 12px;">FormationNova - Cotonou, Bénin</p>
           </div>
         `,
       }).then(() => console.log('[EMAIL] Réponse envoyée à', message.email))

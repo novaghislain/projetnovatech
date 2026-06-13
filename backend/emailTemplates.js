@@ -1,10 +1,10 @@
 function enrollmentConfirmation({ firstName, courseTitle, childName, meetLink, whatsappLink }) {
   return {
-    subject: `Confirmation d'inscription - ${courseTitle} | Novatech Vision`,
+    subject: `Confirmation d'inscription - ${courseTitle} | FormationNova`,
     html: `
       <div style="max-width:560px;margin:0 auto;font-family:'Segoe UI',sans-serif;color:#1e293b">
         <div style="background:linear-gradient(135deg,#1e3a5f,#2d5a8e);padding:28px 24px;border-radius:12px 12px 0 0;text-align:center">
-          <h1 style="color:#fff;margin:0;font-size:22px">Novatech Vision</h1>
+          <h1 style="color:#fff;margin:0;font-size:22px">FormationNova</h1>
           <p style="color:rgba(255,255,255,0.8);margin:4px 0 0;font-size:14px">Formation au numérique pour enfants</p>
         </div>
         <div style="padding:28px 24px;background:#fff;border:1px solid #e2e8f0;border-top:0;border-radius:0 0 12px 12px">
@@ -27,7 +27,7 @@ function enrollmentConfirmation({ firstName, courseTitle, childName, meetLink, w
             Voir mes inscriptions
           </a>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0" />
-          <p style="font-size:13px;color:#94a3b8">Novatech Vision · Cotonou, Bénin</p>
+          <p style="font-size:13px;color:#94a3b8">FormationNova · Cotonou, Bénin</p>
         </div>
       </div>
     `
@@ -37,11 +37,11 @@ function enrollmentConfirmation({ firstName, courseTitle, childName, meetLink, w
 function paymentReceipt({ firstName, courseTitle, amount, transactionId, paymentMethod }) {
   const formattedAmount = amount ? Number(amount).toLocaleString() + ' FCFA' : '—';
   return {
-    subject: `Reçu de paiement - ${courseTitle} | Novatech Vision`,
+    subject: `Reçu de paiement - ${courseTitle} | FormationNova`,
     html: `
       <div style="max-width:560px;margin:0 auto;font-family:'Segoe UI',sans-serif;color:#1e293b">
         <div style="background:linear-gradient(135deg,#1e3a5f,#2d5a8e);padding:28px 24px;border-radius:12px 12px 0 0;text-align:center">
-          <h1 style="color:#fff;margin:0;font-size:22px">Novatech Vision</h1>
+          <h1 style="color:#fff;margin:0;font-size:22px">FormationNova</h1>
           <p style="color:rgba(255,255,255,0.8);margin:4px 0 0;font-size:14px">Reçu de paiement</p>
         </div>
         <div style="padding:28px 24px;background:#fff;border:1px solid #e2e8f0;border-top:0;border-radius:0 0 12px 12px">
@@ -58,7 +58,7 @@ function paymentReceipt({ firstName, courseTitle, amount, transactionId, payment
             Voir mes paiements
           </a>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0" />
-          <p style="font-size:13px;color:#94a3b8">Novatech Vision · Cotonou, Bénin</p>
+          <p style="font-size:13px;color:#94a3b8">FormationNova · Cotonou, Bénin</p>
         </div>
       </div>
     `
@@ -67,15 +67,15 @@ function paymentReceipt({ firstName, courseTitle, amount, transactionId, payment
 
 function welcomeEmail({ firstName, email, password }) {
   return {
-    subject: 'Bienvenue sur Novatech Vision',
+    subject: 'Bienvenue sur FormationNova',
     html: `
       <div style="max-width:560px;margin:0 auto;font-family:'Segoe UI',sans-serif;color:#1e293b">
         <div style="background:linear-gradient(135deg,#1e3a5f,#2d5a8e);padding:28px 24px;border-radius:12px 12px 0 0;text-align:center">
-          <h1 style="color:#fff;margin:0;font-size:22px">Novatech Vision</h1>
+          <h1 style="color:#fff;margin:0;font-size:22px">FormationNova</h1>
           <p style="color:rgba(255,255,255,0.8);margin:4px 0 0;font-size:14px">Bienvenue</p>
         </div>
         <div style="padding:28px 24px;background:#fff;border:1px solid #e2e8f0;border-top:0;border-radius:0 0 12px 12px">
-          <h2 style="color:#1e3a5f;margin:0 0 16px">Bienvenue chez Novatech Vision</h2>
+          <h2 style="color:#1e3a5f;margin:0 0 16px">Bienvenue chez FormationNova</h2>
           <p>Bonjour <strong>${firstName}</strong>,</p>
           <p>Votre compte a été créé avec succès suite à votre inscription à une formation.</p>
           <p>Voici vos identifiants de connexion :</p>
@@ -89,7 +89,7 @@ function welcomeEmail({ firstName, email, password }) {
             Se connecter
           </a>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0" />
-          <p style="font-size:13px;color:#94a3b8">Novatech Vision · Cotonou, Bénin</p>
+          <p style="font-size:13px;color:#94a3b8">FormationNova · Cotonou, Bénin</p>
         </div>
       </div>
     `
@@ -98,11 +98,11 @@ function welcomeEmail({ firstName, email, password }) {
 
 function certificateEmail({ firstName, courseTitle, certId }) {
   return {
-    subject: `Votre certificat - ${courseTitle} | Novatech Vision`,
+    subject: `Votre certificat - ${courseTitle} | FormationNova`,
     html: `
       <div style="max-width:560px;margin:0 auto;font-family:'Segoe UI',sans-serif;color:#1e293b">
         <div style="background:linear-gradient(135deg,#1e3a5f,#2d5a8e);padding:28px 24px;border-radius:12px 12px 0 0;text-align:center">
-          <h1 style="color:#fff;margin:0;font-size:22px">Novatech Vision</h1>
+          <h1 style="color:#fff;margin:0;font-size:22px">FormationNova</h1>
           <p style="color:rgba(255,255,255,0.8);margin:4px 0 0;font-size:14px">Certificat de réussite</p>
         </div>
         <div style="padding:28px 24px;background:#fff;border:1px solid #e2e8f0;border-top:0;border-radius:0 0 12px 12px">
@@ -116,7 +116,7 @@ function certificateEmail({ firstName, courseTitle, certId }) {
             Accéder à mon espace
           </a>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0" />
-          <p style="font-size:13px;color:#94a3b8">Novatech Vision · Cotonou, Bénin</p>
+          <p style="font-size:13px;color:#94a3b8">FormationNova · Cotonou, Bénin</p>
         </div>
       </div>
     `

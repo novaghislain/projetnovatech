@@ -33,7 +33,7 @@ function generateCertificate({ firstName, lastName, email, courseTitle, completi
   // ──────────────────────────────────────────────
 
   doc.fontSize(24).fillColor('#1A1A2E').font('Helvetica-Bold');
-  doc.text('NOVATECH VISION', 75, 55);
+  doc.text('FormationNova', 75, 55);
 
   doc.fontSize(9).fillColor('#64748b').font('Helvetica');
   doc.text('CENTRE DE FORMATION EN INFORMATIQUE', 75, 82);
@@ -60,7 +60,7 @@ function generateCertificate({ firstName, lastName, email, courseTitle, completi
 
   doc.fontSize(8).fillColor('#94a3b8').font('Helvetica');
   doc.text('une formation en ligne non créditée', 75, 285);
-  doc.text('autorisée par Novatech Vision', 75, 297);
+  doc.text('autorisée par FormationNova', 75, 297);
 
   // ──────────────────────────────────────────────
   // MODULES
@@ -104,8 +104,8 @@ function generateCertificate({ firstName, lastName, email, courseTitle, completi
   doc.text('Coordonnateur', sigRightX, sigY + 8, { width: 180, align: 'left' });
 
   doc.fontSize(7).fillColor('#64748b').font('Helvetica');
-  doc.text('Novatech Vision', sigLeftX, sigY + 22, { width: 180, align: 'left' });
-  doc.text('Novatech Vision', sigRightX, sigY + 22, { width: 180, align: 'left' });
+  doc.text('FormationNova', sigLeftX, sigY + 22, { width: 180, align: 'left' });
+  doc.text('FormationNova', sigRightX, sigY + 22, { width: 180, align: 'left' });
 
   // ──────────────────────────────────────────────
   // METADATA (right side, aligned with signatures)
@@ -123,13 +123,13 @@ function generateCertificate({ firstName, lastName, email, courseTitle, completi
 
   doc.fontSize(6.5).fillColor('#94a3b8').font('Helvetica');
   doc.text(
-    `Vérifier : www.novatech-vision.bj/verifier/${certId}`,
+    `Vérifier : www.FormationNova-vision.bj/verifier/${certId}`,
     w / 2, h - 45, { align: 'center' }
   );
 
   doc.fontSize(6.5).fillColor('#94a3b8').font('Helvetica');
   doc.text(
-    'Novatech Vision · Cotonou, Bénin',
+    'FormationNova · Cotonou, Bénin',
     w / 2, h - 35, { align: 'center' }
   );
 

@@ -61,11 +61,11 @@ const Contact = () => {
             </p>
 
             <div className="contact-page-coords">
-              <a href="mailto:contact@novatechvision.com" className="coord-item">
+              <a href="mailto:contact@FormationNovavision.com" className="coord-item">
                 <div className="coord-icon"><Mail size={20} /></div>
                 <div>
                   <span className="coord-label">Email</span>
-                  <span className="coord-value">contact@novatechvision.com</span>
+                  <span className="coord-value">contact@FormationNovavision.com</span>
                 </div>
               </a>
               <a href="tel:+2290191348557" className="coord-item">

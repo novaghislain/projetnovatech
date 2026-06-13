@@ -9,7 +9,7 @@ const generateInvoice = (enrollment, res) => {
   doc.pipe(res);
 
   // En-tête
-  doc.fontSize(20).fillColor('#1A1A2E').text('NOVATECH VISION', { align: 'left' });
+  doc.fontSize(20).fillColor('#1A1A2E').text('FormationNova', { align: 'left' });
   doc.fontSize(10).fillColor('#666666').text('L\'école du numérique de 8 à 18 ans', { align: 'left' });
   doc.text('Cotonou, Bénin', { align: 'left' });
   doc.text('Tél : +229 0191348557', { align: 'left' });

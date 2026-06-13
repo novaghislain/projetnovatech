@@ -13,12 +13,12 @@ const Apropos = () => {
       <div className="page-top-bar" style={{ animation: 'fadeUp 0.8s ease both' }}>
         <div className="container" style={{ position: 'relative', zIndex: 1 }}>
           <h1 style={{ animation: 'fadeUp 0.8s ease 0.2s both' }}>
-            {language === 'en' ? 'About Novatech Vision' : 'À Propos de Novatech Vision'}
+            {language === 'en' ? 'About FormationNova' : 'À Propos de FormationNova'}
           </h1>
           <p className="page-top-desc" style={{ animation: 'fadeUp 0.8s ease 0.4s both' }}>
             {language === 'en' 
-              ? 'Discover the mission, values, and people behind Novatech Vision.' 
-              : 'Découvrez la mission, les valeurs et les personnes derrière Novatech Vision.'}
+              ? 'Discover the mission, values, and people behind FormationNova.' 
+              : 'Découvrez la mission, les valeurs et les personnes derrière FormationNova.'}
           </p>
         </div>
       </div>
@@ -47,8 +47,8 @@ const Apropos = () => {
             </h2>
             <p style={{ fontSize: '1.1rem', lineHeight: '1.7', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
               {language === 'en' 
-                ? "Founded by Ghislain Jules EDA, its Director, Novatech Vision is fundamentally a technology company with strong digital expertise: software development, IT automation, and tech equipment. We help businesses optimize their processes through innovative solutions on a daily basis."
-                : "Fondée par Ghislain Jules EDA, son Directeur, Novatech Vision est avant tout une entreprise technologique dotée d'une forte expertise numérique : développement logiciel, automatisation et fourniture d'équipements informatiques."}
+                ? "Founded by Ghislain Jules EDA, its Director, FormationNova is fundamentally a technology company with strong digital expertise: software development, IT automation, and tech equipment. We help businesses optimize their processes through innovative solutions on a daily basis."
+                : "Fondée par Ghislain Jules EDA, son Directeur, FormationNova est avant tout une entreprise technologique dotée d'une forte expertise numérique : développement logiciel, automatisation et fourniture d'équipements informatiques."}
             </p>
             <p style={{ fontSize: '1.1rem', lineHeight: '1.7', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
               {language === 'en'

@@ -218,7 +218,7 @@ module.exports = (db, authenticateToken) => {
     }
     const courseId = req.params.id;
     // Generate a unique room name based on course ID and a random string
-    const liveRoomName = `Novatech_Live_${courseId}_${Math.random().toString(36).substring(2, 8)}`;
+    const liveRoomName = `FormationNova_Live_${courseId}_${Math.random().toString(36).substring(2, 8)}`;
     
     db.run('UPDATE Formations SET isLive = 1, liveRoomName = ? WHERE id = ?', [liveRoomName, courseId], function(err) {
       if (err) return res.status(500).json({ error: err.message });
@@ -448,7 +448,7 @@ module.exports = (db, authenticateToken) => {
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
                 <div style="text-align: center; margin-bottom: 24px;">
-                  <h2 style="color: #0f3460; margin: 0;">Novatech Vision</h2>
+                  <h2 style="color: #0f3460; margin: 0;">FormationNova</h2>
                   <p style="color: #6b7280; font-size: 14px; margin: 4px 0 0;">Espace de Formation</p>
                 </div>
                 <hr style="border: none; border-top: 1px solid #e5e7eb; margin-bottom: 24px;" />
@@ -462,7 +462,7 @@ module.exports = (db, authenticateToken) => {
                 
                 <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">Pour répondre à ce message ou poser vos questions, veuillez vous connecter à votre espace apprenant.</p>
                 <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
-                <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">Novatech Vision - Cotonou, Bénin</p>
+                <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">FormationNova - Cotonou, Bénin</p>
               </div>
             `
           }).catch(e => console.error(`Error sending group email to ${student.email}:`, e.message));

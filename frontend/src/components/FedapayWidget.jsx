@@ -30,7 +30,7 @@ const FedapayWidget = ({ amount, description, customerInfo, onSuccess, onFail })
       public_key: FEDAPAY_PUBLIC_KEY,
       transaction: {
         amount: amount,
-        description: description || 'Inscription formation Novatech Vision',
+        description: description || 'Inscription formation FormationNova',
       },
       customer: customerInfo
         ? {

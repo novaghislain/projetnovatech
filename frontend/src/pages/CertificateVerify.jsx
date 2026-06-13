@@ -85,7 +85,7 @@ export default function CertificateVerify() {
           }}>✓</div>
           <h1 style={{ color: '#fff', margin: 0, fontSize: 26 }}>Certificat authentifié</h1>
           <p style={{ color: 'rgba(255,255,255,0.85)', margin: '6px 0 0', fontSize: 14 }}>
-            Ce certificat a été émis et signé numériquement par Novatech Vision.
+            Ce certificat a été émis et signé numériquement par FormationNova.
           </p>
         </div>
 
@@ -149,8 +149,8 @@ export default function CertificateVerify() {
                 Ce certificat est vérifié électroniquement. Vous pouvez le partager avec votre
                 employeur ou l'utiliser comme preuve de compétence. Pour toute vérification
                 manuelle, contactez-nous à{' '}
-                <a href="mailto:contact@novatech-vision.bj" style={{ color: '#a16207' }}>
-                  contact@novatech-vision.bj
+                <a href="mailto:contact@FormationNova-vision.bj" style={{ color: '#a16207' }}>
+                  contact@FormationNova-vision.bj
                 </a>.
               </p>
             </div>

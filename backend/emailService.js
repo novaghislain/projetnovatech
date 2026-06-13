@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const FROM_NAME = 'Novatech Vision';
+const FROM_NAME = 'FormationNova';
 const FROM_EMAIL = process.env.EMAIL_USER;
 
 function sendEmail({ to, subject, html }) {

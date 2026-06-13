@@ -294,7 +294,7 @@ const Inscription = () => {
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
       {/* TOP BAR - Remplace la Navbar publique */}
       <div style={{ background: '#1A1A2E', padding: '1rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>
-        <img src="/4x.png" alt="Novatech Vision" style={{ height: '36px' }} />
+        <img src="/4x.png" alt="FormationNova" style={{ height: '36px' }} />
         <button
           onClick={() => navigate(language === 'en' ? '/en/courses' : '/formations')}
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.5rem 1.2rem', borderRadius: '50px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}

@@ -175,9 +175,9 @@ const initDb = async () => {
     const uCountRes = await client.execute("SELECT COUNT(*) as count FROM Users");
     if (uCountRes.rows[0].count === 0) {
       await runSql(`INSERT INTO Users (firstName, lastName, email, password, role, status) VALUES (?, ?, ?, ?, ?, ?)`,
-        ['Admin', 'Novatech', 'admin@novatech.com', '$2b$10$eCzKiogycGxEltGkv6BvkOwTzZs1yuwgxavQ2O.KSQIpPtbQiRXmu', 'admin', 'active']);
+        ['Admin', 'FormationNova', 'admin@FormationNova.com', '$2b$10$eCzKiogycGxEltGkv6BvkOwTzZs1yuwgxavQ2O.KSQIpPtbQiRXmu', 'admin', 'active']);
       await runSql(`INSERT INTO Users (firstName, lastName, email, password, role, status) VALUES (?, ?, ?, ?, ?, ?)`,
-        ['Test', 'Formateur', 'formateur@novatech.com', '$2b$10$iV7OIMyimn3kK8qjiXV2UuedYRf3FqxFgkSC1Kpm/0PJDoZMve4Cu', 'formateur', 'active']);
+        ['Test', 'Formateur', 'formateur@FormationNova.com', '$2b$10$iV7OIMyimn3kK8qjiXV2UuedYRf3FqxFgkSC1Kpm/0PJDoZMve4Cu', 'formateur', 'active']);
       console.log("Comptes par défaut injectés.");
     }
   } catch (e) {}
@@ -330,7 +330,7 @@ const initDb = async () => {
     const fCountRes = await client.execute("SELECT COUNT(*) as count FROM Formateurs");
     if (fCountRes.rows[0].count === 0) {
       await runSql('INSERT INTO Formateurs (nom, prenom, email, specialite, bio, status) VALUES (?, ?, ?, ?, ?, ?)',
-        ['Formateur', 'Test', 'formateur@novatech.com', 'Bureautique', "Formateur de test pour valider les connexions et le tableau de bord.", 'actif']);
+        ['Formateur', 'Test', 'formateur@FormationNova.com', 'Bureautique', "Formateur de test pour valider les connexions et le tableau de bord.", 'actif']);
       console.log("Formateur initial injecté.");
     }
   } catch(e){}
@@ -374,8 +374,8 @@ const initDb = async () => {
 
   await runSql(`CREATE TABLE IF NOT EXISTS GeneralSettings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    siteName TEXT DEFAULT 'NovaTech Vision',
-    contactEmail TEXT DEFAULT 'contact@novatechvision.com',
+    siteName TEXT DEFAULT 'FormationNova',
+    contactEmail TEXT DEFAULT 'contact@FormationNovavision.com',
     contactPhone TEXT DEFAULT '+229 0191348557',
     themeColor TEXT DEFAULT '#8B5CF6',
     fontFamily TEXT DEFAULT 'Inter',
@@ -387,7 +387,7 @@ const initDb = async () => {
     const gsCountRes = await client.execute("SELECT COUNT(*) as count FROM GeneralSettings");
     if (gsCountRes.rows[0].count === 0) {
       await runSql(`INSERT INTO GeneralSettings (id, siteName, contactEmail, contactPhone, themeColor, fontFamily, registrationStatus, defaultRole)
-                  VALUES (1, 'NovaTech Vision', 'contact@novatechvision.com', '+229 0191348557', '#8B5CF6', 'Inter', 'Ouvertes', 'Apprenant')`);
+                  VALUES (1, 'FormationNova', 'contact@FormationNovavision.com', '+229 0191348557', '#8B5CF6', 'Inter', 'Ouvertes', 'Apprenant')`);
       console.log("Paramètres généraux initiaux injectés.");
     }
   } catch(e){}

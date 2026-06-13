@@ -64,7 +64,7 @@ const Register = () => {
         
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <h1 style={{ fontSize: '2rem', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Créer un compte</h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>Rejoignez Novatech Vision et commencez votre apprentissage.</p>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>Rejoignez FormationNova et commencez votre apprentissage.</p>
         </div>
 
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

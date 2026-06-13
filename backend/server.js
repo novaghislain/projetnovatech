@@ -54,7 +54,7 @@ const upload = multer({ storage: storage });
 
 // Clés & JWT
 const FEDAPAY_SECRET_KEY = process.env.FEDAPAY_SECRET_KEY;
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_novatech_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_FormationNova_key_2026';
 
 /**
  * ROUTES D'AUTHENTIFICATION
@@ -170,7 +170,7 @@ app.post('/api/auth/forgot-password', (req, res) => {
 
       sendEmail({
         to: user.email,
-        subject: 'Réinitialisation de votre mot de passe - Novatech Vision',
+        subject: 'Réinitialisation de votre mot de passe - FormationNova',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #2563eb;">Réinitialisation de mot de passe</h2>
@@ -181,7 +181,7 @@ app.post('/api/auth/forgot-password', (req, res) => {
             <p style="color: #6b7280; font-size: 14px;">Ce lien expire dans 1 heure.</p>
             <p style="color: #6b7280; font-size: 14px;">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
             <hr style="border: none; border-top: 1px solid #e5e7eb;" />
-            <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
+            <p style="color: #9ca3af; font-size: 12px;">FormationNova - Cotonou, Bénin</p>
           </div>
         `,
       }).then(() => console.log('[EMAIL] Lien de réinitialisation envoyé à', user.email))
@@ -655,7 +655,7 @@ app.get('/api/invoices/:enrollmentId', authenticateToken, (req, res) => {
 
     const { generateInvoice } = require('./invoiceService');
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="facture-novatech-${enrollment.transactionId || enrollmentId}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="facture-FormationNova-${enrollment.transactionId || enrollmentId}.pdf"`);
     generateInvoice(enrollment, res);
   });
 });
@@ -683,7 +683,7 @@ app.get('/api/public/invoices/:enrollmentId', (req, res) => {
 
     const { generateInvoice } = require('./invoiceService');
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="facture-novatech-${enrollment.transactionId || enrollmentId}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="facture-FormationNova-${enrollment.transactionId || enrollmentId}.pdf"`);
     generateInvoice(enrollment, res);
   });
 });
@@ -1450,7 +1450,7 @@ const solicitTestimonials = () => {
       enrollments.forEach(enroll => {
         sendEmail({
           to: enroll.email,
-          subject: `Partagez votre avis sur la formation "${enroll.courseTitle}" - Novatech Vision`,
+          subject: `Partagez votre avis sur la formation "${enroll.courseTitle}" - FormationNova`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #2563eb;">Votre avis nous intéresse !</h2>
@@ -1459,7 +1459,7 @@ const solicitTestimonials = () => {
               <p>Nous espérons que cette formation a répondu à vos attentes. Pour nous aider à nous améliorer et inspirer d'autres parents, partagez votre avis et votre témoignage en ligne dès aujourd'hui.</p>
               <a href="http://localhost:5173/temoignages" style="display: inline-block; padding: 12px 24px; background: #10b981; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0; font-weight: bold;">Déposer un témoignage</a>
               <hr style="border: none; border-top: 1px solid #e5e7eb;" />
-              <p style="color: #9ca3af; font-size: 12px;">Novatech Vision - Cotonou, Bénin</p>
+              <p style="color: #9ca3af; font-size: 12px;">FormationNova - Cotonou, Bénin</p>
             </div>
           `
         }).then(() => console.log(`[CRON TESTIMONIALS] Invitation envoyée à ${enroll.email}`))
