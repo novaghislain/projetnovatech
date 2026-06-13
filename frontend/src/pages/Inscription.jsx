@@ -737,28 +737,6 @@ const Inscription = () => {
                   </div>
                 </div>
 
-                <div className="form-section">
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
-                    <Users size={20} /> {t('ins_parent_info')}
-                  </h3>
-                  <div className="form-group">
-                    <label>{t('ins_parent_fullname')}</label>
-                    <input className="form-input" name="parentName" value={formData.parentName} onChange={handleChange} required />
-                  </div>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>{t('ins_parent_phone')}</label>
-                      <input type="tel" className="form-input" name="parentPhone" value={formData.parentPhone} onChange={handleChange} required />
-                    </div>
-                    <div className="form-group">
-                      <label>{t('ins_parent_email')}</label>
-                      <input type="email" className="form-input" name="parentEmail" value={formData.parentEmail} onChange={handleChange} required />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label>{t('ins_address')}</label>
-                    <input className="form-input" name="address" value={formData.address} onChange={handleChange} required />
-                  </div>
                 </div>
 
                 <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ width: '100%', marginTop: '1rem', padding: '1rem', fontSize: '1.1rem', borderRadius: '12px' }}>
