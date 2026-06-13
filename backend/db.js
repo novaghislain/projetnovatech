@@ -396,6 +396,8 @@ const initDb = async () => {
     await runSql(`ALTER TABLE GeneralSettings ADD COLUMN smtpUser TEXT DEFAULT ''`);
     await runSql(`ALTER TABLE GeneralSettings ADD COLUMN smtpPass TEXT DEFAULT ''`);
     await runSql(`ALTER TABLE GeneralSettings ADD COLUMN contactReceiverEmail TEXT DEFAULT 'contact@formationnova.com'`);
+    await runSql(`ALTER TABLE GeneralSettings ADD COLUMN smtpHost TEXT DEFAULT 'smtp.gmail.com'`);
+    await runSql(`ALTER TABLE GeneralSettings ADD COLUMN smtpPort TEXT DEFAULT '465'`);
   } catch(e) {}
 
   try {

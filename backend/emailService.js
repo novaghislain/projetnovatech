@@ -2,38 +2,44 @@ const nodemailer = require('nodemailer');
 const db = require('./db');
 require('dotenv').config();
 
-function getTransporterAndFrom() {
+const getTransporter = () => {
   return new Promise((resolve, reject) => {
-    db.get("SELECT smtpUser, smtpPass, siteName, contactEmail FROM GeneralSettings WHERE id = 1", [], (err, row) => {
+    db.get("SELECT smtpUser, smtpPass, smtpHost, smtpPort, siteName FROM GeneralSettings WHERE id = 1", [], (err, settings) => {
       let user = process.env.EMAIL_USER;
       let pass = process.env.EMAIL_PASS;
+      let host = 'smtp.gmail.com';
+      let port = 465;
       let siteName = 'FormationNova';
-      
-      if (!err && row) {
-        if (row.smtpUser && row.smtpPass) {
-          user = row.smtpUser;
-          pass = row.smtpPass;
-        }
-        if (row.siteName) siteName = row.siteName;
+
+      if (!err && settings) {
+        if (settings.smtpUser) user = settings.smtpUser;
+        if (settings.smtpPass) pass = settings.smtpPass;
+        if (settings.smtpHost) host = settings.smtpHost;
+        if (settings.smtpPort) port = parseInt(settings.smtpPort, 10);
+        if (settings.siteName) siteName = settings.siteName;
       }
-      
+
       if (!user || !pass) {
-        return reject(new Error("Email credentials not configured in DB or .env"));
+        console.warn("Transporter configuration issue: EMAIL_USER or EMAIL_PASS not set in ENV or DB.");
       }
 
       const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user, pass },
+        host: host,
+        port: port,
+        secure: port === 465,
+        auth: {
+          user: user,
+          pass: pass
+        }
       });
-
       resolve({ transporter, user, siteName });
     });
   });
-}
+};
 
 async function sendEmail({ to, subject, html }) {
   try {
-    const { transporter, user, siteName } = await getTransporterAndFrom();
+    const { transporter, user, siteName } = await getTransporter();
     return transporter.sendMail({
       from: `"${siteName}" <${user}>`,
       to,
