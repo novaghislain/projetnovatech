@@ -45,6 +45,7 @@ import AdminMessages from './AdminMessages';
 import AdminFormateurs from './AdminFormateurs';
 import AdminCandidatures from './AdminCandidatures';
 import AdminMetaPixel from './AdminMetaPixel';
+import AdminParametres from './AdminParametres';
 import Parametres from '../Parametres';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_URL, getImageUrl } from '../../config';
@@ -88,6 +89,7 @@ const AdminDashboard = () => {
     { tab: 'utilisateurs', icon: Users, label: 'Utilisateurs' },
     { tab: 'formateurs', icon: Users, label: 'Formateurs' },
     { tab: 'candidatures', icon: CheckCircle, label: 'Candidatures' },
+    { tab: 'admin_settings', icon: Settings, label: 'Paramètres Généraux' },
     { tab: 'profile_settings', icon: User, label: 'Paramètres du Profil' },
   ].filter(item => {
     if (user?.role === 'admin_restreint') {
@@ -287,6 +289,7 @@ const AdminDashboard = () => {
     messages: 'Messages de Contact',
     candidatures: 'Candidatures Formateurs',
     'meta-pixel': 'Marketing › Meta Pixel',
+    'admin_settings': 'Paramètres Généraux',
     'profile_settings': 'Paramètres du Profil',
   };
 
@@ -560,6 +563,7 @@ const AdminDashboard = () => {
           {activeTab === 'utilisateurs' && <AdminUsers />}
           {activeTab === 'formateurs' && <AdminFormateurs />}
           {activeTab === 'candidatures' && <AdminCandidatures />}
+          {activeTab === 'admin_settings' && <AdminParametres />}
           {activeTab === 'profile_settings' && <Parametres />}
           {activeTab === 'contenu' && <AdminContent />}
           {activeTab === 'messages' && <AdminMessages />}
