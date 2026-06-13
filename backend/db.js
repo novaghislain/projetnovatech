@@ -335,6 +335,7 @@ const initDb = async () => {
     addColumnIfMissing('Formations', "format TEXT DEFAULT 'en_ligne'");
     addColumnIfMissing('Formations', "locationMode TEXT DEFAULT 'en_ligne'");
     addColumnIfMissing('Formations', "imageUrls TEXT");
+    addColumnIfMissing('Formations', "contactInstruction TEXT");
 
     const enrollCols = [
       "childFirstName TEXT", "childLastName TEXT", "childAge TEXT",

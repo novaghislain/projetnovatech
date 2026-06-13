@@ -288,7 +288,7 @@ const Inscription = () => {
     );
   }
 
-  const isFull = course && course.enrolled >= course.maxParticipants;
+  const isFull = course && course.maxParticipants && course.enrolled >= course.maxParticipants;
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
@@ -373,6 +373,15 @@ const Inscription = () => {
                           }} style={{ width: '100%' }}>
                             {language === 'en' ? 'Join Waitlist (Free)' : "Rejoindre la liste d'attente (Gratuit)"}
                           </button>
+                        </div>
+                      ) : course.contactInstruction ? (
+                        <div style={{ backgroundColor: '#eff6ff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
+                          <h4 style={{ color: '#1d4ed8', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <BookOpen size={20} /> Modalités d'inscription
+                          </h4>
+                          <p style={{ color: '#1e3a8a', marginBottom: '0', whiteSpace: 'pre-wrap', fontSize: '1.05rem', lineHeight: '1.5' }}>
+                            {course.contactInstruction}
+                          </p>
                         </div>
                       ) : (
                         <div>

@@ -301,15 +301,15 @@ module.exports = (db, authenticateToken) => {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-    const { title, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, startDate, endDate, enrollmentEndDate, location, isOnline, meetLink, whatsappLink, imageUrl, imageUrls, sessionsPerWeek, sessionDuration, status, format, locationMode } = req.body;
+    const { title, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, startDate, endDate, enrollmentEndDate, location, isOnline, meetLink, whatsappLink, imageUrl, imageUrls, sessionsPerWeek, sessionDuration, status, format, locationMode, contactInstruction } = req.body;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
     const urlsString = Array.isArray(imageUrls) ? JSON.stringify(imageUrls) : (imageUrls || '[]');
 
     const doInsert = (formateurId) => {
       db.run(
-        `INSERT INTO Formations (title, slug, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, startDate, endDate, enrollmentEndDate, location, isOnline, meetLink, whatsappLink, imageUrl, imageUrls, sessionsPerWeek, sessionDuration, status, formateurId, format, locationMode)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [title, slug, description, category, ageGroup || '', level || '', duration || '', price || 0, registrationFee || 0, maxParticipants || 20, startDate || null, endDate || null, enrollmentEndDate || null, location || '', isOnline ? 1 : 0, meetLink || '', whatsappLink || '', imageUrl || '', urlsString, sessionsPerWeek || 1, sessionDuration || '', status || 'published', formateurId || null, format || 'en_ligne', locationMode || 'en_ligne'],
+        `INSERT INTO Formations (title, slug, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, startDate, endDate, enrollmentEndDate, location, isOnline, meetLink, whatsappLink, imageUrl, imageUrls, sessionsPerWeek, sessionDuration, status, formateurId, format, locationMode, contactInstruction)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [title, slug, description, category, ageGroup || '', level || '', duration || '', price || 0, registrationFee || 0, maxParticipants || 20, startDate || null, endDate || null, enrollmentEndDate || null, location || '', isOnline ? 1 : 0, meetLink || '', whatsappLink || '', imageUrl || '', urlsString, sessionsPerWeek || 1, sessionDuration || '', status || 'published', formateurId || null, format || 'en_ligne', locationMode || 'en_ligne', contactInstruction || ''],
         function(err) {
           if (err) return res.status(500).json({ error: err.message });
           res.json({ success: true, id: this.lastID });
@@ -333,7 +333,7 @@ module.exports = (db, authenticateToken) => {
       return res.status(403).json({ error: 'Accès refusé' });
     }
 
-    const { title, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, startDate, endDate, enrollmentEndDate, location, isOnline, meetLink, whatsappLink, imageUrl, imageUrls, sessionsPerWeek, sessionDuration, status, format, locationMode } = req.body;
+    const { title, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, startDate, endDate, enrollmentEndDate, location, isOnline, meetLink, whatsappLink, imageUrl, imageUrls, sessionsPerWeek, sessionDuration, status, format, locationMode, contactInstruction } = req.body;
     const courseId = req.params.id;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
     const urlsString = Array.isArray(imageUrls) ? JSON.stringify(imageUrls) : (imageUrls || '[]');
@@ -350,8 +350,8 @@ module.exports = (db, authenticateToken) => {
         if (!row) return res.status(403).json({ error: 'Formation introuvable ou non autorisée' });
 
         db.run(
-          `UPDATE Formations SET title=?, slug=?, description=?, category=?, ageGroup=?, level=?, duration=?, price=?, registrationFee=?, maxParticipants=?, startDate=?, endDate=?, enrollmentEndDate=?, location=?, isOnline=?, meetLink=?, whatsappLink=?, imageUrl=?, imageUrls=?, sessionsPerWeek=?, sessionDuration=?, status=?, format=?, locationMode=? WHERE id=?`,
-          [title, slug, description, category, ageGroup || '', level || '', duration || '', price || 0, registrationFee || 0, maxParticipants || 20, startDate || null, endDate || null, enrollmentEndDate || null, location || '', isOnline ? 1 : 0, meetLink || '', whatsappLink || '', imageUrl || '', urlsString, sessionsPerWeek || 1, sessionDuration || '', status || 'published', format || 'en_ligne', locationMode || 'en_ligne', courseId],
+          `UPDATE Formations SET title=?, slug=?, description=?, category=?, ageGroup=?, level=?, duration=?, price=?, registrationFee=?, maxParticipants=?, startDate=?, endDate=?, enrollmentEndDate=?, location=?, isOnline=?, meetLink=?, whatsappLink=?, imageUrl=?, imageUrls=?, sessionsPerWeek=?, sessionDuration=?, status=?, format=?, locationMode=?, contactInstruction=? WHERE id=?`,
+          [title, slug, description, category, ageGroup || '', level || '', duration || '', price || 0, registrationFee || 0, maxParticipants || 20, startDate || null, endDate || null, enrollmentEndDate || null, location || '', isOnline ? 1 : 0, meetLink || '', whatsappLink || '', imageUrl || '', urlsString, sessionsPerWeek || 1, sessionDuration || '', status || 'published', format || 'en_ligne', locationMode || 'en_ligne', contactInstruction || '', courseId],
           (err) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true });

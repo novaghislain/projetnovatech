@@ -25,7 +25,7 @@ const AdminFormations = () => {
     id: null, title: '', description: '', category: mockCategories[0], price: '', registrationFee: '', duration: '', ageGroup: '', level: 'Tous niveaux',
     maxParticipants: '', status: 'draft', imageUrl: '', imageUrls: [], isFull: false,
     whatsappLink: '', meetLink: '', startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne',
-    formateurId: ''
+    formateurId: '', contactInstruction: ''
   });
   const [errors, setErrors] = useState({});
 
@@ -92,7 +92,7 @@ const AdminFormations = () => {
         id: null, title: '', description: '', category: mockCategories[0], price: '', registrationFee: '', duration: '', ageGroup: '', level: 'Tous niveaux',
         maxParticipants: '', status: 'draft', imageUrl: '', imageUrls: [], isFull: false,
         whatsappLink: '', meetLink: '', startDate: '', endDate: '', enrollmentEndDate: '', location: '', format: 'en_ligne', locationMode: 'en_ligne',
-        formateurId: ''
+        formateurId: '', contactInstruction: ''
       });
     }
     setErrors({});
@@ -189,7 +189,7 @@ const AdminFormations = () => {
         return {
           ...prev,
           imageUrls: newUrls,
-          imageUrl: prev.imageUrl || newUrls[0]
+          imageUrl: uploadedUrls[0] // Set newest uploaded image as main thumbnail
         };
       });
     }
@@ -348,6 +348,11 @@ const AdminFormations = () => {
               <div className="form-group">
                 <label>Description</label>
                 <textarea className="form-control" rows="3" value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})}></textarea>
+              </div>
+
+              <div className="form-group">
+                <label>Instructions spéciales d'inscription (ex: Appelez le 01 91 34 85 57 pour inscrire votre enfant. Remplace le bouton de paiement en ligne.)</label>
+                <input type="text" className="form-control" placeholder="Laissez vide pour autoriser l'inscription en ligne normale" value={formData.contactInstruction || ''} onChange={e => setFormData({...formData, contactInstruction: e.target.value})} />
               </div>
 
               <div className="form-row">

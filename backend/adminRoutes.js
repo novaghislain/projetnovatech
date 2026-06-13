@@ -244,32 +244,32 @@ module.exports = function(db, authenticateToken) {
   });
 
   router.post('/formations', (req, res) => {
-    const { title, description, category, ageGroup, level, duration, price, maxParticipants, status, imageUrl, imageUrls, isFull,
-            whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode, formateurId } = req.body;
+    const { title, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, status, imageUrl, imageUrls, isFull,
+            whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode, formateurId, contactInstruction } = req.body;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
     const query = `
-      INSERT INTO Formations (title, slug, description, category, ageGroup, level, duration, price, maxParticipants, status, imageUrl, imageUrls, isFull,
-                              whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode, formateurId)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO Formations (title, slug, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, status, imageUrl, imageUrls, isFull,
+                              whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode, formateurId, contactInstruction)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    db.run(query, [title, slug, description, category, ageGroup, level || 'Tous niveaux', duration, price, maxParticipants, status || 'published', imageUrl, imageUrls || '[]', isFull ? 1 : 0,
-                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', enrollmentEndDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne', formateurId || null], function(err) {
+    db.run(query, [title, slug, description, category, ageGroup, level || 'Tous niveaux', duration, price, registrationFee || 0, maxParticipants, status || 'published', imageUrl, imageUrls || '[]', isFull ? 1 : 0,
+                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', enrollmentEndDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne', formateurId || null, contactInstruction || ''], function(err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, id: this.lastID });
     });
   });
 
   router.put('/formations/:id', (req, res) => {
-    const { title, description, category, ageGroup, level, duration, price, maxParticipants, status, imageUrl, imageUrls, isFull,
-            whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode, formateurId } = req.body;
+    const { title, description, category, ageGroup, level, duration, price, registrationFee, maxParticipants, status, imageUrl, imageUrls, isFull,
+            whatsappLink, meetLink, startDate, endDate, enrollmentEndDate, location, isOnline, format, locationMode, formateurId, contactInstruction } = req.body;
     const slug = title ? title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
     const query = `
-      UPDATE Formations SET title=?, slug=?, description=?, category=?, ageGroup=?, level=?, duration=?, price=?, maxParticipants=?, status=?, imageUrl=?, imageUrls=?, isFull=?,
-                            whatsappLink=?, meetLink=?, startDate=?, endDate=?, enrollmentEndDate=?, location=?, isOnline=?, format=?, locationMode=?, formateurId=?
+      UPDATE Formations SET title=?, slug=?, description=?, category=?, ageGroup=?, level=?, duration=?, price=?, registrationFee=?, maxParticipants=?, status=?, imageUrl=?, imageUrls=?, isFull=?,
+                            whatsappLink=?, meetLink=?, startDate=?, endDate=?, enrollmentEndDate=?, location=?, isOnline=?, format=?, locationMode=?, formateurId=?, contactInstruction=?
       WHERE id=?
     `;
-    db.run(query, [title, slug, description, category, ageGroup, level || 'Tous niveaux', duration, price, maxParticipants, status, imageUrl, imageUrls || '[]', isFull ? 1 : 0,
-                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', enrollmentEndDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne', formateurId || null,
+    db.run(query, [title, slug, description, category, ageGroup, level || 'Tous niveaux', duration, price, registrationFee || 0, maxParticipants, status, imageUrl, imageUrls || '[]', isFull ? 1 : 0,
+                   whatsappLink || '', meetLink || '', startDate || '', endDate || '', enrollmentEndDate || '', location || '', isOnline ? 1 : 0, format || 'en_ligne', locationMode || 'en_ligne', formateurId || null, contactInstruction || '',
                    req.params.id], (err) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true });
