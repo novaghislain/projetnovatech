@@ -3,7 +3,7 @@ import { Plus, Edit, Trash2, Search, Filter, Image as ImageIcon, X, AlertTriangl
 import AdminCourseBuilder from './AdminCourseBuilder';
 import { API_URL, getImageUrl } from '../../config';
 
-const mockCategories = ['Développement', 'Intelligence Artificielle', 'Bureautique', 'Design Graphique'];
+const mockCategories = ['IA', 'Développement', 'Informatique Général', 'Bureautique'];
 
 const AdminFormations = () => {
   const [formations, setFormations] = useState([]);
@@ -327,6 +327,12 @@ const AdminFormations = () => {
               <div className="form-row">
                 <div className="form-group" style={{ flex: 1 }}>
                   <label>Catégorie *</label>
+                  <select className="form-control" value={formData.category || mockCategories[0]} onChange={e => setFormData({...formData, category: e.target.value})}>
+                    {mockCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Format de la formation</label>
                   <select className="form-control" value={formData.format || 'en_ligne'} onChange={e => setFormData({...formData, format: e.target.value})}>
                     <option value="en_ligne">En Ligne</option>
                     <option value="physique">Présentiel</option>
@@ -394,7 +400,6 @@ const AdminFormations = () => {
                 <select className="form-control" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
                   <option value="draft">Brouillon</option>
                   <option value="published">Publié (En ligne)</option>
-                  <option value="full">Complet (obsolète, utiliser la case ci-dessous)</option>
                 </select>
               </div>
 
@@ -408,18 +413,6 @@ const AdminFormations = () => {
                 </select>
               </div>
 
-              <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <input 
-                  type="checkbox" 
-                  id="isFullCheckbox" 
-                  checked={formData.isFull || false} 
-                  onChange={e => setFormData({...formData, isFull: e.target.checked})} 
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
-                <label htmlFor="isFullCheckbox" style={{ margin: 0, cursor: 'pointer', fontWeight: 600, color: '#dc2626' }}>
-                  Marquer manuellement comme "COMPLET"
-                </label>
-              </div>
 
               <div className="form-group">
                 <label>Photos de la formation (Défileront en carrousel sur la page détails) *</label>

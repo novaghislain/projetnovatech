@@ -264,13 +264,10 @@ const FormateurDashboard = () => {
   };
 
   const categoryDisplay = {
+    'IA': language === 'en' ? 'AI' : 'IA',
     'Développement': language === 'en' ? 'Development' : 'Développement',
-    'Intelligence Artificielle': language === 'en' ? 'Artificial Intelligence' : 'Intelligence Artificielle',
-    'Bureautique': language === 'en' ? 'Office Applications' : 'Bureautique',
-    'Cybersécurité': language === 'en' ? 'Cybersecurity' : 'Cybersécurité',
-    'Design': language === 'en' ? 'Design' : 'Design',
-    'Robotique': language === 'en' ? 'Robotics' : 'Robotique',
-    'Autre': language === 'en' ? 'Other' : 'Autre'
+    'Informatique Général': language === 'en' ? 'General IT' : 'Informatique Général',
+    'Bureautique': language === 'en' ? 'Office Applications' : 'Bureautique'
   };
 
   const ageGroupDisplay = {
@@ -1568,6 +1565,14 @@ const FormateurDashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Category' : 'Catégorie'}</label>
+                  <select value={courseForm.category || 'Développement'} onChange={e => setCourseForm(f => ({ ...f, category: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
+                    {Object.keys(categoryDisplay).map(cat => (
+                      <option key={cat} value={cat}>{categoryDisplay[cat]}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>{language === 'en' ? 'Format' : 'Format de la formation'}</label>
                   <select value={courseForm.format} onChange={e => setCourseForm(f => ({ ...f, format: e.target.value }))} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.95rem' }}>
                     <option value="en_ligne">En ligne</option>
                     <option value="physique">Présentiel</option>
