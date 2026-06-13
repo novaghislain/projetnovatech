@@ -262,6 +262,7 @@ select.form-input {
   }
 
   .form-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    display: grid !important;
   }
 }

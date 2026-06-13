@@ -1114,8 +1114,8 @@
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
-.form-row { display: flex; gap: 1rem; }
-.form-row .form-group { flex: 1; }
+.form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+.form-row .form-group { flex: 1; min-width: 250px; }
 
 /* ── Mobile ── */
 .mobile-header {
