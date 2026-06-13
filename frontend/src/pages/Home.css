@@ -1312,7 +1312,7 @@
 
 @media (max-width: 640px) {
   .hero-main {
-    min-height: 600px;
+    min-height: 420px; /* Moins haut = moins de rognage sur les côtés de l'image */
     background-color: transparent;
     display: block;
     padding-top: 0;
@@ -1324,19 +1324,19 @@
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover; /* L'image couvre tout le cadre */
-    object-position: center 20%; /* On centre sur les visages */
+    object-fit: cover;
+    object-position: center center; /* On centre parfaitement pour voir les enfants sur les côtés */
   }
 
   .hero-overlay {
     height: 100%;
-    /* Retour au dégradé sombre classique sur toute l'image */
-    background: linear-gradient(180deg, rgba(26, 26, 46, 0.3) 0%, rgba(15, 52, 96, 0.7) 100%);
+    /* Dégradé plus léger pour bien voir l'image derrière */
+    background: linear-gradient(180deg, rgba(26, 26, 46, 0.2) 0%, rgba(15, 52, 96, 0.65) 100%);
   }
 
   .hero-text-block {
     position: relative;
-    padding: 3rem 1.25rem 4rem 1.25rem;
+    padding: 1.5rem 1rem 2rem 1rem; /* Moins de padding pour réduire la hauteur totale */
     height: auto;
     z-index: 2;
   }
