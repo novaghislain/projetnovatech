@@ -121,7 +121,7 @@ const Inscription = () => {
         if (!formData.guestPassword || formData.guestPassword.length < 8) {
            throw new Error(language === 'en' ? 'Password must be at least 8 characters' : 'Le mot de passe doit faire au moins 8 caractères');
         }
-        const regRes = await fetch(`${API_URL}/api/auth/register`, {
+        let regRes = await fetch(`${API_URL}/api/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -133,10 +133,34 @@ const Inscription = () => {
             role: 'apprenant'
           })
         });
-        const regData = await regRes.json();
-        if (!regRes.ok) throw new Error((language === 'en' ? "Account creation error: " : "Erreur de création de compte : ") + (regData.error || "Unknown"));
         
-        token = regData.token;
+        let regData = await regRes.json();
+        
+        if (!regRes.ok) {
+          // Si l'email existe déjà, on tente de se connecter avec le mot de passe fourni
+          if (regData.error && regData.error.includes('déjà utilisé')) {
+            const loginRes = await fetch(`${API_URL}/api/auth/login`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: formData.guestEmail,
+                password: formData.guestPassword
+              })
+            });
+            const loginData = await loginRes.json();
+            if (!loginRes.ok) {
+              throw new Error(language === 'en' 
+                ? "This account already exists. Incorrect password. Please log in first." 
+                : "Ce compte existe déjà. Mot de passe incorrect. Veuillez vous connecter.");
+            }
+            token = loginData.token;
+          } else {
+            throw new Error((language === 'en' ? "Account creation error: " : "Erreur de création de compte : ") + (regData.error || "Unknown"));
+          }
+        } else {
+          token = regData.token;
+        }
+        
         localStorage.setItem('nv_token', token);
         // Note: we don't await auth.login to avoid race conditions with the redirect, we just use the token
       }
