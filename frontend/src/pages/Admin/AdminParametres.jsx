@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Globe, Shield, Palette, Database, Search, Mail } from 'lucide-react';
+import { Search, Mail, ChevronDown, ChevronUp } from 'lucide-react';
 import { API_URL } from '../../config';
 
-const AdminParametres = () => {
+const ParametresCEO = () => {
   const [settings, setSettings] = useState({
-    siteName: '',
-    contactEmail: '',
-    contactPhone: '',
-    themeColor: '',
-    fontFamily: '',
-    registrationStatus: 'Ouvertes',
-    defaultRole: 'Apprenant',
     seoTitle: '',
     seoDescription: '',
-    seoKeywords: '',
+    contactReceiverEmail: '',
+    smtpHost: '',
+    smtpPort: '',
     smtpUser: '',
-    smtpPass: '',
-    contactReceiverEmail: ''
+    smtpPass: ''
   });
+  
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [savingField, setSavingField] = useState('');
   const [message, setMessage] = useState({ text: '', type: '' });
+  
+  const [openSections, setOpenSections] = useState({
+    seo: true,
+    emails: true
+  });
 
   useEffect(() => {
     fetchSettings();
@@ -29,393 +29,125 @@ const AdminParametres = () => {
   const fetchSettings = async () => {
     try {
       const token = localStorage.getItem('nv_token');
-      const response = await fetch(`${API_URL}/api/admin/settings`, {
+      const res = await fetch(`${API_URL}/api/admin/settings`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (!response.ok) throw new Error("Erreur de récupération des paramètres");
-      const data = await response.json();
-      setSettings(data);
+      if (!res.ok) throw new Error("Erreur de récupération des paramètres");
+      const data = await res.json();
+      setSettings(prev => ({ ...prev, ...data }));
     } catch (err) {
-      console.error(err);
-      setMessage({ text: "Erreur lors du chargement des paramètres", type: 'error' });
+      setMessage({ text: err.message, type: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setSaving(true);
+  const handleSaveField = async (fieldName) => {
+    setSavingField(fieldName);
     setMessage({ text: '', type: '' });
+    
     try {
       const token = localStorage.getItem('nv_token');
-      const response = await fetch(`${API_URL}/api/admin/settings`, {
+      const res = await fetch(`${API_URL}/api/admin/settings`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(settings)
       });
-      if (!response.ok) throw new Error("Erreur lors de l'enregistrement des paramètres");
-      setMessage({ text: "Paramètres sauvegardés avec succès !", type: 'success' });
-      await fetchSettings();
-      setTimeout(() => setMessage({ text: '', type: '' }), 4000);
+      
+      if (!res.ok) throw new Error("Erreur lors de la sauvegarde");
+      
+      setMessage({ text: "Paramètre sauvegardé avec succès !", type: 'success' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     } catch (err) {
-      console.error(err);
       setMessage({ text: err.message, type: 'error' });
     } finally {
-      setSaving(false);
+      setSavingField('');
     }
+  };
+
+  const toggleSection = (section) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
   if (loading) {
     return (
-      <div style={{ padding: '5rem', textAlign: 'center', color: '#666' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>
         Chargement des paramètres...
       </div>
     );
   }
 
-  return (
-    <div className="fade-in">
-      <form onSubmit={handleSave} className="admin-panel" style={{ borderTop: '4px solid #1A1A2E' }}>
-        <div className="admin-panel-header">
-          <h3 className="admin-panel-title">
-            <Settings size={20} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
-            Paramètres Généraux
-          </h3>
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
-          </button>
-        </div>
+  const pageTitleStyle = { fontSize: '2rem', fontWeight: '900', marginBottom: '0.5rem', display: 'flex', gap: '8px' };
+  const titlePink = { color: '#E11D48' };
+  const titleGreen = { color: '#2C5E43' };
+  const subtitleStyle = { color: '#6B7280', fontSize: '0.95rem', marginBottom: '2rem' };
+  const sectionHeaderStyle = { background: '#FDF2F8', padding: '1rem 1.5rem', borderRadius: '12px 12px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', border: '1px solid #FCE7F3' };
+  const sectionTitleStyle = { display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700', color: '#111827', fontSize: '1rem' };
+  const sectionBodyStyle = { background: 'white', padding: '1.5rem', borderRadius: '0 0 12px 12px', border: '1px solid #F3F4F6', borderTop: 'none', marginBottom: '2rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.02)' };
+  const fieldWrapperStyle = { marginBottom: '1.5rem' };
+  const labelStyle = { display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#374151', marginBottom: '0.5rem' };
+  const inputRowStyle = { display: 'flex', gap: '1rem', alignItems: 'center' };
+  const inputStyle = { flex: 1, padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '0.95rem', outline: 'none', color: '#1F2937' };
+  const saveBtnStyle = { background: '#E84587', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '8px', fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer' };
+  const saveBtnDisabledStyle = { ...saveBtnStyle, background: '#F9A8D4', cursor: 'not-allowed' };
 
-        {message.text && (
-          <div style={{
-            padding: '1.25rem',
-            borderRadius: '10px',
-            marginBottom: '1.5rem',
-            backgroundColor: message.type === 'success' ? '#def7ec' : '#fde8e8',
-            color: message.type === 'success' ? '#03543f' : '#9b1c1c',
-            fontWeight: 600,
-            fontSize: '0.9rem',
-            border: `1px solid ${message.type === 'success' ? '#bcf0da' : '#f8b4b4'}`
-          }}>
-            {message.type === 'success' ? '✓' : '⚠️'} {message.text}
+  return (
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1rem' }}>
+      <h1 style={pageTitleStyle}>
+        <span style={titlePink}>Paramètres</span>
+        <span style={titleGreen}>CEO</span>
+      </h1>
+      <p style={subtitleStyle}>Gérez ici le référencement de votre plateforme et les paramètres d'envoi d'e-mails professionnels.</p>
+
+      {message.text && (
+        <div style={{ padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', background: message.type === 'error' ? '#FEF2F2' : '#ECFDF5', color: message.type === 'error' ? '#DC2626' : '#059669', border: `1px solid ${message.type === 'error' ? '#FECACA' : '#A7F3D0'}` }}>
+          {message.text}
+        </div>
+      )}
+
+      <div>
+        <div style={sectionHeaderStyle} onClick={() => toggleSection('seo')}>
+          <div style={sectionTitleStyle}><Search size={18} color="#4B5563" />Référencement (SEO)</div>
+          {openSections.seo ? <ChevronUp size={20} color="#6B7280" /> : <ChevronDown size={20} color="#6B7280" />}
+        </div>
+        {openSections.seo && (
+          <div style={sectionBodyStyle}>
+            <div style={fieldWrapperStyle}>
+              <label style={labelStyle}>seo_title</label>
+              <div style={inputRowStyle}>
+                <input type="text" value={settings.seoTitle || ''} onChange={(e) => setSettings({...settings, seoTitle: e.target.value})} style={inputStyle} />
+                <button style={savingField === 'seoTitle' ? saveBtnDisabledStyle : saveBtnStyle} onClick={() => handleSaveField('seoTitle')} disabled={savingField === 'seoTitle'}>Sauvegarder</button>
+              </div>
+            </div>
+            <div style={{...fieldWrapperStyle, marginBottom: 0}}>
+              <label style={labelStyle}>seo_description</label>
+              <div style={inputRowStyle}>
+                <input type="text" value={settings.seoDescription || ''} onChange={(e) => setSettings({...settings, seoDescription: e.target.value})} style={inputStyle} />
+                <button style={savingField === 'seoDescription' ? saveBtnDisabledStyle : saveBtnStyle} onClick={() => handleSaveField('seoDescription')} disabled={savingField === 'seoDescription'}>Sauvegarder</button>
+              </div>
+            </div>
           </div>
         )}
+      </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '0.5rem' }}>
-
-          {/* SECTION 1: Informations Générales */}
-          <div style={{
-            background: '#F9FAFB',
-            borderRadius: '16px',
-            padding: '1.25rem 1.5rem',
-            border: '1px solid #E5E7EB',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <div style={{
-                width: 38, height: 38, borderRadius: 10,
-                background: 'rgba(139, 92, 246, 0.1)',
-                color: 'var(--primary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Globe size={20} />
-              </div>
-              <div>
-                <h4 style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--dark)' }}>Informations Générales</h4>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#9CA3AF' }}>Nom du site, email de contact et téléphone</p>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '0.75rem', marginTop: '0.75rem' }}>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Nom du site</label>
-                <input
-                  type="text"
-                  value={settings.siteName || ''}
-                  onChange={e => setSettings({ ...settings, siteName: e.target.value })}
-                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none' }}
-                  required
-                />
-              </div>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Email de contact</label>
-                <input
-                  type="email"
-                  value={settings.contactEmail || ''}
-                  onChange={e => setSettings({ ...settings, contactEmail: e.target.value })}
-                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none' }}
-                  required
-                />
-              </div>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Téléphone</label>
-                <input
-                  type="text"
-                  value={settings.contactPhone || ''}
-                  onChange={e => setSettings({ ...settings, contactPhone: e.target.value })}
-                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none' }}
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 2: Apparence */}
-          <div style={{
-            background: '#F9FAFB',
-            borderRadius: '16px',
-            padding: '1.25rem 1.5rem',
-            border: '1px solid #E5E7EB',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <div style={{
-                width: 38, height: 38, borderRadius: 10,
-                background: 'rgba(139, 92, 246, 0.1)',
-                color: 'var(--primary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Palette size={20} style={{ color: '#8B5CF6' }} />
-              </div>
-              <div>
-                <h4 style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--dark)' }}>Apparence</h4>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#9CA3AF' }}>Couleurs du thème, police, mise en page</p>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '0.75rem', marginTop: '0.75rem' }}>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Couleur principale</label>
-                  <input
-                    type="text"
-                    value={settings.themeColor || ''}
-                    onChange={e => setSettings({ ...settings, themeColor: e.target.value })}
-                    style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', outline: 'none', width: '100%' }}
-                    required
-                  />
-                </div>
-                <input
-                  type="color"
-                  value={settings.themeColor || '#8B5CF6'}
-                  onChange={e => setSettings({ ...settings, themeColor: e.target.value })}
-                  style={{ border: 'none', background: 'none', width: '32px', height: '32px', cursor: 'pointer', padding: 0 }}
-                />
-              </div>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Police</label>
-                <select
-                  value={settings.fontFamily || 'Inter'}
-                  onChange={e => setSettings({ ...settings, fontFamily: e.target.value })}
-                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none', background: 'none', cursor: 'pointer' }}
-                >
-                  <option value="Inter">Inter</option>
-                  <option value="Roboto">Roboto</option>
-                  <option value="Outfit">Outfit</option>
-                  <option value="Open Sans">Open Sans</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 3: Sécurité & Authentification */}
-          <div style={{
-            background: '#F9FAFB',
-            borderRadius: '16px',
-            padding: '1.25rem 1.5rem',
-            border: '1px solid #E5E7EB',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <div style={{
-                width: 38, height: 38, borderRadius: 10,
-                background: 'rgba(139, 92, 246, 0.1)',
-                color: 'var(--primary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Shield size={20} style={{ color: '#10B981' }} />
-              </div>
-              <div>
-                <h4 style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--dark)' }}>Sécurité & Authentification</h4>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#9CA3AF' }}>Inscriptions, rôles utilisateurs, permissions</p>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '0.75rem', marginTop: '0.75rem' }}>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Inscriptions</label>
-                <select
-                  value={settings.registrationStatus || 'Ouvertes'}
-                  onChange={e => setSettings({ ...settings, registrationStatus: e.target.value })}
-                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none', background: 'none', cursor: 'pointer' }}
-                >
-                  <option value="Ouvertes">Ouvertes</option>
-                  <option value="Fermées">Fermées</option>
-                </select>
-              </div>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Rôle par défaut</label>
-                <select
-                  value={settings.defaultRole || 'Apprenant'}
-                  onChange={e => setSettings({ ...settings, defaultRole: e.target.value })}
-                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none', background: 'none', cursor: 'pointer' }}
-                >
-                  <option value="Apprenant">Apprenant</option>
-                  <option value="Formateur">Formateur</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 4: Référencement (SEO) */}
-          <div style={{
-            background: '#F9FAFB',
-            borderRadius: '16px',
-            padding: '1.25rem 1.5rem',
-            border: '1px solid #E5E7EB',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <div style={{
-                width: 38, height: 38, borderRadius: 10,
-                background: 'rgba(236, 72, 153, 0.1)',
-                color: '#EC4899',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Search size={20} />
-              </div>
-              <div>
-                <h4 style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--dark)' }}>Référencement (SEO)</h4>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#9CA3AF' }}>Optimisation pour Google et les réseaux sociaux</p>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.75rem' }}>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Titre de la page (Balise Title)</label>
-                <input
-                  type="text"
-                  value={settings.seoTitle || ''}
-                  onChange={e => setSettings({ ...settings, seoTitle: e.target.value })}
-                  placeholder="Ex: FormationNova - L'informatique à la portée de tous"
-                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none' }}
-                />
-              </div>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Description de la page (Meta Description)</label>
-                <textarea
-                  value={settings.seoDescription || ''}
-                  onChange={e => setSettings({ ...settings, seoDescription: e.target.value })}
-                  placeholder="Petite description qui s'affiche dans Google..."
-                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 500, color: 'var(--dark)', width: '100%', outline: 'none', resize: 'vertical', minHeight: '60px' }}
-                />
-              </div>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Mots-clés (Meta Keywords)</label>
-                <input
-                  type="text"
-                  value={settings.seoKeywords || ''}
-                  onChange={e => setSettings({ ...settings, seoKeywords: e.target.value })}
-                  placeholder="Ex: formation, code, ia, informatique"
-                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 500, color: 'var(--dark)', width: '100%', outline: 'none' }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 5: Configuration Email */}
-          <div style={{
-            background: '#F9FAFB',
-            borderRadius: '16px',
-            padding: '1.25rem 1.5rem',
-            border: '1px solid #E5E7EB',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <div style={{
-                width: 38, height: 38, borderRadius: 10,
-                background: 'rgba(245, 158, 11, 0.1)',
-                color: '#F59E0B',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Mail size={20} />
-              </div>
-              <div>
-                <h4 style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--dark)' }}>Configuration Email (SMTP)</h4>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#9CA3AF' }}>Gestion des envois de mails et réception des messages</p>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '0.75rem', marginTop: '0.75rem' }}>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB', gridColumn: '1 / -1' }}>
-                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Adresse Email de Réception (Formulaire de contact)</label>
-                <input
-                  type="email"
-                  value={settings.contactReceiverEmail || ''}
-                  onChange={e => setSettings({ ...settings, contactReceiverEmail: e.target.value })}
-                  placeholder="admin@formationnova.com"
-                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)', width: '100%', outline: 'none' }}
-                />
-              </div>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Gmail d'envoi (SMTP User)</label>
-                <input
-                  type="text"
-                  value={settings.smtpUser || ''}
-                  onChange={e => setSettings({ ...settings, smtpUser: e.target.value })}
-                  placeholder="Laisser vide pour utiliser .env"
-                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 500, color: 'var(--dark)', width: '100%', outline: 'none' }}
-                />
-              </div>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <label style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, display: 'block', marginBottom: '0.2rem' }}>Mot de passe d'application (SMTP Pass)</label>
-                <input
-                  type="password"
-                  value={settings.smtpPass || ''}
-                  onChange={e => setSettings({ ...settings, smtpPass: e.target.value })}
-                  placeholder="••••••••••••••••"
-                  style={{ border: 'none', padding: 0, fontSize: '0.9rem', fontWeight: 500, color: 'var(--dark)', width: '100%', outline: 'none' }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 6: Maintenance */}
-          <div style={{
-            background: '#F9FAFB',
-            borderRadius: '16px',
-            padding: '1.25rem 1.5rem',
-            border: '1px solid #E5E7EB',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <div style={{
-                width: 38, height: 38, borderRadius: 10,
-                background: 'rgba(59, 130, 246, 0.1)',
-                color: '#3B82F6',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Database size={20} />
-              </div>
-              <div>
-                <h4 style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--dark)' }}>Maintenance</h4>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#9CA3AF' }}>Sauvegarde de la base de données, logs, cache</p>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '0.75rem', marginTop: '0.75rem' }}>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <div style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, marginBottom: '0.2rem' }}>Base de données</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)' }}>Turso (libSQL)</div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid #E5E7EB' }}>
-                <div style={{ fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 500, marginBottom: '0.2rem' }}>Dernière sauvegarde</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--dark)' }}>
-                  {settings.lastBackup ? new Date(settings.lastBackup).toLocaleString() : 'Automatique'}
-                </div>
-              </div>
-            </div>
-          </div>
+      <div>
+        <div style={sectionHeaderStyle} onClick={() => toggleSection('emails')}>
+          <div style={sectionTitleStyle}><Mail size={18} color="#4B5563" />Configuration de réception des E-mails</div>
+          {openSections.emails ? <ChevronUp size={20} color="#6B7280" /> : <ChevronDown size={20} color="#6B7280" />}
         </div>
-      </form>
+        {openSections.emails && (
+          <div style={sectionBodyStyle}>
+            <div style={fieldWrapperStyle}><label style={labelStyle}>E-mail de réception</label><div style={inputRowStyle}><input type="email" value={settings.contactReceiverEmail || ''} onChange={(e) => setSettings({...settings, contactReceiverEmail: e.target.value})} style={inputStyle} /><button style={savingField === 'contactReceiverEmail' ? saveBtnDisabledStyle : saveBtnStyle} onClick={() => handleSaveField('contactReceiverEmail')} disabled={savingField === 'contactReceiverEmail'}>Sauvegarder</button></div></div>
+            <div style={fieldWrapperStyle}><label style={labelStyle}>Serveur SMTP</label><div style={inputRowStyle}><input type="text" value={settings.smtpHost || ''} onChange={(e) => setSettings({...settings, smtpHost: e.target.value})} style={inputStyle} /><button style={savingField === 'smtpHost' ? saveBtnDisabledStyle : saveBtnStyle} onClick={() => handleSaveField('smtpHost')} disabled={savingField === 'smtpHost'}>Sauvegarder</button></div></div>
+            <div style={fieldWrapperStyle}><label style={labelStyle}>Port SMTP</label><div style={inputRowStyle}><input type="text" value={settings.smtpPort || ''} onChange={(e) => setSettings({...settings, smtpPort: e.target.value})} style={inputStyle} /><button style={savingField === 'smtpPort' ? saveBtnDisabledStyle : saveBtnStyle} onClick={() => handleSaveField('smtpPort')} disabled={savingField === 'smtpPort'}>Sauvegarder</button></div></div>
+            <div style={fieldWrapperStyle}><label style={labelStyle}>E-mail expéditeur</label><div style={inputRowStyle}><input type="email" value={settings.smtpUser || ''} onChange={(e) => setSettings({...settings, smtpUser: e.target.value})} style={inputStyle} /><button style={savingField === 'smtpUser' ? saveBtnDisabledStyle : saveBtnStyle} onClick={() => handleSaveField('smtpUser')} disabled={savingField === 'smtpUser'}>Sauvegarder</button></div></div>
+            <div style={{...fieldWrapperStyle, marginBottom: 0}}><label style={labelStyle}>Mot de passe d'application</label><div style={inputRowStyle}><input type="password" value={settings.smtpPass || ''} onChange={(e) => setSettings({...settings, smtpPass: e.target.value})} style={inputStyle} /><button style={savingField === 'smtpPass' ? saveBtnDisabledStyle : saveBtnStyle} onClick={() => handleSaveField('smtpPass')} disabled={savingField === 'smtpPass'}>Sauvegarder</button></div></div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

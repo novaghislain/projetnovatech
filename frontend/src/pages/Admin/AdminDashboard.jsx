@@ -89,7 +89,7 @@ const AdminDashboard = () => {
     { tab: 'utilisateurs', icon: Users, label: 'Utilisateurs' },
     { tab: 'formateurs', icon: Users, label: 'Formateurs' },
     { tab: 'candidatures', icon: CheckCircle, label: 'Candidatures' },
-    { tab: 'admin_settings', icon: Settings, label: 'Paramètres Généraux' },
+    { tab: 'admin_settings', icon: Settings, label: 'Paramètres CEO' },
     { tab: 'profile_settings', icon: User, label: 'Paramètres du Profil' },
   ].filter(item => {
     if (user?.role === 'admin_restreint') {
@@ -289,7 +289,7 @@ const AdminDashboard = () => {
     messages: 'Messages de Contact',
     candidatures: 'Candidatures Formateurs',
     'meta-pixel': 'Marketing › Meta Pixel',
-    'admin_settings': 'Paramètres Généraux',
+    'admin_settings': 'Paramètres CEO',
     'profile_settings': 'Paramètres du Profil',
   };
 
