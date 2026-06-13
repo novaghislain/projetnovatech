@@ -438,7 +438,7 @@ const Inscription = () => {
                                 <label>{language === 'en' ? 'Create a Password (for your parent account)' : 'Créez un mot de passe (pour votre espace parent)'} *</label>
                                 <input type="password" className="form-input" name="guestPassword" value={formData.guestPassword || ''} onChange={handleChange} required placeholder="••••••••" />
                                 <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.4rem' }}>
-                                  {language === 'en' ? 'Minimum 8 characters. We will automatically create your account to track the enrollment.' : 'Minimum 8 caractères. Nous allons créer votre compte automatiquement pour suivre l\\'inscription.'}
+                                  {language === 'en' ? 'Minimum 8 characters. We will automatically create your account to track the enrollment.' : "Minimum 8 caractères. Nous allons créer votre compte automatiquement pour suivre l'inscription."}
                                 </div>
                               </div>
                             </div>
@@ -446,7 +446,7 @@ const Inscription = () => {
                           
                           {(!auth.user && (!formData.guestFirstName || !formData.guestEmail || !formData.guestPhone || !formData.guestPassword || formData.guestPassword.length < 8)) ? (
                             <button className="btn btn-primary" disabled style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', opacity: 0.5, cursor: 'not-allowed' }}>
-                              {language === 'en' ? 'Fill contact details first' : 'Remplissez vos informations d\'abord'}
+                              {language === 'en' ? 'Fill contact details first' : "Remplissez vos informations d'abord"}
                             </button>
                           ) : (!course.registrationFee || course.registrationFee === 0) ? (
                             <button className="btn btn-primary" onClick={async () => {
@@ -765,8 +765,6 @@ const Inscription = () => {
                   {submitLoading ? t('loading') : (language === 'en' ? 'Complete Enrollment' : 'Terminer mon inscription')} <CheckCircle size={18} style={{ marginLeft: '0.5rem' }} />
                 </button>
               </form>
-              )}
-
             </div>
           )}
         </div>

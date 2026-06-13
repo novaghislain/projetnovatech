@@ -44,7 +44,7 @@ const AdminInscriptions = () => {
   };
 
   const handleApprove = async (id) => {
-    if(window.confirm('Voulez-vous valider ce paiement et activer l\\'inscription ?')) {
+    if(window.confirm("Voulez-vous valider ce paiement et activer l'inscription ?")) {
       try {
         const token = localStorage.getItem('nv_token');
         await axios.put(`${API_URL}/api/admin/payments/${id}/status`, { status: 'active' }, {
