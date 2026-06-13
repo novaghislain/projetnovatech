@@ -103,7 +103,6 @@ const AdminFormations = () => {
     const newErrors = {};
     if (!formData.title || formData.title.length < 5) newErrors.title = 'Le titre doit faire au moins 5 caractères.';
     if (!formData.price || isNaN(formData.price)) newErrors.price = 'Veuillez entrer un prix valide.';
-    if (!formData.maxParticipants || isNaN(formData.maxParticipants)) newErrors.maxParticipants = 'Veuillez entrer un nombre de places valide.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -375,7 +374,7 @@ const AdminFormations = () => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Places max *</label>
+                  <label>Places max</label>
                   <input type="number" className="form-control" value={formData.maxParticipants} onChange={e => setFormData({...formData, maxParticipants: e.target.value})} />
                   {errors.maxParticipants && <div style={{ color: '#ff4d4f', fontSize: '0.8rem', marginTop: '4px' }}>{errors.maxParticipants}</div>}
                 </div>

@@ -1342,6 +1342,10 @@
     grid-template-columns: 1fr;
   }
 
+  .formation-card-img {
+    height: 280px; /* Agrandir l'image sur mobile */
+  }
+
   .key-figures-grid {
     grid-template-columns: 1fr 1fr;
   }
