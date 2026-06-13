@@ -81,18 +81,18 @@ const ParametresCEO = () => {
   }
 
   const pageTitleStyle = { fontSize: '2rem', fontWeight: '900', marginBottom: '0.5rem', display: 'flex', gap: '8px' };
-  const titlePink = { color: '#E11D48' };
-  const titleGreen = { color: '#2C5E43' };
+  const titlePink = { color: 'var(--color-primary)' };
+  const titleGreen = { color: 'var(--color-secondary)' };
   const subtitleStyle = { color: '#6B7280', fontSize: '0.95rem', marginBottom: '2rem' };
-  const sectionHeaderStyle = { background: '#FDF2F8', padding: '1rem 1.5rem', borderRadius: '12px 12px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', border: '1px solid #FCE7F3' };
-  const sectionTitleStyle = { display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700', color: '#111827', fontSize: '1rem' };
-  const sectionBodyStyle = { background: 'white', padding: '1.5rem', borderRadius: '0 0 12px 12px', border: '1px solid #F3F4F6', borderTop: 'none', marginBottom: '2rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.02)' };
+  const sectionHeaderStyle = { background: '#F8FAFC', padding: '1rem 1.5rem', borderRadius: '12px 12px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', border: '1px solid #E2E8F0' };
+  const sectionTitleStyle = { display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700', color: 'var(--color-primary)', fontSize: '1rem' };
+  const sectionBodyStyle = { background: 'white', padding: '1.5rem', borderRadius: '0 0 12px 12px', border: '1px solid #E2E8F0', borderTop: 'none', marginBottom: '2rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.02)' };
   const fieldWrapperStyle = { marginBottom: '1.5rem' };
-  const labelStyle = { display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#374151', marginBottom: '0.5rem' };
+  const labelStyle = { display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#334155', marginBottom: '0.5rem' };
   const inputRowStyle = { display: 'flex', gap: '1rem', alignItems: 'center' };
-  const inputStyle = { flex: 1, padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '0.95rem', outline: 'none', color: '#1F2937' };
-  const saveBtnStyle = { background: '#E84587', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '8px', fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer' };
-  const saveBtnDisabledStyle = { ...saveBtnStyle, background: '#F9A8D4', cursor: 'not-allowed' };
+  const inputStyle = { flex: 1, padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.95rem', outline: 'none', color: '#1E293B' };
+  const saveBtnStyle = { background: 'var(--color-primary)', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '8px', fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer' };
+  const saveBtnDisabledStyle = { ...saveBtnStyle, background: '#94A3B8', cursor: 'not-allowed' };
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1rem' }}>
