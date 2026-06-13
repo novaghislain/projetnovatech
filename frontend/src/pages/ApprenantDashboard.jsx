@@ -32,9 +32,15 @@ const ApprenantDashboard = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
-        setEnrollments(data);
+        if (Array.isArray(data)) {
+          setEnrollments(data);
+        } else {
+          console.error("API Error fetching enrollments:", data);
+          setEnrollments([]);
+        }
       } catch (err) {
         console.error(err);
+        setEnrollments([]);
       }
     };
     if (user) fetchEnrollments();
