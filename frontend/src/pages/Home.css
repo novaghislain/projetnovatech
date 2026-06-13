@@ -1311,11 +1311,16 @@
 }
 
 @media (max-width: 640px) {
+  .hero-layout {
+    padding: 0; /* Supprime le bord blanc autour du bloc hero */
+  }
+
   .hero-main {
     min-height: 420px; /* Moins haut = moins de rognage sur les côtés de l'image */
     background-color: transparent;
     display: block;
     padding-top: 0;
+    border-radius: 0; /* Enlève les bords arrondis pour toucher les bords de l'écran */
   }
 
   .hero-bg-img {
