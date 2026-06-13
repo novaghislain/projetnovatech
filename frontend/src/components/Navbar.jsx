@@ -121,7 +121,7 @@ const Navbar = () => {
 
         {/* Logo */}
         <Link to="/" className="navbar-logo">
-          <img src="/4x.png" alt="FormationNova Logo" className="logo-image" />
+          <span style={{fontWeight: "bold", fontSize: "1.5rem", color: "var(--color-primary)", cursor: "pointer"}} onClick={() => window.location.href = "/"}>FormationNova</span>
         </Link>
 
         {/* Mobile Nav Overlay */}

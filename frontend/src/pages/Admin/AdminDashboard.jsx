@@ -294,7 +294,7 @@ const AdminDashboard = () => {
     <div className="admin-layout">
       {/* MOBILE HEADER */}
       <div className="mobile-header">
-        <img src="/4x.png" alt="FormationNova" onClick={() => window.location.href = '/'} />
+        <span style={{fontWeight: "bold", fontSize: "1.5rem", color: "var(--color-primary)", cursor: "pointer"}} onClick={() => window.location.href = "/"}>FormationNova</span> window.location.href = '/'} />
         <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
           <Menu size={24} />
         </button>
@@ -308,7 +308,7 @@ const AdminDashboard = () => {
       {/* SIDEBAR */}
       <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`} ref={sidebarRef}>
         <div className="sidebar-logo">
-          <img src="/4x.png" alt="FormationNova" onClick={() => window.location.href = '/'} />
+          <span style={{fontWeight: "bold", fontSize: "1.5rem", color: "var(--color-primary)", cursor: "pointer"}} onClick={() => window.location.href = "/"}>FormationNova</span> window.location.href = '/'} />
         </div>
         <div className="sidebar-nav-wrap" ref={navRef}
           onScroll={() => updateIndicator(activeTab)}>
