@@ -108,7 +108,7 @@ const ApprenantDashboard = () => {
 
       {/* MAIN CONTENT AREA */}
       <main className="main-content" style={{ maxHeight: '100vh', overflowY: 'auto' }}>
-        <div style={{ padding: '2rem 3rem', maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ padding: '2rem 3rem', maxWidth: '1800px', margin: '0 auto' }}>
           <Routes>
             <Route path="/" element={<OverviewTab enrollments={enrollments} />} />
             <Route path="/formations" element={<CoursesTab enrollments={enrollments} setEnrollments={setEnrollments} />} />

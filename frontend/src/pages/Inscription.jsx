@@ -107,6 +107,19 @@ const Inscription = () => {
     }
   }, [selectedCourseId, formations]);
 
+  // Rediriger vers l'inscription / création de compte si non connecté
+  useEffect(() => {
+    if (!auth.loading && !auth.user) {
+      navigate('/register', { 
+        state: { 
+          from: '/inscription', 
+          formationId: selectedCourseId || initialFormationId || null 
+        },
+        replace: true
+      });
+    }
+  }, [auth.loading, auth.user, navigate, selectedCourseId, initialFormationId]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
