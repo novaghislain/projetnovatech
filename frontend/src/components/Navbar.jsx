@@ -121,7 +121,7 @@ const Navbar = () => {
 
         {/* Logo */}
         <Link to="/" className="navbar-logo">
-          <img src="/4x.png" alt="FormationNova" style={{ height: '40px', objectFit: 'contain', cursor: 'pointer' }} />
+          <img src="/4x.png" alt="FormationNova" style={{ height: '55px', objectFit: 'contain', cursor: 'pointer' }} />
         </Link>
 
         {/* Mobile Nav Overlay */}

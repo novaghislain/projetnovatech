@@ -17,7 +17,7 @@ const Footer = () => {
     <footer className="footer">
       <div className="container footer-container">
         <div className="footer-section">
-          <img src="/4x.png" alt="FormationNova" style={{ height: '45px', objectFit: 'contain', marginBottom: '1rem' }} />
+          <img src="/4x.png" alt="FormationNova" style={{ height: '65px', objectFit: 'contain', marginBottom: '1rem' }} />
           <p className="footer-desc">
             {t('footer_desc')}
           </p>

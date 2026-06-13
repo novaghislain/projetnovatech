@@ -70,7 +70,7 @@ const ApprenantDashboard = () => {
       
       {/* MOBILE HEADER */}
       <div className="mobile-header">
-        <img src="/4x.png" alt="FormationNova" style={{ height: '35px', objectFit: 'contain', cursor: 'pointer' }} onClick={() => window.location.href = "/"} />
+        <img src="/4x.png" alt="FormationNova" style={{ height: '55px', objectFit: 'contain', cursor: 'pointer' }} onClick={() => window.location.href = "/"} />
         <button onClick={() => setMobileMenuOpen(true)} className="mobile-menu-btn">
           <Menu size={24} />
         </button>
@@ -84,7 +84,7 @@ const ApprenantDashboard = () => {
       {/* SIDEBAR */}
       <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
-          <img src="/4x.png" alt="FormationNova" style={{ height: '40px', objectFit: 'contain', cursor: 'pointer', display: 'block', margin: '0 auto' }} onClick={() => window.location.href = "/"} />
+          <img src="/4x.png" alt="FormationNova" style={{ height: '60px', objectFit: 'contain', cursor: 'pointer', display: 'block', margin: '0 auto' }} onClick={() => window.location.href = "/"} />
         </div>
         <div className="sidebar-nav-wrap">
           {navItems.map(item => (

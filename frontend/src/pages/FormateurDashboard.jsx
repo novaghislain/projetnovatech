@@ -617,7 +617,7 @@ const FormateurDashboard = () => {
       {/* SIDEBAR */}
       <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
-          <img src="/4x.png" alt="FormationNova" style={{ height: '40px', objectFit: 'contain', cursor: 'pointer', display: 'block', margin: '0 auto' }} onClick={() => window.location.href = "/"} />
+          <img src="/4x.png" alt="FormationNova" style={{ height: '60px', objectFit: 'contain', cursor: 'pointer', display: 'block', margin: '0 auto' }} onClick={() => window.location.href = "/"} />
         </div>
         <div className="sidebar-nav-wrap" ref={navRef}>
           <div className="sidebar-indicator" style={{
