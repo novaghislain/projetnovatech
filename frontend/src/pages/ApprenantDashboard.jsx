@@ -72,7 +72,7 @@ const ApprenantDashboard = () => {
   ];
 
   return (
-    <div className="admin-layout" style={{ minHeight: '100vh', display: 'flex', backgroundColor: '#f8fafc' }}>
+    <div className="admin-layout">
       
       {/* MOBILE HEADER */}
       <div className="mobile-header">
