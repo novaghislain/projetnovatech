@@ -41,7 +41,10 @@ module.exports = function(db, authenticateToken) {
       }
 
       const isFull = course.enrolled >= course.maxParticipants;
-      const status = isFull ? 'waitlist' : 'active';
+      let status = isFull ? 'waitlist' : 'active';
+      if (paymentMethod === 'Mobile Money' && !isFull) {
+        status = 'pending';
+      }
       
       const isMensuel = paymentType === 'mensuel' || paymentType === 'partial';
       const totalAmount = amount;
