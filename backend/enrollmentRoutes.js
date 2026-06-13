@@ -77,7 +77,7 @@ module.exports = function(db, authenticateToken) {
                 paymentMethod, status,
                 paymentProof || null,
                 existingEnroll.id
-              ];
+              ].map(p => p === undefined ? null : p);
               db.run(updateQuery, updateParams, function(updateErr) {
                 if (updateErr) return res.status(500).json({ error: "Erreur lors de la mise à jour de l'inscription" });
                 sendConfirmationAndRespond(existingEnroll.id);
@@ -105,7 +105,7 @@ module.exports = function(db, authenticateToken) {
           childFirstName, childLastName, childAge, parentName, parentPhone, parentEmail, address,
           guestFirstName || '', guestLastName || '', guestEmail || '', guestPhone || '',
           dbPaymentType, totalAmount, amountPaid, paymentProof || null
-        ];
+        ].map(p => p === undefined ? null : p);
         db.run(query, params, function(err) {
           if (err) {
             console.error("SQL Insert Error:", err);
