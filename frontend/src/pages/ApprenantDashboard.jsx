@@ -221,7 +221,7 @@ const CoursesTab = ({ enrollments, setEnrollments }) => {
       <h2 style={{ fontSize: '1.6rem', color: '#1A1A2E', marginBottom: '1.5rem' }}>{t('dash_my_courses')}</h2>
  
       {enrollments.length === 0 ? (
-        <div style={{ backgroundColor: 'white', padding: '3rem', borderRadius: '12px', border: '1px dashed #cbd5e1', textAlign: 'center' }}>
+        <div style={{ backgroundColor: 'white', padding: '3rem', borderRadius: '12px', border: '1px dashed #cbd5e1', textAlign: 'center', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <BookOpen size={48} color="#94a3b8" style={{ marginBottom: '1rem' }} />
           <h3 style={{ margin: '0 0 0.5rem 0', color: '#1A1A2E' }}>{t('dash_no_courses')}</h3>
           <p style={{ color: '#64748b' }}>{t('dash_no_courses_desc')}</p>
@@ -370,7 +370,7 @@ const ResourcesTab = ({ enrollments }) => {
       <h2 style={{ fontSize: '1.6rem', color: '#1A1A2E', marginBottom: '1.5rem' }}>{t('dash_pedagogical_resources')}</h2>
       
       {activeEnrollments.length === 0 ? (
-        <div style={{ color: '#64748b', backgroundColor: 'white', padding: '2rem', borderRadius: '12px', border: '1px solid #f1f5f9', textAlign: 'center' }}>
+        <div style={{ color: '#64748b', backgroundColor: 'white', padding: '2rem', borderRadius: '12px', border: '1px solid #f1f5f9', textAlign: 'center', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           {t('dash_no_resources')}
         </div>
       ) : (
@@ -541,71 +541,63 @@ const PaymentsTab = () => {
   return (
     <div className="fade-in">
       <h2 style={{ fontSize: '1.6rem', color: '#1A1A2E', marginBottom: '1.5rem' }}>{t('dash_payment_history')}</h2>
-      <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #f1f5f9', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead style={{ background: '#f8fafc' }}>
-            <tr>
-              <th style={{ padding: '1rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{t('dash_date')}</th>
-              <th style={{ padding: '1rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{t('nav_courses')}</th>
-              <th style={{ padding: '1rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{t('dash_type')}</th>
-              <th style={{ padding: '1rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{t('dash_installments')}</th>
-              <th style={{ padding: '1rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{t('dash_amount_paid')}</th>
-              <th style={{ padding: '1rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{t('dash_status')}</th>
-              <th style={{ padding: '1rem', textAlign: 'right', color: '#64748b', fontWeight: 600 }}>{t('dash_actions')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.filter(p => p.status !== 'waitlist').map(p => {
-              const isMensuel = p.paymentType === 'partial';
-              const needsPayment = isMensuel && (p.amountPaid < p.totalAmount);
-              return (
-                <tr key={p.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '1rem' }}>{new Date(p.createdAt).toLocaleDateString()}</td>
-                  <td style={{ padding: '1rem', fontWeight: 500 }}>{p.courseTitle || 'Formation'}</td>
-                  <td style={{ padding: '1rem' }}>{isMensuel ? (language === 'en' ? 'Partial' : 'Partiel') : (language === 'en' ? 'Full' : 'Complet')}</td>
-                  <td style={{ padding: '1rem' }}>
-                    {isMensuel ? `50%` : '100%'}
-                  </td>
-                  <td style={{ padding: '1rem' }}>{p.amountPaid || 0} FCFA</td>
-                  <td style={{ padding: '1rem' }}>
-                    <span style={{ 
-                      background: needsPayment ? '#fef3c7' : '#dcfce7', 
-                      color: needsPayment ? '#92400e' : '#166534', 
-                      padding: '0.2rem 0.6rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 600 
-                    }}>
-                      {needsPayment ? t('dash_status_incomplete') : t('dash_status_paid')}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1rem', textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
-                    {needsPayment && (
-                      <button 
-                        onClick={() => setPayingEnrollment(p)} 
-                        style={{ 
-                          background: '#3b82f6', color: 'white', border: 'none', 
-                          padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', 
-                          fontWeight: 600, fontSize: '0.8rem' 
-                        }}
-                      >
-                        {t('dash_pay_installment')}
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => downloadReceipt(p)}
-                      style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                    >
-                      <Download size={16} /> {t('dash_receipt')}
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-            {payments.filter(p => p.status !== 'waitlist').length === 0 && (
+      <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #f1f5f9', overflow: 'hidden', minHeight: '60vh', display: payments.filter(p => p.status !== 'waitlist').length === 0 ? 'flex' : 'block', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        {payments.filter(p => p.status !== 'waitlist').length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3rem' }}>
+            <CreditCard size={48} color="#94a3b8" style={{ marginBottom: '1rem' }} />
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#1A1A2E' }}>{t('dash_no_payments') || 'Aucun paiement'}</h3>
+          </div>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead style={{ background: '#f8fafc' }}>
               <tr>
-                <td colSpan="7" style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>{t('dash_no_payments')}</td>
+                <th style={{ padding: '1rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{t('dash_date')}</th>
+                <th style={{ padding: '1rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{t('nav_courses')}</th>
+                <th style={{ padding: '1rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{t('dash_type')}</th>
+                <th style={{ padding: '1rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{t('dash_installments')}</th>
+                <th style={{ padding: '1rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{t('dash_amount_paid')}</th>
+                <th style={{ padding: '1rem', textAlign: 'left', color: '#64748b', fontWeight: 600 }}>{t('dash_status')}</th>
+                <th style={{ padding: '1rem', textAlign: 'right', color: '#64748b', fontWeight: 600 }}>{t('dash_actions')}</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {payments.filter(p => p.status !== 'waitlist').map(p => {
+                const isMensuel = p.paymentType === 'partial';
+                const needsPayment = isMensuel && (p.amountPaid < p.totalAmount);
+                return (
+                  <tr key={p.id} style={{ borderTop: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '1rem' }}>{new Date(p.createdAt).toLocaleDateString()}</td>
+                    <td style={{ padding: '1rem', fontWeight: 500 }}>{p.courseTitle || 'Formation'}</td>
+                    <td style={{ padding: '1rem' }}>{isMensuel ? (language === 'en' ? 'Partial' : 'Partiel') : (language === 'en' ? 'Full' : 'Complet')}</td>
+                    <td style={{ padding: '1rem' }}>
+                      {isMensuel ? `50%` : '100%'}
+                    </td>
+                    <td style={{ padding: '1rem' }}>{p.amountPaid || 0} FCFA</td>
+                    <td style={{ padding: '1rem' }}>
+                      <span style={{ 
+                        background: needsPayment ? '#fef3c7' : '#dcfce7', 
+                        color: needsPayment ? '#92400e' : '#166534', 
+                        padding: '0.2rem 0.6rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 600 
+                      }}>
+                        {needsPayment ? t('dash_status_incomplete') : t('dash_status_paid')}
+                      </span>
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+                      {needsPayment && (
+                        <button onClick={() => setPayingEnrollment(p)} style={{ background: '#0F3460', color: 'white', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                          {t('dash_pay_balance')}
+                        </button>
+                      )}
+                      <button onClick={() => downloadReceipt(p)} title={language === 'en' ? "Download Receipt" : "Télécharger le reçu"} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                        <Download size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {payingEnrollment && (
