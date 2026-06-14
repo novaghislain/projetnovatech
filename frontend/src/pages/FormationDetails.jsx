@@ -197,9 +197,11 @@ const FormationDetails = () => {
             <ArrowLeft size={18} /> {t('fd_back')}
           </Link>
           <div style={{ display: 'inline-block', backgroundColor: 'var(--color-accent)', color: 'white', padding: '0.5rem 1.2rem', borderRadius: '30px', fontSize: '0.9rem', fontWeight: 700, marginBottom: '1.5rem', width: 'fit-content', boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
-            {translateCategory(formation.category, language)}
+            {language === 'en' ? (formation.categoryEn || translateCategory(formation.category, language) || formation.category) : (formation.category)}
           </div>
-          <h1 style={{ fontSize: '3.5rem', margin: '0 0 1.5rem 0', maxWidth: '800px', lineHeight: 1.1, fontWeight: 800 }}>{translateTitle(formation.title, language)}</h1>
+          <h1 style={{ fontSize: '3.5rem', margin: '0 0 1.5rem 0', maxWidth: '800px', lineHeight: 1.1, fontWeight: 800 }}>
+            {language === 'en' ? (formation.titleEn || translateTitle(formation.title, language) || formation.title) : (formation.title)}
+          </h1>
           <div style={{ display: 'flex', gap: '2.5rem', fontSize: '1.15rem', opacity: 0.95, fontWeight: 500 }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}><Clock size={22} color="var(--color-accent)" /> {translateDuration(formation.duration, language)}</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}><Users size={22} color="var(--color-accent)" /> {translateAgeGroup(formation.ageGroup, language)}</span>

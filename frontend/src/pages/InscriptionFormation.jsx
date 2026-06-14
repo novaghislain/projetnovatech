@@ -160,7 +160,7 @@ const InscriptionFormation = () => {
                 <div key={f.id} className="formation-card">
                   <div className="formation-card-img" style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
                     <CourseImageSlider formation={f} height="180px" />
-                    {f.category && <div className="formation-card-tag" style={{zIndex: 2}}>{translateCategory(f.category, language) || f.category}</div>}
+                    {f.category && <div className="formation-card-tag" style={{zIndex: 2}}>{language === 'en' ? (f.categoryEn || translateCategory(f.category, language) || f.category) : (f.category)}</div>}
                     {isFull && <div className="formation-card-complet" style={{zIndex: 2}}>{t('courses_full').toUpperCase()}</div>}
                   </div>
                   <div className="formation-card-body">
@@ -170,7 +170,7 @@ const InscriptionFormation = () => {
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><MapPin size={16} /> {getFormatDisplay(f)}</span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Layers size={16} /> {translateLevel(f.level, language) || t('fd_all_levels')}</span>
                     </div>
-                    <h3>{translateTitle(f.title, language)}</h3>
+                    <h3>{language === 'en' ? (f.titleEn || translateTitle(f.title, language) || f.title) : (f.title)}</h3>
                     <p>{language === 'en' ? (f.descriptionEn || f.description || t('fd_default_desc')) : (f.description || t('fd_default_desc'))}</p>
                     
                     {/* Jauge de remplissage & alerte places */}

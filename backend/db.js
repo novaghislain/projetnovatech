@@ -210,6 +210,9 @@ const initDb = async () => {
     )
   `);
 
+  await addColumnIfMissing('Formations', 'descriptionEn TEXT');
+  await addColumnIfMissing('Formations', 'titleEn TEXT');
+  await addColumnIfMissing('Formations', 'categoryEn TEXT');
   await addColumnIfMissing('Formations', 'isFull BOOLEAN DEFAULT 0');
   await addColumnIfMissing('Formations', 'isLive BOOLEAN DEFAULT 0');
   await addColumnIfMissing('Formations', 'liveRoomName TEXT');
