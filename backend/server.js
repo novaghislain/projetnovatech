@@ -25,16 +25,21 @@ const PORT = process.env.PORT || 5001;
 
 
 // Dossiers utiles (Logs, Backups, Uploads)
-const logsDir = path.join(__dirname, 'logs');
-if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
+const isVercel = Boolean(process.env.VERCEL);
+const logsDir = isVercel ? '/tmp/logs' : path.join(__dirname, 'logs');
+if (!isVercel && !fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
 
-const backupsDir = path.join(__dirname, 'backups');
-if (!fs.existsSync(backupsDir)) fs.mkdirSync(backupsDir);
+const backupsDir = isVercel ? '/tmp/backups' : path.join(__dirname, 'backups');
+if (!isVercel && !fs.existsSync(backupsDir)) fs.mkdirSync(backupsDir);
 
 // Middlewares de Sécurité et Logs
-app.use(helmet({ crossOriginResourcePolicy: false })); // Désactivé partiellement pour laisser passer les images uploads si non hébergées ailleurs
-const accessLogStream = fs.createWriteStream(path.join(logsDir, 'access.log'), { flags: 'a' });
-app.use(morgan('combined', { stream: accessLogStream }));
+app.use(helmet({ crossOriginResourcePolicy: false }));
+if (!isVercel) {
+  const accessLogStream = fs.createWriteStream(path.join(logsDir, 'access.log'), { flags: 'a' });
+  app.use(morgan('combined', { stream: accessLogStream }));
+} else {
+  app.use(morgan('dev'));
+}
 
 // Middleware généraux
 app.use(cors());
