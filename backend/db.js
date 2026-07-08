@@ -116,10 +116,30 @@ class Database {
   }
 }
 
-const dbWrapper = new Database(client);
+let isDbInitialized = false;
 
 // Initialize DB schema asynchronously
 const initDb = async () => {
+  if (isDbInitialized) return dbWrapper;
+
+  // 1. FAST PATH pour éviter le Timeout Serverless Vercel (10s) en production
+  try {
+    const uCheck = await client.execute({ sql: "SELECT id FROM Users WHERE email = ?", args: ['admin@formationnova.com'] });
+    if (uCheck.rows.length === 0) {
+      const hashedAdminPass = await bcrypt.hash('admin123', 10);
+      await client.execute({
+        sql: "INSERT INTO Users (firstName, lastName, email, phone, password, role) VALUES (?, ?, ?, ?, ?, ?)",
+        args: ['Admin', 'Nova', 'admin@formationnova.com', '+229 01000000', hashedAdminPass, 'admin']
+      });
+      console.log("Compte Admin par défaut injecté dans Turso.");
+    }
+    isDbInitialized = true;
+    console.log("Schéma déjà initialisé, démarrage instantané en <100ms !");
+    return dbWrapper;
+  } catch (e) {
+    console.log("Tables non trouvées, exécution de l'initialisation complète du schéma...");
+  }
+
   // Foreign keys
   try { await client.execute('PRAGMA foreign_keys = ON;'); } catch(e){}
 
@@ -481,7 +501,7 @@ const initDb = async () => {
   }
 
   console.log('Toutes les tables ont été initialisées avec succès via libsql.');
-
+  isDbInitialized = true;
   return dbWrapper;
 };
 

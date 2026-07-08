@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "dev": "cd frontend && npm run dev -- --host",
+    "dev:frontend": "cd frontend && npm run dev -- --host",
+    "dev:backend": "cd backend && node server.js",
     "build": "cd frontend && npm install && npm run build"
   },
   "dependencies": {
