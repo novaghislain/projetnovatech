@@ -116,6 +116,7 @@ class Database {
   }
 }
 
+const dbWrapper = new Database(client);
 let isDbInitialized = false;
 
 // Initialize DB schema asynchronously
