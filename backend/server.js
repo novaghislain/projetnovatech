@@ -1576,8 +1576,12 @@ app.get('/api/sitemap.xml', (req, res) => {
 });
 
 // Démarrage du serveur
-app.listen(PORT, () => {
-  console.log(`Serveur Backend démarré sur http://localhost:${PORT}`);
-  console.log(`[FEDAPAY] Clé secrète: ${FEDAPAY_SECRET_KEY ? '✅ Chargée' : '❌ MANQUANTE — vérifiez .env'}`);
-  console.log(`[WEBHOOK] Routes actives: /api/payments/verify-fedapay | /api/webhooks/fedapay`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Serveur Backend démarré sur http://localhost:${PORT}`);
+    console.log(`[FEDAPAY] Clé secrète: ${FEDAPAY_SECRET_KEY ? '✅ Chargée' : '❌ MANQUANTE — vérifiez .env'}`);
+    console.log(`[WEBHOOK] Routes actives: /api/payments/verify-fedapay | /api/webhooks/fedapay`);
+  });
+}
+
+module.exports = app;
