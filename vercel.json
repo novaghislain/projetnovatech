@@ -2,6 +2,7 @@
   "services": {
     "frontend": {
       "root": "frontend",
+      "outputDirectory": "frontend/dist",
       "framework": "vite"
     },
     "backend": {
@@ -9,7 +10,6 @@
       "framework": "express"
     }
   },
-  "outputDirectory": "frontend/dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
