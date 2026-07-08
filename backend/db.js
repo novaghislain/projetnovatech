@@ -2,6 +2,7 @@ const { createClient } = require('@libsql/client');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
+const bcrypt = require('bcryptjs');
 
 const tursoUrl = process.env.TURSO_DATABASE_URL;
 const tursoToken = process.env.TURSO_AUTH_TOKEN;
@@ -464,6 +465,20 @@ const initDb = async () => {
       console.log("Sessions initiales injectées.");
     }
   } catch(e){}
+
+  try {
+    const uCheck = await client.execute({ sql: "SELECT id FROM Users WHERE email = ?", args: ['admin@formationnova.com'] });
+    if (uCheck.rows.length === 0) {
+      const hashedAdminPass = await bcrypt.hash('admin123', 10);
+      await runSql(
+        "INSERT INTO Users (firstName, lastName, email, phone, password, role) VALUES (?, ?, ?, ?, ?, ?)",
+        ['Admin', 'Nova', 'admin@formationnova.com', '+229 01000000', hashedAdminPass, 'admin']
+      );
+      console.log("Compte Admin par défaut injecté : admin@formationnova.com / admin123");
+    }
+  } catch(e) {
+    console.error("Erreur création Admin par défaut:", e.message);
+  }
 
   console.log('Toutes les tables ont été initialisées avec succès via libsql.');
 
