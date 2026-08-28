@@ -208,6 +208,8 @@ img {
 }
 @media (max-width: 1024px) {
   .formation-details-grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 2.5rem;
   }
 }
