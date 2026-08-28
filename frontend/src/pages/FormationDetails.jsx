@@ -192,26 +192,26 @@ const FormationDetails = () => {
             </div>
           </>
         )}
-        <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', color: 'white', paddingTop: '4rem', zIndex: 2 }}>
-          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.8)', textDecoration: 'none', marginBottom: '2rem', fontWeight: 600, transition: 'color 0.2s' }}>
+        <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: '2rem', color: 'white', paddingTop: '4rem', zIndex: 2 }}>
+          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.8)', textDecoration: 'none', marginBottom: '1.5rem', fontWeight: 600, transition: 'color 0.2s' }}>
             <ArrowLeft size={18} /> {t('fd_back')}
           </Link>
-          <div style={{ display: 'inline-block', backgroundColor: 'var(--color-accent)', color: 'white', padding: '0.5rem 1.2rem', borderRadius: '30px', fontSize: '0.9rem', fontWeight: 700, marginBottom: '1.5rem', width: 'fit-content', boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
+          <div style={{ display: 'inline-block', backgroundColor: 'var(--color-accent)', color: 'white', padding: '0.5rem 1.2rem', borderRadius: '30px', fontSize: '0.9rem', fontWeight: 700, marginBottom: '1rem', width: 'fit-content', boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
             {language === 'en' ? (formation.categoryEn || translateCategory(formation.category, language) || formation.category) : (formation.category)}
           </div>
-          <h1 style={{ fontSize: '3.5rem', margin: '0 0 1.5rem 0', maxWidth: '800px', lineHeight: 1.1, fontWeight: 800, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+          <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', margin: '0 0 1rem 0', maxWidth: '800px', lineHeight: 1.2, fontWeight: 800, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
             {language === 'en' ? (formation.titleEn || translateTitle(formation.title, language) || formation.title) : (formation.title)}
           </h1>
-          <div style={{ display: 'flex', gap: '2.5rem', fontSize: '1.15rem', opacity: 0.95, fontWeight: 500, color: '#ffffff', textShadow: '0 1px 5px rgba(0,0,0,0.5)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}><Clock size={22} color="#ffffff" /> {translateDuration(formation.duration, language)}</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}><Users size={22} color="#ffffff" /> {translateAgeGroup(formation.ageGroup, language)}</span>
+          <div style={{ display: 'flex', gap: '1.5rem', fontSize: '1.05rem', opacity: 0.95, fontWeight: 500, color: '#ffffff', textShadow: '0 1px 5px rgba(0,0,0,0.5)', flexWrap: 'wrap' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Clock size={20} color="#ffffff" /> {translateDuration(formation.duration, language)}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Users size={20} color="#ffffff" /> {translateAgeGroup(formation.ageGroup, language)}</span>
           </div>
         </div>
       </div>
 
       <div className="container" style={{ marginTop: '3rem' }}>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '3rem', alignItems: 'start' }}>
+        <div className="formation-details-grid">
           
           {/* LEFT CONTENT */}
           <div style={{ backgroundColor: 'var(--color-white)', padding: '3rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
