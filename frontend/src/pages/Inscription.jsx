@@ -109,7 +109,7 @@ const Inscription = () => {
   }, [selectedCourseId, formations]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const processEnrollment = async (paymentMethod = null, transactionId = null) => {
@@ -455,15 +455,15 @@ const Inscription = () => {
                                 <div className="form-group">
                                   <label>{language === 'en' ? 'First Name' : 'Prénom'} *</label>
                                   <input className="form-input" name="guestFirstName" value={formData.guestFirstName} onChange={e => {
-                                      handleChange(e);
-                                      setFormData(prev => ({ ...prev, childFirstName: e.target.value }));
+                                      const val = e.target.value;
+                                      setFormData(prev => ({ ...prev, guestFirstName: val, childFirstName: val }));
                                   }} required />
                                 </div>
                                 <div className="form-group">
                                   <label>{language === 'en' ? 'Last Name' : 'Nom'} *</label>
                                   <input className="form-input" name="guestLastName" value={formData.guestLastName} onChange={e => {
-                                      handleChange(e);
-                                      setFormData(prev => ({ ...prev, childLastName: e.target.value }));
+                                      const val = e.target.value;
+                                      setFormData(prev => ({ ...prev, guestLastName: val, childLastName: val }));
                                   }} required />
                                 </div>
                               </div>
