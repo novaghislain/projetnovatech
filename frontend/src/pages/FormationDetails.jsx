@@ -276,8 +276,8 @@ const FormationDetails = () => {
             )}
           </div>
 
-          {/* RIGHT SIDEBAR (STICKY) */}
-          <aside style={{ position: 'sticky', top: '2rem' }}>
+          {/* RIGHT SIDEBAR */}
+          <aside>
             <div style={{ backgroundColor: 'var(--color-white)', padding: '2.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--color-border)', marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem', marginBottom: '1rem' }}>
                 <span style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--color-primary)', lineHeight: 1 }}>{formation.price?.toLocaleString(language === 'en' ? 'en-US' : 'fr-FR')} FCFA</span>
