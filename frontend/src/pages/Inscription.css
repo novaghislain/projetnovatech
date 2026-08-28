@@ -16,7 +16,6 @@
   align-items: start;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0 1.5rem;
 }
 
 /* ===== TITLE ===== */
@@ -254,6 +253,8 @@ select.form-input {
 @media (max-width: 900px) {
   .inscription-layout {
     grid-template-columns: 1fr;
+    padding: 0;
+    gap: 1.5rem;
   }
 
   .inscription-sidebar {
@@ -261,8 +262,24 @@ select.form-input {
     order: -1;
   }
 
+  .inscription-page {
+    padding: 1.5rem 0;
+  }
+
+  .inscription-main {
+    padding: 1.5rem;
+  }
+
+  .summary-card {
+    padding: 1.5rem;
+  }
+
   .form-row {
     grid-template-columns: 1fr !important;
     display: grid !important;
+  }
+
+  .summary-total strong {
+    font-size: 1.25rem;
   }
 }
