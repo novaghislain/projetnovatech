@@ -174,7 +174,6 @@ const FormationDetails = () => {
               onError={(e) => { e.target.onerror = null; e.target.src = '/10x.jpg'; }}
               style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} 
             />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(16, 24, 40, 0.8) 0%, rgba(16, 24, 40, 0.5) 50%, rgba(16, 24, 40, 0.1) 100%)' }} />
           </div>
         ))}
         {images.length > 1 && (
@@ -192,20 +191,10 @@ const FormationDetails = () => {
             </div>
           </>
         )}
-        <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: '2rem', color: 'white', paddingTop: '4rem', zIndex: 2 }}>
-          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.8)', textDecoration: 'none', marginBottom: '1.5rem', fontWeight: 600, transition: 'color 0.2s' }}>
+        <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingBottom: '2rem', color: 'white', paddingTop: '4rem', zIndex: 2 }}>
+          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#ffffff', backgroundColor: 'rgba(0,0,0,0.5)', padding: '0.6rem 1.2rem', borderRadius: '8px', textDecoration: 'none', marginBottom: '1.5rem', fontWeight: 600, transition: 'background-color 0.2s', width: 'fit-content' }}>
             <ArrowLeft size={18} /> {t('fd_back')}
           </Link>
-          <div style={{ display: 'inline-block', backgroundColor: 'var(--color-accent)', color: 'white', padding: '0.5rem 1.2rem', borderRadius: '30px', fontSize: '0.9rem', fontWeight: 700, marginBottom: '1rem', width: 'fit-content', boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
-            {language === 'en' ? (formation.categoryEn || translateCategory(formation.category, language) || formation.category) : (formation.category)}
-          </div>
-          <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', margin: '0 0 1rem 0', maxWidth: '800px', lineHeight: 1.2, fontWeight: 800, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-            {language === 'en' ? (formation.titleEn || translateTitle(formation.title, language) || formation.title) : (formation.title)}
-          </h1>
-          <div style={{ display: 'flex', gap: '1.5rem', fontSize: '1.05rem', opacity: 0.95, fontWeight: 500, color: '#ffffff', textShadow: '0 1px 5px rgba(0,0,0,0.5)', flexWrap: 'wrap' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Clock size={20} color="#ffffff" /> {translateDuration(formation.duration, language)}</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Users size={20} color="#ffffff" /> {translateAgeGroup(formation.ageGroup, language)}</span>
-          </div>
         </div>
       </div>
 
@@ -215,6 +204,21 @@ const FormationDetails = () => {
           
           {/* LEFT CONTENT */}
           <div style={{ backgroundColor: 'var(--color-white)', padding: '3rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+            
+            {/* TITLE & META INFO (MOVED FROM HERO BANNER) */}
+            <div style={{ marginBottom: '2.5rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '2rem' }}>
+              <div style={{ display: 'inline-block', backgroundColor: 'var(--color-accent)', color: 'white', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>
+                {language === 'en' ? (formation.categoryEn || translateCategory(formation.category, language) || formation.category) : (formation.category)}
+              </div>
+              <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', margin: '0 0 1rem 0', color: 'var(--color-primary)', lineHeight: 1.2, fontWeight: 800 }}>
+                {language === 'en' ? (formation.titleEn || translateTitle(formation.title, language) || formation.title) : (formation.title)}
+              </h1>
+              <div style={{ display: 'flex', gap: '1.5rem', fontSize: '1rem', color: '#475569', fontWeight: 500, flexWrap: 'wrap' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Clock size={18} color="var(--color-primary)" /> {translateDuration(formation.duration, language)}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Users size={18} color="var(--color-primary)" /> {translateAgeGroup(formation.ageGroup, language)}</span>
+              </div>
+            </div>
+
             <h2 style={{ fontSize: '1.8rem', color: 'var(--color-primary)', marginBottom: '1.5rem' }}>{t('fd_about')}</h2>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem', lineHeight: 1.8, marginBottom: '2.5rem', whiteSpace: 'pre-line' }}>
               {language === 'en' ? (formation.descriptionEn || formation.description || t('fd_default_desc')) : (formation.description || t('fd_default_desc'))}
