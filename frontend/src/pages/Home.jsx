@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { translateCategory, translateDuration, translateAgeGroup, translateLevel, translateTitle, translateDescription } from '../utils/translator';
-import { Shield, Monitor, Code2, BrainCircuit, UserCheck, ChevronRight, Calendar, GraduationCap, BookOpen, FlaskConical, Award, Clock, ArrowRight, Send, Mail, Phone, MapPin, Layers } from 'lucide-react';
+import { Shield, Monitor, Code2, BrainCircuit, UserCheck, ChevronRight, Calendar, GraduationCap, BookOpen, FlaskConical, Award, Clock, ArrowRight, Send, Mail, Phone, MapPin, Layers, X, Flame } from 'lucide-react';
 
 import './Home.css';
 import { API_URL, getImageUrl } from '../config';
@@ -113,6 +113,27 @@ const Home = () => {
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', body: '' });
   const [contactStatus, setContactStatus] = useState('idle');
 
+  // --- Promo Modal State ---
+  const [showPromoModal, setShowPromoModal] = useState(false);
+  const [promoCourse, setPromoCourse] = useState(null);
+
+  useEffect(() => {
+    // Check if dismissed in the last 24 hours
+    const lastDismissed = localStorage.getItem('promoModalDismissed');
+    const now = new Date().getTime();
+    const shouldShow = !lastDismissed || (now - parseInt(lastDismissed, 10)) > 24 * 60 * 60 * 1000;
+
+    if (shouldShow && featuredCourses.length > 0) {
+      setPromoCourse(featuredCourses[0]);
+      const timer = setTimeout(() => setShowPromoModal(true), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [featuredCourses]);
+
+  const handleClosePromo = () => {
+    setShowPromoModal(false);
+    localStorage.setItem('promoModalDismissed', new Date().getTime().toString());
+  };
   useEffect(() => {
     const fetchFormations = async () => {
       try {
@@ -445,6 +466,37 @@ const Home = () => {
       </section>
 
 
+      {/* Promo Modal */}
+      {showPromoModal && promoCourse && (
+        <div className="promo-modal-overlay">
+          <div className="promo-modal-content fade-up-anim">
+            <button className="promo-modal-close" onClick={handleClosePromo}>
+              <X size={24} />
+            </button>
+            <div className="promo-modal-badge">
+              <Flame size={16} /> {language === 'en' ? 'Featured Course' : 'Formation à la Une'}
+            </div>
+            
+            <div className="promo-modal-img">
+              <img src={promoCourse.imageUrl ? getImageUrl(promoCourse.imageUrl) : '/10x.jpg'} alt={promoCourse.title} />
+            </div>
+            
+            <div className="promo-modal-body">
+              <h3>{translateTitle(promoCourse.title, language)}</h3>
+              <p>{translateDescription(promoCourse.description, language).substring(0, 100)}...</p>
+              
+              <div className="promo-modal-footer">
+                <div className="promo-modal-price">
+                  {promoCourse.price ? `${promoCourse.price.toLocaleString(language === 'en' ? 'en-US' : 'fr-FR')} FCFA` : t('courses_free')}
+                </div>
+                <Link to={language === 'en' ? `/en/courses/${promoCourse.id}` : `/formations/${promoCourse.id}`} className="btn btn-primary">
+                  {language === 'en' ? 'Enroll Now' : 'S\'inscrire Maintenant'} <ArrowRight size={16} style={{ marginLeft: '0.4rem' }} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
