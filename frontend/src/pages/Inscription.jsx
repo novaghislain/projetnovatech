@@ -25,9 +25,9 @@ const Inscription = () => {
   const [waitlistSuccess, setWaitlistSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
-    childFirstName: '',
-    childLastName: '',
-    childAge: '',
+    childFirstName: auth?.user?.firstName || '',
+    childLastName: auth?.user?.lastName || '',
+    childAge: auth?.user ? '18' : '',
     parentName: auth?.user?.firstName ? `${auth.user.firstName} ${auth.user.lastName}` : '',
     parentPhone: auth?.user?.phone || '',
     parentEmail: auth?.user?.email || '',
@@ -391,21 +391,23 @@ const Inscription = () => {
                     {language === 'en' ? 'Enrollment Details' : 'Détails de l\'inscription'}
                   </h2>
 
-                  <div className="form-section">
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
-                      <BookOpen size={20} /> {t('ins_choice')}
-                    </h3>
-                    <div className="form-group">
-                      <select className="form-input" value={selectedCourseId} onChange={e => setSelectedCourseId(e.target.value)} required>
-                        <option value="">{t('ins_choose_opt')}</option>
-                        {formations.map(f => (
-                          <option key={f.id} value={f.id}>{f.title} (Frais d'inscription: {f.registrationFee?.toLocaleString() || 0} FCFA)</option>
-                        ))}
-                      </select>
+                  {!initialFormationId && (
+                    <div className="form-section">
+                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
+                        <BookOpen size={20} /> {t('ins_choice')}
+                      </h3>
+                      <div className="form-group">
+                        <select className="form-input" value={selectedCourseId} onChange={e => setSelectedCourseId(e.target.value)} required>
+                          <option value="">{t('ins_choose_opt')}</option>
+                          {formations.map(f => (
+                            <option key={f.id} value={f.id}>{f.title} (Frais d'inscription: {f.registrationFee?.toLocaleString() || 0} FCFA)</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {course && !isFull && (
+                  {!initialFormationId && course && !isFull && (
                     <div className="form-section">
                       <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
                         <CreditCard size={20} /> {t('ins_payment_type')}
