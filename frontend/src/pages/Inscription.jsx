@@ -27,7 +27,7 @@ const Inscription = () => {
   const [formData, setFormData] = useState({
     childFirstName: auth?.user?.firstName || '',
     childLastName: auth?.user?.lastName || '',
-    childAge: auth?.user ? '18' : '',
+    childAge: '18',
     parentName: auth?.user?.firstName ? `${auth.user.firstName} ${auth.user.lastName}` : '',
     parentPhone: auth?.user?.phone || '',
     parentEmail: auth?.user?.email || '',
@@ -450,15 +450,21 @@ const Inscription = () => {
                         <div>
                           {!auth.user && (
                             <div className="form-section" style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.5rem' }}>
-                              <h4 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>{language === 'en' ? 'Your Contact Details' : 'Vos informations de contact'}</h4>
+                              <h4 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>{language === 'en' ? 'Your Information' : 'Vos informations'}</h4>
                               <div className="form-row">
                                 <div className="form-group">
                                   <label>{language === 'en' ? 'First Name' : 'Prénom'} *</label>
-                                  <input className="form-input" name="guestFirstName" value={formData.guestFirstName} onChange={handleChange} required />
+                                  <input className="form-input" name="guestFirstName" value={formData.guestFirstName} onChange={e => {
+                                      handleChange(e);
+                                      setFormData(prev => ({ ...prev, childFirstName: e.target.value }));
+                                  }} required />
                                 </div>
                                 <div className="form-group">
                                   <label>{language === 'en' ? 'Last Name' : 'Nom'} *</label>
-                                  <input className="form-input" name="guestLastName" value={formData.guestLastName} onChange={handleChange} required />
+                                  <input className="form-input" name="guestLastName" value={formData.guestLastName} onChange={e => {
+                                      handleChange(e);
+                                      setFormData(prev => ({ ...prev, childLastName: e.target.value }));
+                                  }} required />
                                 </div>
                               </div>
                               <div className="form-row">
@@ -474,7 +480,7 @@ const Inscription = () => {
                             </div>
                           )}
                           
-                          {(!auth.user && (!formData.guestFirstName || !formData.guestEmail || !formData.guestPhone)) || !formData.childFirstName || !formData.childLastName || !formData.childAge ? (
+                          {(!auth.user && (!formData.guestFirstName || !formData.guestLastName || !formData.guestEmail || !formData.guestPhone)) ? (
                             <button className="btn btn-primary" disabled style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', opacity: 0.5, cursor: 'not-allowed' }}>
                               {language === 'en' ? 'Fill all details first' : "Remplissez toutes les informations d'abord"}
                             </button>
@@ -501,26 +507,6 @@ const Inscription = () => {
                                 ⚠️ {paymentError}
                               </div>
                             )}
-
-                            <div className="form-section">
-                              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
-                                <User size={20} /> {language === 'en' ? 'Student Information' : 'Informations de l\'apprenant'}
-                              </h3>
-                              <div className="form-row">
-                                <div className="form-group">
-                                  <label>{language === 'en' ? 'First Name' : 'Prénom'}</label>
-                                  <input className="form-input" name="childFirstName" value={formData.childFirstName} onChange={handleChange} required />
-                                </div>
-                                <div className="form-group">
-                                  <label>{language === 'en' ? 'Last Name' : 'Nom'}</label>
-                                  <input className="form-input" name="childLastName" value={formData.childLastName} onChange={handleChange} required />
-                                </div>
-                              </div>
-                              <div className="form-group">
-                                <label>{language === 'en' ? 'Age' : 'Âge'}</label>
-                                <input type="number" className="form-input" name="childAge" value={formData.childAge} onChange={handleChange} required min="5" max="25" />
-                              </div>
-                            </div>
 
                               <FedapayWidget 
                                 amount={course.registrationFee} 
