@@ -443,7 +443,7 @@ const AdminFormations = () => {
                   {formData.imageUrls && formData.imageUrls.length > 0 && (
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
                       {formData.imageUrls.map((url, idx) => (
-                        <div key={idx} style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: formData.imageUrl === url ? '2px solid var(--color-primary)' : '1px solid #e2e8f0' }}>
+                        <div key={idx} style={{ position: 'relative', width: 120, height: 120, borderRadius: 8, overflow: 'hidden', border: formData.imageUrl === url ? '3px solid var(--color-primary)' : '1px solid #e2e8f0' }}>
                           <img src={getImageUrl(url)} alt="preview" onError={(e) => { e.target.onerror = null; e.target.src = '/10x.jpg'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           <button 
                             type="button"
@@ -454,19 +454,19 @@ const AdminFormations = () => {
                             })}
                             style={{ 
                               position: 'absolute', 
-                              top: '2px', 
-                              right: '2px', 
+                              top: '4px', 
+                              right: '4px', 
                               background: '#ef4444', 
                               color: 'white', 
                               borderRadius: '50%', 
-                              width: '20px', 
-                              height: '20px', 
+                              width: '24px', 
+                              height: '24px', 
                               display: 'flex', 
                               alignItems: 'center', 
                               justifyContent: 'center', 
                               border: 'none', 
                               cursor: 'pointer', 
-                              fontSize: '12px',
+                              fontSize: '14px',
                               fontWeight: 'bold',
                               lineHeight: 1
                             }}
@@ -474,7 +474,7 @@ const AdminFormations = () => {
                             ×
                           </button>
                           {formData.imageUrl === url && (
-                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(34, 197, 94, 0.9)', color: 'white', fontSize: '9px', textAlign: 'center', padding: '1px 0', fontWeight: 600 }}>
+                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(34, 197, 94, 0.9)', color: 'white', fontSize: '11px', textAlign: 'center', padding: '4px 0', fontWeight: 600 }}>
                               Principale
                             </div>
                           )}
@@ -482,7 +482,7 @@ const AdminFormations = () => {
                             <button
                               type="button"
                               onClick={() => setFormData(prev => ({ ...prev, imageUrl: url }))}
-                              style={{ position: 'absolute', top: '22px', left: '2px', right: '2px', background: 'rgba(0,0,0,0.6)', color: 'white', fontSize: '8px', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '1px 0' }}
+                              style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.7)', color: 'white', fontSize: '11px', border: 'none', cursor: 'pointer', padding: '4px 0', fontWeight: 500, width: '100%' }}
                             >
                               Définir princ.
                             </button>
