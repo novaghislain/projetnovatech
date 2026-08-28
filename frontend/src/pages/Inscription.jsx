@@ -391,7 +391,7 @@ const Inscription = () => {
                     {language === 'en' ? 'Enrollment Details' : 'Détails de l\'inscription'}
                   </h2>
 
-                  {!initialFormationId && (
+                  {false && (
                     <div className="form-section">
                       <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
                         <BookOpen size={20} /> {t('ins_choice')}
@@ -407,7 +407,7 @@ const Inscription = () => {
                     </div>
                   )}
 
-                  {!initialFormationId && course && !isFull && (
+                  {false && course && !isFull && (
                     <div className="form-section">
                       <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
                         <CreditCard size={20} /> {t('ins_payment_type')}
