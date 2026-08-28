@@ -382,22 +382,14 @@ const Inscription = () => {
         <div className="inscription-main">
           <h1 className="inscription-title">{t('ins_title')}</h1>
           
-          <div className="inscription-steps">
-            <div className={`step ${step >= 1 ? 'active' : ''}`}>{language === 'en' ? '1. Secure Payment' : '1. Paiement sécurisé'}</div>
-            {!isPhysicalCourse && (
-              <div className={`step ${step >= 2 ? 'active' : ''}`}>{language === 'en' ? '2. Student Information' : '2. Informations de l\'enfant'}</div>
-            )}
-          </div>
+          {/* Steps UI removed */}
 
           {step === 1 && (
             <div className="fade-in">
                 <div style={{ backgroundColor: 'var(--color-bg-light)', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)', marginBottom: '2rem' }}>
                   <h2 style={{ fontSize: '1.8rem', color: 'var(--color-primary)', marginBottom: '1rem', textAlign: 'center' }}>
-                    {language === 'en' ? 'Pay before registering' : 'Payez avant de vous inscrire'}
+                    {language === 'en' ? 'Enrollment Details' : 'Détails de l\'inscription'}
                   </h2>
-                  <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginBottom: '2rem' }}>
-                    {language === 'en' ? 'To secure your spot, please complete the payment first. You will provide the student details right after.' : 'Pour sécuriser votre place, veuillez effectuer le paiement en premier. Vous renseignerez les détails de l\'enfant juste après.'}
-                  </p>
 
                   <div className="form-section">
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
@@ -438,11 +430,7 @@ const Inscription = () => {
                             {t('ins_full_desc')}
                           </p>
                           <button className="btn btn-primary" onClick={async () => {
-                            if (isPhysicalCourse) {
-                              await processEnrollment('waitlist');
-                            } else {
-                              setStep(2);
-                            }
+                            await processEnrollment('waitlist');
                           }} style={{ width: '100%' }}>
                             {language === 'en' ? 'Join Waitlist (Free)' : "Rejoindre la liste d'attente (Gratuit)"}
                           </button>
@@ -484,17 +472,13 @@ const Inscription = () => {
                             </div>
                           )}
                           
-                          {(!auth.user && (!formData.guestFirstName || !formData.guestEmail || !formData.guestPhone)) ? (
+                          {(!auth.user && (!formData.guestFirstName || !formData.guestEmail || !formData.guestPhone)) || !formData.childFirstName || !formData.childLastName || !formData.childAge ? (
                             <button className="btn btn-primary" disabled style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', opacity: 0.5, cursor: 'not-allowed' }}>
-                              {language === 'en' ? 'Fill contact details first' : "Remplissez vos informations d'abord"}
+                              {language === 'en' ? 'Fill all details first' : "Remplissez toutes les informations d'abord"}
                             </button>
                           ) : (!course.registrationFee || course.registrationFee === 0) ? (
                             <button className="btn btn-primary" onClick={async () => {
-                              if (isPhysicalCourse) {
-                                await processEnrollment('Gratuit');
-                              } else {
-                                setStep(2);
-                              }
+                              await processEnrollment(isPhysicalCourse ? 'Gratuit' : 'Gratuit');
                             }} style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}>
                               {language === 'en' ? 'Confirm Free Enrollment' : "Confirmer l'inscription gratuite"}
                             </button>
@@ -515,6 +499,26 @@ const Inscription = () => {
                                 ⚠️ {paymentError}
                               </div>
                             )}
+
+                            <div className="form-section">
+                              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
+                                <User size={20} /> {language === 'en' ? 'Student Information' : 'Informations de l\'apprenant'}
+                              </h3>
+                              <div className="form-row">
+                                <div className="form-group">
+                                  <label>{language === 'en' ? 'First Name' : 'Prénom'}</label>
+                                  <input className="form-input" name="childFirstName" value={formData.childFirstName} onChange={handleChange} required />
+                                </div>
+                                <div className="form-group">
+                                  <label>{language === 'en' ? 'Last Name' : 'Nom'}</label>
+                                  <input className="form-input" name="childLastName" value={formData.childLastName} onChange={handleChange} required />
+                                </div>
+                              </div>
+                              <div className="form-group">
+                                <label>{language === 'en' ? 'Age' : 'Âge'}</label>
+                                <input type="number" className="form-input" name="childAge" value={formData.childAge} onChange={handleChange} required min="5" max="25" />
+                              </div>
+                            </div>
 
                               <FedapayWidget 
                                 amount={course.registrationFee} 
@@ -554,11 +558,7 @@ const Inscription = () => {
                                     console.warn('[VERIFY] Erreur vérification serveur (non bloquant):', verifyErr.message);
                                   }
 
-                                  if (isPhysicalCourse) {
-                                    await processEnrollment('FedaPay', txId);
-                                  } else {
-                                    setStep(2);
-                                  }
+                                  await processEnrollment('FedaPay', txId);
                                 }}
                                 onFail={() => {
                                   setPaymentError(
@@ -579,52 +579,7 @@ const Inscription = () => {
             </div>
           )}
 
-          {step === 2 && course && (
-            <div className="fade-in">
-              <button className="btn btn-outline" onClick={() => setStep(1)} style={{ marginBottom: '2rem' }}>
-                ← {t('back')}
-              </button>
-
-              {!isFull && (
-                <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '1.5rem', borderRadius: '12px', marginBottom: '2rem', display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                  <CheckCircle size={28} color="#16a34a" style={{ flexShrink: 0 }} />
-                  <div>
-                    <h4 style={{ color: '#16a34a', margin: '0 0 0.5rem 0', fontSize: '1.2rem' }}>{language === 'en' ? 'Payment Successful!' : 'Paiement Réussi !'}</h4>
-                    <p style={{ color: '#15803d', margin: 0 }}>
-                      {language === 'en' ? 'Your spot is secured. Please fill out the student details below to finalize the enrollment.' : 'Votre place est sécurisée. Veuillez remplir les informations de l\'étudiant ci-dessous pour finaliser l\'inscription.'}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 2 form for Child Details, visible to everyone (auth or guest) */}
-              <form onSubmit={(e) => { e.preventDefault(); processEnrollment(isFull ? 'waitlist' : 'FedaPay', formData.transactionId || null); }}>
-              <div className="form-section">
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
-                  <User size={20} /> {t('ins_child_info')}
-                </h3>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>{t('ins_child_firstname')}</label>
-                      <input className="form-input" name="childFirstName" value={formData.childFirstName} onChange={handleChange} required />
-                    </div>
-                    <div className="form-group">
-                      <label>{t('ins_child_lastname')}</label>
-                      <input className="form-input" name="childLastName" value={formData.childLastName} onChange={handleChange} required />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label>{t('ins_child_age')}</label>
-                    <input type="number" className="form-input" name="childAge" value={formData.childAge} onChange={handleChange} required min="5" max="25" />
-                  </div>
-                </div>
-
-                <button type="submit" className="btn btn-primary" disabled={submitLoading} style={{ width: '100%', marginTop: '1rem', padding: '1rem', fontSize: '1.1rem', borderRadius: '12px' }}>
-                  {submitLoading ? t('loading') : (language === 'en' ? 'Complete Enrollment' : 'Terminer mon inscription')} <CheckCircle size={18} style={{ marginLeft: '0.5rem' }} />
-                </button>
-              </form>
-            </div>
-          )}
+          {/* Step 2 removed */}
         </div>
 
         {/* SIDEBAR */}
