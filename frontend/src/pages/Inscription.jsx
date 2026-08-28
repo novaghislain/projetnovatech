@@ -580,7 +580,7 @@ const Inscription = () => {
                 <ul className="summary-details">
                   <li><span>{t('ins_duration')}</span><strong>{course.duration || '—'}</strong></li>
                   <li><span>{t('ins_audience')}</span><strong>{course.ageGroup || '—'}</strong></li>
-                  <li><span>{t('ins_format')}</span><strong>{course.isOnline ? t('ins_online') : t('ins_in_person')}</strong></li>
+                  <li><span>{t('ins_format')}</span><strong>{!isPhysicalCourse ? t('ins_online') : t('ins_in_person')}</strong></li>
                   {isFull && <li><span style={{ color: '#ef4444', fontWeight: 700 }}>{t('ins_waitlist_warning')}</span></li>}
                 </ul>
                 <div className="summary-total" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem', marginBottom: '1rem' }}>
