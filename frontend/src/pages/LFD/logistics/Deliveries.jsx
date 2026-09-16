@@ -70,56 +70,54 @@ const Deliveries = () => {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "READY": return <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Prêt à livrer</span>;
-      case "IN_DELIVERY": return <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">En Route</span>;
-      case "DELIVERED": return <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Livré</span>;
-      case "FAILED": return <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">Échec</span>;
-      case "CANCELLED": return <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">Annulé</span>;
+      case "READY": return <span className="lfd-badge lfd-badge-warning">Prêt à livrer</span>;
+      case "IN_DELIVERY": return <span className="lfd-badge lfd-badge-info">En Route</span>;
+      case "DELIVERED": return <span className="lfd-badge lfd-badge-success">Livré</span>;
+      case "FAILED": return <span className="lfd-badge lfd-badge-danger">Échec</span>;
+      case "CANCELLED": return <span className="lfd-badge" style={{ background:"#F1F5F9", color:"#64748B" }}>Annulé</span>;
       default: return null;
     }
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Gestion des Livraisons</h1>
-          <p className="text-gray-500">Gérez les bons de livraison et les expéditions</p>
-        </div>
+    <div className="lfd-page" style={{ padding: "20px" }}>
+      <div style={{ marginBottom: "24px" }}>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--lfd-surface)" }}>Gestion des Livraisons</h1>
+        <p style={{ color: "var(--lfd-text-dim)", fontSize: "0.9rem" }}>Gérez les bons de livraison et les expéditions</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "20px" }}>
         {deliveries.map(d => (
-          <div key={d.id} className="bg-white border border-gray-100 shadow-sm rounded-xl p-5 space-y-4">
-            <div className="flex justify-between items-start border-b pb-3">
+          <div key={d.id} className="lfd-card" style={{ display: "flex", flexDirection: "column", gap: "16px", margin: 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "1px solid #F1F5F9", paddingBottom: "12px" }}>
               <div>
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                  <Truck size={18} className="text-indigo-600" />
+                <h3 style={{ fontWeight: 700, color: "var(--lfd-surface)", display: "flex", alignItems: "center", gap: "8px", fontSize: "1.1rem" }}>
+                  <Truck size={18} style={{ color: "var(--lfd-accent)" }} />
                   {d.delivery_number}
                 </h3>
-                <p className="text-xs text-gray-500 mt-1">Lié à la vente : {d.sale_number}</p>
+                <p style={{ fontSize: "0.8rem", color: "var(--lfd-text-dim)", marginTop: "4px" }}>Lié à la vente : {d.sale_number}</p>
               </div>
               {getStatusBadge(d.status)}
             </div>
 
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2 text-gray-700">
-                <MapPin size={16} className="text-gray-400" />
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.9rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--lfd-text-dark)" }}>
+                <MapPin size={16} style={{ color: "var(--lfd-text-dim)" }} />
                 <span>Client : <strong>{d.customer_name}</strong></span>
               </div>
               {d.recipient_name && (
-                <div className="text-gray-600 text-xs ml-6">Réceptionnaire : {d.recipient_name}</div>
+                <div style={{ color: "var(--lfd-text-dim)", fontSize: "0.85rem", paddingLeft: "24px" }}>Réceptionnaire : {d.recipient_name}</div>
               )}
               {d.failed_reason && (
-                <div className="text-red-600 text-xs ml-6 bg-red-50 p-2 rounded">Motif : {d.failed_reason}</div>
+                <div style={{ color: "#DC2626", fontSize: "0.85rem", paddingLeft: "24px", background: "rgba(239,68,68,0.1)", padding: "8px", borderRadius: "6px", marginTop: "4px" }}>Motif : {d.failed_reason}</div>
               )}
             </div>
 
-            <div className="pt-3 flex gap-2 justify-end border-t border-gray-50">
+            <div style={{ paddingTop: "12px", borderTop: "1px solid #F1F5F9", display: "flex", gap: "10px", justifyContent: "flex-end" }}>
               {d.status === "READY" && (
                 <button 
                   onClick={() => handleStart(d.id)}
-                  className="w-full py-2 bg-indigo-50 text-indigo-700 font-medium rounded-lg hover:bg-indigo-100 transition-colors"
+                  className="lfd-btn lfd-btn-primary" style={{ width: "100%", justifyContent: "center" }}
                 >
                   Prendre en charge
                 </button>
@@ -128,13 +126,13 @@ const Deliveries = () => {
                 <>
                   <button 
                     onClick={() => { setSelectedDeliv(d); setIsFailModalOpen(true); }}
-                    className="flex-1 py-2 border border-red-200 text-red-600 font-medium rounded-lg hover:bg-red-50 transition-colors flex justify-center items-center gap-2"
+                    className="lfd-btn" style={{ flex: 1, justifyContent: "center", background: "white", border: "1px solid #DC2626", color: "#DC2626" }}
                   >
                     <XCircle size={16} /> Échec
                   </button>
                   <button 
                     onClick={() => { setSelectedDeliv(d); setIsCompleteModalOpen(true); }}
-                    className="flex-1 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex justify-center items-center gap-2"
+                    className="lfd-btn" style={{ flex: 1, justifyContent: "center", background: "#10B981", color: "white" }}
                   >
                     <CheckCircle size={16} /> Livré
                   </button>
@@ -145,7 +143,7 @@ const Deliveries = () => {
         ))}
 
         {deliveries.length === 0 && (
-          <div className="col-span-full py-12 text-center text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
+          <div style={{ gridColumn: "1 / -1", padding: "40px", textAlign: "center", color: "var(--lfd-text-dim)", background: "white", borderRadius: "12px", border: "1px dashed #E2E8F0" }}>
             Aucun bon de livraison disponible.
           </div>
         )}
