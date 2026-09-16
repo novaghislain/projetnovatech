@@ -31,9 +31,6 @@ const ComptaDashboard = () => {
       <h2>Tableau de bord Comptabilité</h2>
       
       <div className="lfd-dashboard-actions">
-        <button className="lfd-btn lfd-btn-primary" onClick={() => navigate('/gestion/comptabilite/saisie')}>
-          + Saisie d'écriture manuelle
-        </button>
         <button className="lfd-btn lfd-btn-secondary" onClick={() => navigate('/gestion/comptabilite/grand-livre')}>
           Grand Livre
         </button>
