@@ -148,11 +148,21 @@ export const LFDAuthProvider = ({ children }) => {
 
   const logout = () => { setLFDUser(null); setLFDToken(null); localStorage.removeItem("lfd_user"); localStorage.removeItem("lfd_token"); navigate("/gestion/connexion"); };
 
-  const hasPermission = (perm) => { if (!lfdUser) return false; const allowed = PERMISSIONS_MAP[perm]; return allowed ? allowed.includes(lfdUser.role) : false; };
-  const hasRole = (...roles) => lfdUser ? roles.includes(lfdUser.role) : false;
+  const hasPermission = (perm) => { 
+    if (!lfdUser) return false; 
+    const role = lfdUser.role ? lfdUser.role.toLowerCase() : "";
+    const allowed = PERMISSIONS_MAP[perm]; 
+    return allowed ? allowed.includes(role) : false; 
+  };
+  const hasRole = (...roles) => {
+    if (!lfdUser) return false;
+    const userRole = lfdUser.role ? lfdUser.role.toLowerCase() : "";
+    return roles.map(r => r.toLowerCase()).includes(userRole);
+  };
   const can = (p) => hasPermission(p);
 
-  const getDefaultRoute = (role) => {
+  const getDefaultRoute = (r) => {
+    const role = r ? r.toLowerCase() : "";
     const map = { director:"/gestion/direction", super_admin:"/gestion/direction", manager:"/gestion/direction", cashier:"/gestion/caisse", accountant:"/gestion/comptabilite", billing_agent:"/gestion/facturation", warehouse_agent:"/gestion/stock", sales_agent:"/gestion/ventes", delivery_agent:"/gestion/livraisons" };
     return map[role] || "/gestion/direction";
   };
