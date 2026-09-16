@@ -45,12 +45,20 @@ router.get('/analysis', authenticateLfdToken, requireLfdPermission('report.read'
       });
     }
 
-    // 4.2 Stocks négatifs
     const negativeStocks = await allSql(`
-      SELECT p.id, p.name, p.product_code as sku, s.quantity 
+      SELECT 
+        p.id, p.name, p.product_code as sku,
+        SUM(
+          CASE 
+            WHEN sm.movement_type IN ('ENTRY', 'TRANSFER_IN', 'ADJUSTMENT_IN', 'RETURN') THEN sm.quantity
+            WHEN sm.movement_type IN ('EXIT', 'TRANSFER_OUT', 'ADJUSTMENT_OUT') THEN -sm.quantity
+            ELSE 0 
+          END
+        ) as quantity
       FROM LFD_Products p 
-      JOIN LFD_Stock s ON p.id = s.product_id 
-      WHERE s.quantity < 0
+      LEFT JOIN LFD_StockMovements sm ON p.id = sm.product_id 
+      GROUP BY p.id
+      HAVING quantity < 0
     `);
     if (negativeStocks.length > 0) {
       anomalies.push({
