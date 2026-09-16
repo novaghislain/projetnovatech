@@ -29,6 +29,9 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { API_URL } from './config';
+import { lazy, Suspense } from 'react';
+// La Foi Distribution — chargement lazy pour isoler le bundle
+const LFDRoot = lazy(() => import('./pages/LFD/LFDRoot'));
 
 const SEOWatcher = () => {
   useEffect(() => {
@@ -87,6 +90,7 @@ const AppLayout = () => {
   const hideNavFooter = location.pathname.startsWith('/admin') || 
                         location.pathname.startsWith('/formateur') || 
                         location.pathname.startsWith('/mon-espace') ||
+                        location.pathname.startsWith('/gestion') ||  // La Foi Distribution
                         /^\/(fr\/|en\/)?(formations|courses)\/[^\/]+$/.test(location.pathname) ||
                         location.pathname.includes('/inscription') || 
                         location.pathname.includes('/enroll');
@@ -121,6 +125,13 @@ const AppLayout = () => {
             <ProtectedRoute allowedRoles={['apprenant', 'admin']}>
               <ApprenantDashboard />
             </ProtectedRoute>
+          } />
+
+          {/* ── La Foi Distribution — espace de gestion isolé ── */}
+          <Route path="/gestion/*" element={
+            <Suspense fallback={<div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'100vh', background:'#0F172A', color:'white', fontFamily:'Inter,sans-serif' }}><span>Chargement...</span></div>}>
+              <LFDRoot />
+            </Suspense>
           } />
 
           <Route path="/formations/:id" element={<FormationDetails />} />

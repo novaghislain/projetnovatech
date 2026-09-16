@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const axios = require('axios');
 const crypto = require('crypto');
 const db = require('./db');
+const lfdDb = require('./lfdDb'); // Initialisation de la BDD LFD
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -60,6 +61,31 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_FormationNova_key_202
 /**
  * ROUTES D'AUTHENTIFICATION
  */
+app.use('/api/lfd/auth', require('./routes/lfdAuthRoutes'));
+app.use('/api/lfd/customers', require('./routes/lfdCustomerRoutes'));
+app.use('/api/lfd/products', require('./routes/lfdProductRoutes'));
+app.use('/api/lfd/stock', require('./routes/lfdStockRoutes'));
+app.use('/api/lfd/sales', require('./routes/lfdSalesRoutes'));
+app.use('/api/lfd/cash', require('./routes/lfdCashRoutes'));
+app.use('/api/lfd/receivables', require('./routes/lfdReceivablesRoutes'));
+app.use('/api/lfd/dashboard', require('./routes/lfdDashboardRoutes'));
+app.use('/api/lfd/ops', require('./routes/lfdOperationalRoutes'));
+app.use('/api/lfd/accounting', require('./routes/lfdAccountingRoutes'));
+app.use('/api/lfd/bank-deposits', require('./routes/lfdBankDepositRoutes'));
+app.use('/api/lfd/cross-checks', require('./routes/lfdCrossCheckRoutes'));
+app.use('/api/lfd/audit', require('./routes/lfdAuditRoutes'));
+app.use('/api/lfd/alerts', require('./routes/lfdAlertRoutes'));
+
+// Phase 5A
+app.use('/api/lfd/suppliers', require('./routes/lfdSupplierRoutes'));
+app.use('/api/lfd/purchases', require('./routes/lfdPurchaseRoutes'));
+app.use('/api/lfd/receipts', require('./routes/lfdReceiptRoutes'));
+app.use('/api/lfd/supplier-invoices', require('./routes/lfdSupplierInvoiceRoutes'));
+app.use('/api/lfd/payables', require('./routes/lfdPayableRoutes'));
+
+// Phase 5B
+app.use('/api/lfd/accounting', require('./routes/lfdAccountingRoutes'));
+
 
 app.post('/api/auth/register', async (req, res) => {
   const { firstName, lastName, email, phone, password, role } = req.body;

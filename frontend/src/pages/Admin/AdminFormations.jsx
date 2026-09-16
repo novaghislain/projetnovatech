@@ -117,6 +117,7 @@ const AdminFormations = () => {
       
       const bodyData = {
         ...formData,
+        isOnline: formData.format === 'en_ligne' || (formData.format === 'masse' && formData.locationMode === 'en_ligne') ? 1 : 0,
         imageUrls: JSON.stringify(formData.imageUrls || [])
       };
       
