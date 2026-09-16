@@ -78,6 +78,7 @@ const PERMISSIONS_MAP = {
   "sale.create":        ["sales_agent","manager","director"],
   "settings.read":      ["super_admin","director"],
   "settings.update":    ["super_admin"],
+  "settings.manage":    ["super_admin","director"],
 };
 
 const DEMO_USERS = [
