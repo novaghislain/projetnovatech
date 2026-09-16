@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Bell, Menu, RefreshCw } from "lucide-react";
 import { useLFDAuth, ROLE_LABELS } from "../../contexts/LFDAuthContext";
 import { getLFDDate } from "./mockData";
@@ -31,7 +31,7 @@ const LFDHeader = ({ pageTitle, pageSubtitle, onMobileMenuOpen, alertCount = 2 }
         </button>
 
         {/* Notifs */}
-        <button className="lfd-notif-btn" title={`${alertCount} alertes actives`}>
+        <button className="lfd-notif-btn" title={`${alertCount} alertes actives`} onClick={() => window.location.href = '/gestion/alertes'}>
           <Bell size={16} />
           {alertCount > 0 && <span className="lfd-notif-dot" />}
         </button>

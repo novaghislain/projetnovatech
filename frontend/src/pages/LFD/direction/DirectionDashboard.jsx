@@ -89,7 +89,7 @@ const DirectionDashboard = () => {
             <Activity size={16} style={{ marginRight: 8 }} />
             Contrôles Croisés
           </button>
-          <button className="lfd-btn lfd-btn-secondary" onClick={() => navigate('/gestion/direction/audit')}>
+          <button className="lfd-btn lfd-btn-secondary" onClick={() => navigate('/gestion/audit')}>
             Journal d'Audit
           </button>
           <button className="lfd-btn lfd-btn-primary" onClick={() => window.print()}>

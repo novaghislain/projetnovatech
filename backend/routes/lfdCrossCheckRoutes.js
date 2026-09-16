@@ -8,7 +8,7 @@ router.get('/analysis', authenticateLfdToken, requireLfdPermission('report.read'
     // Analyse 1 : Caisse (Théorique vs Physique vs Dépôts)
     // On prend les sessions de caisse clôturées récemment pour voir les écarts
     const caisseSessions = await allSql(`
-      SELECT id, opened_at, closed_at, theoretical_balance, actual_balance, difference, status
+      SELECT id, opened_at, closed_at, theoretical_balance, physical_balance as actual_balance, difference, status
       FROM LFD_CashSessions
       ORDER BY id DESC LIMIT 10
     `);
@@ -46,7 +46,12 @@ router.get('/analysis', authenticateLfdToken, requireLfdPermission('report.read'
     }
 
     // 4.2 Stocks négatifs
-    const negativeStocks = await allSql(`SELECT id, name, sku, quantity FROM LFD_Products WHERE quantity < 0`);
+    const negativeStocks = await allSql(`
+      SELECT p.id, p.name, p.product_code as sku, s.quantity 
+      FROM LFD_Products p 
+      JOIN LFD_Stock s ON p.id = s.product_id 
+      WHERE s.quantity < 0
+    `);
     if (negativeStocks.length > 0) {
       anomalies.push({
         type: 'STOCK',
