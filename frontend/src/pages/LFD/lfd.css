@@ -215,12 +215,14 @@
 
 /* BOUTONS */
 .lfd-btn { display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border-radius:var(--lfd-radius-md); font-size:0.85rem; font-weight:600; cursor:pointer; transition:var(--lfd-trans); border:none; font-family:'Inter',sans-serif; }
+.lfd-btn-small { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer; transition:var(--lfd-trans); border:none; }
 .lfd-btn-primary { background:var(--lfd-primary); color:white; box-shadow:0 4px 12px rgba(14,165,233,0.3); }
 .lfd-btn-primary:hover { background:var(--lfd-primary-dark); transform:translateY(-1px); }
 .lfd-btn-secondary { background:white; color:#374151; border:1px solid #E2E8F0; }
 .lfd-btn-secondary:hover { background:#F8FAFC; }
 .lfd-btn-ghost { background:transparent; color:#64748B; }
 .lfd-btn-ghost:hover { background:#F1F5F9; color:#374151; }
+.lfd-dashboard-actions { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
 
 /* LOGIN - FORMATION NOVA DESIGN */
 .lfd-login-bg { 
