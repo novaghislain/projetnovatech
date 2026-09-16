@@ -760,7 +760,8 @@ async function initLFDDatabase() {
       { code: 'bank.deposit.declare', module: 'bank_deposit', action: 'declare' },
       { code: 'bank.deposit.verify', module: 'bank_deposit', action: 'verify' },
       { code: 'audit.read', module: 'audit', action: 'read' },
-      { code: 'direction.read', module: 'direction', action: 'read' }
+      { code: 'direction.read', module: 'direction', action: 'read' },
+      { code: 'settings.manage', module: 'settings', action: 'manage' }
     ];
 
     for (const p of permissions) {

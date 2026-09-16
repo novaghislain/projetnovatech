@@ -62,6 +62,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_FormationNova_key_202
  * ROUTES D'AUTHENTIFICATION
  */
 app.use('/api/lfd/auth', require('./routes/lfdAuthRoutes'));
+app.use('/api/lfd/employees', require('./routes/lfdEmployeeRoutes'));
 app.use('/api/lfd/customers', require('./routes/lfdCustomerRoutes'));
 app.use('/api/lfd/products', require('./routes/lfdProductRoutes'));
 app.use('/api/lfd/stock', require('./routes/lfdStockRoutes'));

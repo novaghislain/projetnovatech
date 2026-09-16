@@ -91,4 +91,47 @@ router.get('/me', authenticateLfdToken, async (req, res) => {
   }
 });
 
+// Route pour changer le mot de passe du profil actuel
+router.put('/change-password', authenticateLfdToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Mot de passe actuel et nouveau requis.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Le nouveau mot de passe doit contenir au moins 6 caractères.' });
+    }
+
+    const employee = await getSql(`SELECT password_hash FROM LFD_Employees WHERE id = ?`, [req.user.id]);
+    
+    if (!employee) {
+      return res.status(404).json({ error: 'Employé introuvable.' });
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, employee.password_hash);
+    
+    if (!isValid) {
+      return res.status(400).json({ error: 'Mot de passe actuel incorrect.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(newPassword, salt);
+
+    await runSql(`UPDATE LFD_Employees SET password_hash = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`, [password_hash, req.user.id]);
+    
+    // On ne l'inclut pas dans lfdAuth car il faut importer logLfdAudit, qui est dans lfdAuth.js lui même, ce qui ferait une dépendance circulaire. 
+    // On va donc utiliser require('../middlewares/lfdAuth').logLfdAudit
+    const { logLfdAudit } = require('../middlewares/lfdAuth');
+    await logLfdAudit(req.user.id, 'CHANGE_PASSWORD', 'EMPLOYEE', req.user.id, null, null, 'Changement de mot de passe par l\'utilisateur', req.ip);
+
+    res.json({ success: true, message: 'Mot de passe mis à jour avec succès.' });
+
+  } catch (error) {
+    console.error('[LFD AUTH] Erreur serveur lors du changement de mot de passe:', error);
+    res.status(500).json({ error: 'Erreur interne du serveur.' });
+  }
+});
+
 module.exports = router;
