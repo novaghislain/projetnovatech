@@ -197,7 +197,7 @@ const LFDRoot = () => {
               </LFDProtectedRoute>
             } />
             <Route path="comptabilite/saisie" element={
-              <LFDProtectedRoute requiredPermission="accounting.entry.create">
+              <LFDProtectedRoute requiredPermission="accounting.create">
                 <LFDLayout>
                   <SaisieEcriture />
                 </LFDLayout>

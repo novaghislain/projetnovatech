@@ -59,7 +59,7 @@ const Journaux = () => {
     <div className="lfd-page">
       <div className="lfd-header-flex">
         <h2>Écritures du Journal</h2>
-        <button className="lfd-btn lfd-btn-secondary" onClick={() => navigate('/lfd/comptabilite')}>Retour</button>
+        <button className="lfd-btn lfd-btn-secondary" onClick={() => navigate('/gestion/comptabilite')}>Retour</button>
       </div>
 
       {error && <div className="lfd-alert lfd-alert-danger">{error}</div>}
