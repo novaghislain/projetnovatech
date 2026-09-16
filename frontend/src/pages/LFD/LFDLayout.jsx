@@ -17,8 +17,20 @@ const BOTTOM_NAV = [
 ];
 
 const getActiveId = (pathname) => {
+  if (pathname.includes("/depots")) return "depots";
+  if (pathname.includes("/commandes-achat")) return "commandes-achat";
+  if (pathname.includes("/factures-fournisseurs")) return "factures-fournisseurs";
+  if (pathname.includes("/dettes-fournisseurs")) return "dettes-fournisseurs";
+  if (pathname.includes("/magasin?tab=receptions") || pathname.includes("/receptions")) return "receptions";
+  
   const parts = pathname.split("/").filter(Boolean);
-  return parts[1] || "direction";
+  if (parts.length >= 2) {
+    // If it's a sub-page of comptabilite, keep comptabilite active
+    if (parts[1] === "comptabilite") return "comptabilite";
+    if (parts[1] === "direction") return "direction";
+    return parts[1];
+  }
+  return "direction";
 };
 
 const PAGE_TITLES = {
