@@ -150,51 +150,54 @@ const Deliveries = () => {
       </div>
 
       <LFDModal isOpen={isCompleteModalOpen} onClose={() => setIsCompleteModalOpen(false)} title="Confirmer la livraison">
-        <div className="space-y-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "10px" }}>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nom du réceptionnaire *</label>
+            <label className="lfd-label">Nom du réceptionnaire *</label>
             <input 
               type="text" 
               value={completeForm.recipient_name}
               onChange={e => setCompleteForm({...completeForm, recipient_name: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+              className="lfd-input"
+              style={{ paddingLeft: "16px" }}
               placeholder="Ex: Jean Dupont"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone (Optionnel)</label>
+            <label className="lfd-label">Téléphone (Optionnel)</label>
             <input 
               type="text" 
               value={completeForm.recipient_phone}
               onChange={e => setCompleteForm({...completeForm, recipient_phone: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+              className="lfd-input"
+              style={{ paddingLeft: "16px" }}
               placeholder="Ex: 01020304"
             />
           </div>
-          <div className="flex justify-end space-x-3 pt-4">
-            <button onClick={() => setIsCompleteModalOpen(false)} className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg">Annuler</button>
-            <button onClick={handleComplete} className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700">Valider</button>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "16px" }}>
+            <button onClick={() => setIsCompleteModalOpen(false)} className="lfd-btn lfd-btn-secondary">Annuler</button>
+            <button onClick={handleComplete} className="lfd-btn" style={{ background: "#10B981", color: "white" }}>Valider</button>
           </div>
         </div>
       </LFDModal>
 
       <LFDModal isOpen={isFailModalOpen} onClose={() => setIsFailModalOpen(false)} title="Signaler un échec de livraison">
-        <div className="space-y-4">
-          <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "10px" }}>
+          <div style={{ background: "rgba(239,68,68,0.1)", color: "#DC2626", padding: "12px", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 500 }}>
             Attention, déclarer un échec déclenchera une alerte et nécessitera un retour en stock de la marchandise.
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Motif de l'échec *</label>
+            <label className="lfd-label">Motif de l'échec *</label>
             <textarea 
               value={failForm.failed_reason}
               onChange={e => setFailForm({...failForm, failed_reason: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none h-24 resize-none"
+              className="lfd-input"
+              style={{ paddingLeft: "16px", height: "100px", resize: "none" }}
               placeholder="Ex: Client absent, Adresse introuvable..."
             ></textarea>
           </div>
-          <div className="flex justify-end space-x-3 pt-4">
-            <button onClick={() => setIsFailModalOpen(false)} className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg">Annuler</button>
-            <button onClick={handleFail} className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700">Confirmer l'échec</button>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "16px" }}>
+            <button onClick={() => setIsFailModalOpen(false)} className="lfd-btn lfd-btn-secondary">Annuler</button>
+            <button onClick={handleFail} className="lfd-btn" style={{ background: "#DC2626", color: "white" }}>Confirmer l'échec</button>
           </div>
         </div>
       </LFDModal>
