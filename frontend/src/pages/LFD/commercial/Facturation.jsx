@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Search, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { FileText, Search, Plus, Trash2, ShoppingBag, Download } from "lucide-react";
 import { formatFCFA } from "../mockDataPhase2";
 import LFDModal from "../../../components/LFD/LFDModal";
 import { useLFDAuth } from "../../../contexts/LFDAuthContext";
+import { useLFDAlert } from "../../../contexts/LFDAlertContext";
 import axios from "axios";
+import { downloadLfdPdf } from "../../../utils/lfdPdfGenerator";
 
 const API_URL = "http://localhost:5001/api/lfd";
 
 const Facturation = () => {
   const { lfdToken } = useLFDAuth();
+  const { showAlert } = useLFDAlert();
   const [sales, setSales] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
@@ -17,6 +20,10 @@ const Facturation = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewingSale, setViewingSale] = useState(null);
+
+  const [isAccountingModalOpen, setIsAccountingModalOpen] = useState(false);
+  const [accountingEntry, setAccountingEntry] = useState(null);
+  const [accountingLoading, setAccountingLoading] = useState(false);
 
   // Formulaire Nouvelle Vente
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
@@ -61,6 +68,40 @@ const Facturation = () => {
     }
   };
 
+  const fetchAccountingEntry = async (saleId) => {
+    setAccountingLoading(true);
+    setIsAccountingModalOpen(true);
+    setAccountingEntry(null);
+    try {
+      const res = await axios.get(`${API_URL}/accounting/entries/source/SALE/${saleId}`, {
+        headers: { Authorization: `Bearer ${lfdToken}` }
+      });
+      setAccountingEntry(res.data);
+    } catch (err) {
+      if (err.response?.status === 404) {
+         showAlert("Information", "Aucune écriture comptable n'a encore été générée pour cette vente (peut-être qu'elle est en brouillon).", "info");
+         setIsAccountingModalOpen(false);
+      } else {
+         showAlert("Erreur", "Erreur lors de la récupération de l'écriture comptable.", "error");
+         setIsAccountingModalOpen(false);
+      }
+    } finally {
+      setAccountingLoading(false);
+    }
+  };
+
+  const handleDownload = (saleId) => {
+    const sale = sales.find(s => s.id === saleId);
+    if (sale) {
+      const result = downloadLfdPdf('SALE', sale);
+      if (result.success) {
+        showAlert("Succès", "Facture téléchargée.", "success");
+      } else {
+        showAlert("Erreur", "Impossible de générer le PDF: " + result.error, "error");
+      }
+    }
+  };
+
   const addToCart = () => {
     if (!selectedProductId || quantity <= 0) return;
     const product = products.find(p => p.id === Number(selectedProductId));
@@ -85,9 +126,9 @@ const Facturation = () => {
 
   const handleValidateSale = async (e) => {
     e.preventDefault();
-    if (!selectedCustomerId) return alert("Veuillez sélectionner un client.");
-    if (cart.length === 0) return alert("Le panier est vide.");
-    if (paymentType === "CASH" && !activeSessionId) return alert("Impossible de valider une vente comptant sans session de caisse ouverte.");
+    if (!selectedCustomerId) return showAlert("Attention", "Veuillez sélectionner un client.", "warning");
+    if (cart.length === 0) return showAlert("Attention", "Le panier est vide.", "warning");
+    if (paymentType === "CASH" && !activeSessionId) return showAlert("Erreur", "Impossible de valider une vente comptant sans session de caisse ouverte.", "error");
 
     try {
       const headers = { Authorization: `Bearer ${lfdToken}` };
@@ -108,14 +149,14 @@ const Facturation = () => {
         warehouse_id: 1 // Dépôt par défaut
       }, { headers });
 
-      alert("Vente validée avec succès !");
+      showAlert("Succès", "Vente validée avec succès !", "success");
       setIsModalOpen(false);
       setCart([]);
       setSelectedCustomerId("");
       fetchInitialData(); // Recharger les ventes
       
     } catch (err) {
-      alert("Erreur lors de la vente: " + (err.response?.data?.error || err.message));
+      showAlert("Erreur", "Erreur lors de la vente: " + (err.response?.data?.error || err.message), "error");
     }
   };
 
@@ -167,13 +208,22 @@ const Facturation = () => {
                       </span>
                     </td>
                     <td style={{ padding: "12px 16px", textAlign: "right" }}>
-                      <button 
-                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--lfd-text-muted)" }}
-                        title="Voir Écriture Comptable"
-                        onClick={() => alert(`Voir l'écriture comptable pour la vente ${sale.id} (À implémenter)`)}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-                      </button>
+                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                        <button 
+                          style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--lfd-text-muted)" }}
+                          title="Télécharger Facture"
+                          onClick={() => handleDownload(sale.id)}
+                        >
+                          <Download size={18} />
+                        </button>
+                        <button 
+                          style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--lfd-text-muted)" }}
+                          title="Voir Écriture Comptable"
+                          onClick={() => fetchAccountingEntry(sale.id)}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -276,6 +326,60 @@ const Facturation = () => {
             </button>
           </div>
         </div>
+      </LFDModal>
+
+      {/* Modal Écriture Comptable */}
+      <LFDModal isOpen={isAccountingModalOpen} onClose={() => setIsAccountingModalOpen(false)} title="Détail de l'écriture comptable">
+        {accountingLoading ? (
+          <div style={{ padding: 40, textAlign: "center", color: "var(--lfd-text-dim)" }}>Chargement de la pièce comptable...</div>
+        ) : accountingEntry ? (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20, borderBottom: "1px solid var(--lfd-surface-3)", paddingBottom: 15 }}>
+              <div>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: "1.1rem" }}>Pièce: {accountingEntry.entry_number}</p>
+                <p style={{ margin: "4px 0", color: "var(--lfd-text-dim)", fontSize: "0.9rem" }}>{accountingEntry.description}</p>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <span style={{ padding: "4px 8px", borderRadius: 20, fontSize: "0.75rem", fontWeight: 600, background: accountingEntry.status === "POSTED" ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)", color: accountingEntry.status === "POSTED" ? "#059669" : "#D97706" }}>
+                  {accountingEntry.status}
+                </span>
+                <p style={{ margin: "4px 0", color: "var(--lfd-text-dim)", fontSize: "0.9rem" }}>{new Date(accountingEntry.entry_date).toLocaleDateString('fr-FR')}</p>
+              </div>
+            </div>
+
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+              <thead>
+                <tr style={{ borderBottom: "2px solid var(--lfd-surface-3)", color: "var(--lfd-text-muted)", textAlign: "left" }}>
+                  <th style={{ padding: "8px 4px" }}>Compte</th>
+                  <th style={{ padding: "8px 4px", textAlign: "right" }}>Débit</th>
+                  <th style={{ padding: "8px 4px", textAlign: "right" }}>Crédit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accountingEntry.lines.map((line, idx) => (
+                  <tr key={idx} style={{ borderBottom: "1px solid var(--lfd-content-bg)" }}>
+                    <td style={{ padding: "8px 4px" }}>
+                      <span style={{ fontWeight: 600 }}>{line.account_number}</span> - {line.account_name}
+                    </td>
+                    <td style={{ padding: "8px 4px", textAlign: "right", color: line.debit > 0 ? "var(--lfd-surface)" : "transparent" }}>
+                      {line.debit > 0 ? formatFCFA(line.debit) : "-"}
+                    </td>
+                    <td style={{ padding: "8px 4px", textAlign: "right", color: line.credit > 0 ? "var(--lfd-surface)" : "transparent" }}>
+                      {line.credit > 0 ? formatFCFA(line.credit) : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr style={{ fontWeight: 700, borderTop: "2px solid var(--lfd-surface-3)" }}>
+                  <td style={{ padding: "12px 4px", textAlign: "right" }}>Total:</td>
+                  <td style={{ padding: "12px 4px", textAlign: "right", color: "var(--lfd-accent)" }}>{formatFCFA(accountingEntry.total_debit)}</td>
+                  <td style={{ padding: "12px 4px", textAlign: "right", color: "var(--lfd-accent)" }}>{formatFCFA(accountingEntry.total_credit)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        ) : null}
       </LFDModal>
 
     </div>

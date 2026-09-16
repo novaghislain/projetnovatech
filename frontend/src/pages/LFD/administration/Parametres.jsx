@@ -1,19 +1,74 @@
-import React, { useState } from "react";
-import { Save, Building, MapPin, FileText, CheckCircle2, Lock, KeyRound } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Save, Building, MapPin, FileText, CheckCircle2, Lock, KeyRound, Image as ImageIcon } from "lucide-react";
 import { useLFDAuth } from "../../../contexts/LFDAuthContext";
 import axios from "axios";
 
 const Parametres = () => {
-  const { lfdToken, setLfdToken, user } = useLFDAuth();
+  const { lfdToken } = useLFDAuth();
   const [saved, setSaved] = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [error, setError] = useState(null);
   const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  
+  const [settings, setSettings] = useState({
+    companyName: "La Foi Distribution",
+    companySlogan: "Vente en gros et détail de produits divers",
+    ninea: "",
+    rc: "",
+    ifu: "",
+    tva: "18",
+    address: "",
+    phone: "",
+    email: "",
+    headerImageBase64: ""
+  });
+  
+  const [loading, setLoading] = useState(true);
 
-  const handleSave = (e) => {
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await axios.get("http://localhost:5001/api/lfd/settings", {
+        headers: { Authorization: `Bearer ${lfdToken}` }
+      });
+      setSettings(prev => ({ ...prev, ...res.data }));
+      setLoading(false);
+    } catch (err) {
+      console.error("Erreur de chargement des paramètres:", err);
+      setLoading(false);
+    }
+  };
+
+  const handleSettingsChange = (field, value) => {
+    setSettings(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleSettingsChange('headerImageBase64', reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = async (e) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    try {
+      await axios.post("http://localhost:5001/api/lfd/settings", settings, {
+        headers: { Authorization: `Bearer ${lfdToken}` }
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      setError(err.response?.data?.error || "Erreur lors de la sauvegarde.");
+      setTimeout(() => setError(null), 3000);
+    }
   };
 
   const handlePasswordChange = async (e) => {
@@ -38,6 +93,8 @@ const Parametres = () => {
       setTimeout(() => setError(null), 3000);
     }
   };
+
+  if (loading) return <div>Chargement...</div>;
 
   return (
     <div className="lfd-page" style={{ padding: "20px", maxWidth: "800px" }}>
@@ -90,12 +147,32 @@ const Parametres = () => {
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
             <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "var(--lfd-text-dim)", marginBottom: 8 }}>En-tête pour les factures et reçus (Logo/Image)</label>
+              {settings.headerImageBase64 && (
+                <div style={{ marginBottom: "12px" }}>
+                  <img src={settings.headerImageBase64} alt="En-tête" style={{ maxWidth: "100%", maxHeight: "150px", objectFit: "contain", border: "1px solid #ddd", padding: "5px", borderRadius: "8px" }} />
+                </div>
+              )}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <label className="lfd-btn lfd-btn-secondary" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "8px", border: "1px solid var(--lfd-surface-3)" }}>
+                  <ImageIcon size={18} /> Importer une image
+                  <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: "none" }} />
+                </label>
+                {settings.headerImageBase64 && (
+                  <button type="button" onClick={() => handleSettingsChange('headerImageBase64', '')} style={{ background: "transparent", color: "var(--lfd-danger)", border: "none", cursor: "pointer", textDecoration: "underline", fontSize: "0.85rem" }}>
+                    Supprimer l'en-tête
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div style={{ gridColumn: "1 / -1" }}>
               <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "var(--lfd-text-dim)", marginBottom: 8 }}>Nom de l'entreprise</label>
-              <input type="text" defaultValue="La Foi Distribution" style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none", fontWeight: 500 }} />
+              <input type="text" value={settings.companyName} onChange={e => handleSettingsChange('companyName', e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none", fontWeight: 500 }} />
             </div>
             <div style={{ gridColumn: "1 / -1" }}>
               <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "var(--lfd-text-dim)", marginBottom: 8 }}>Activité / Slogan</label>
-              <input type="text" defaultValue="Vente en gros et détail de produits divers" style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
+              <input type="text" value={settings.companySlogan} onChange={e => handleSettingsChange('companySlogan', e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
             </div>
           </div>
         </div>
@@ -107,15 +184,19 @@ const Parametres = () => {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
             <div>
               <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "var(--lfd-text-dim)", marginBottom: 8 }}>NINEA</label>
-              <input type="text" defaultValue="0001234567" style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
+              <input type="text" value={settings.ninea} onChange={e => handleSettingsChange('ninea', e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
             </div>
             <div>
               <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "var(--lfd-text-dim)", marginBottom: 8 }}>Registre de Commerce (RC)</label>
-              <input type="text" defaultValue="SN-DKR-2020-B-1234" style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
+              <input type="text" value={settings.rc} onChange={e => handleSettingsChange('rc', e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "var(--lfd-text-dim)", marginBottom: 8 }}>IFU</label>
+              <input type="text" value={settings.ifu} onChange={e => handleSettingsChange('ifu', e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
             </div>
             <div>
               <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "var(--lfd-text-dim)", marginBottom: 8 }}>Taux de TVA par défaut (%)</label>
-              <input type="number" defaultValue="18" style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
+              <input type="number" value={settings.tva} onChange={e => handleSettingsChange('tva', e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
             </div>
           </div>
         </div>
@@ -127,15 +208,15 @@ const Parametres = () => {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
             <div style={{ gridColumn: "1 / -1" }}>
               <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "var(--lfd-text-dim)", marginBottom: 8 }}>Adresse complète</label>
-              <input type="text" defaultValue="Avenue Cheikh Anta Diop, Dakar, Sénégal" style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
+              <input type="text" value={settings.address} onChange={e => handleSettingsChange('address', e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
             </div>
             <div>
               <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "var(--lfd-text-dim)", marginBottom: 8 }}>Téléphone Principal</label>
-              <input type="text" defaultValue="+221 33 800 00 00" style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
+              <input type="text" value={settings.phone} onChange={e => handleSettingsChange('phone', e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
             </div>
             <div>
               <label style={{ display: "block", fontSize: "0.9rem", fontWeight: 600, color: "var(--lfd-text-dim)", marginBottom: 8 }}>Adresse Email Contact</label>
-              <input type="email" defaultValue="contact@lafoidistribution.sn" style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
+              <input type="email" value={settings.email} onChange={e => handleSettingsChange('email', e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", outline: "none" }} />
             </div>
           </div>
         </div>
@@ -150,4 +231,3 @@ const Parametres = () => {
   );
 };
 export default Parametres;
-

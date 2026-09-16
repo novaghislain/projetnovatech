@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { LFDAuthProvider } from "../../contexts/LFDAuthContext";
+import { LFDAlertProvider } from "../../contexts/LFDAlertContext";
 import { LFDDataProvider } from "../../contexts/LFDDataContext";
 import LFDProtectedRoute from "./LFDProtectedRoute";
 import LFDLayout from "./LFDLayout";
@@ -67,12 +68,13 @@ const AccessDenied = () => (
 
 const LFDRoot = () => {
   return (
-    <LFDAuthProvider>
-      <LFDDataProvider>
-        <Suspense fallback={<div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100vh", background:"#0F172A" }}><div className="lfd-spinner" /></div>}>
-          <Routes>
-            {/* Page de connexion (publique) */}
-            <Route path="connexion" element={<LFDLogin />} />
+    <LFDAlertProvider>
+      <LFDAuthProvider>
+        <LFDDataProvider>
+          <Suspense fallback={<div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100vh", background:"#0F172A" }}><div className="lfd-spinner" /></div>}>
+            <Routes>
+              {/* Page de connexion (publique) */}
+              <Route path="connexion" element={<LFDLogin />} />
 
             {/* Acces refuse */}
             <Route path="acces-refuse" element={<AccessDenied />} />
@@ -307,7 +309,8 @@ const LFDRoot = () => {
           </Routes>
         </Suspense>
       </LFDDataProvider>
-    </LFDAuthProvider>
+      </LFDAuthProvider>
+    </LFDAlertProvider>
   );
 };
 

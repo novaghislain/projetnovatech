@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Search, Plus, FileText, CheckCircle, AlertTriangle } from "lucide-react";
+import { Search, Plus, FileText, CheckCircle, AlertTriangle, Download } from "lucide-react";
 import LFDModal from "../../../components/LFD/LFDModal";
 import { useLFDAuth } from "../../../contexts/LFDAuthContext";
+import { useLFDAlert } from "../../../contexts/LFDAlertContext";
 import axios from "axios";
+import { downloadLfdPdf } from "../../../utils/lfdPdfGenerator";
 
 const formatFCFA = (amount) => {
   if (amount === undefined || amount === null) return "0 FCFA";
@@ -11,6 +13,7 @@ const formatFCFA = (amount) => {
 
 const FacturesFournisseurs = () => {
   const { lfdToken, hasPermission } = useLFDAuth();
+  const { showAlert, showConfirm } = useLFDAlert();
   const [factures, setFactures] = useState([]);
   const [fournisseurs, setFournisseurs] = useState([]);
   const [commandes, setCommandes] = useState([]); // Pour lier la facture
@@ -105,17 +108,35 @@ const FacturesFournisseurs = () => {
   };
 
   const handleValidate = async (id) => {
-    if (!window.confirm("Voulez-vous valider cette facture ? Cela générera la dette dans le compte fournisseur.")) return;
-    setValidatingId(id);
-    try {
-      await axios.post(`http://localhost:5001/api/lfd/supplier-invoices/${id}/validate`, {}, {
-        headers: { Authorization: `Bearer ${lfdToken}` }
-      });
-      fetchData();
-    } catch (err) {
-      alert(err.response?.data?.error || "Erreur de validation");
-    } finally {
-      setValidatingId(null);
+    showConfirm(
+      "Validation",
+      "Voulez-vous valider cette facture ? Cela générera la dette dans le compte fournisseur.",
+      async () => {
+        setValidatingId(id);
+        try {
+          await axios.post(`http://localhost:5001/api/lfd/supplier-invoices/${id}/validate`, {}, {
+            headers: { Authorization: `Bearer ${lfdToken}` }
+          });
+          showAlert("Succès", "Facture validée avec succès", "success");
+          fetchData();
+        } catch (err) {
+          showAlert("Erreur", err.response?.data?.error || "Erreur de validation", "error");
+        } finally {
+          setValidatingId(null);
+        }
+      }
+    );
+  };
+
+  const handleDownload = (id) => {
+    const facture = factures.find(f => f.id === id);
+    if (facture) {
+      const result = downloadLfdPdf('SUPPLIER_INVOICE', facture);
+      if (result.success) {
+        showAlert("Succès", "Facture téléchargée.", "success");
+      } else {
+        showAlert("Erreur", "Impossible de générer le PDF: " + result.error, "error");
+      }
     }
   };
 
@@ -188,15 +209,25 @@ const FacturesFournisseurs = () => {
                       )}
                     </td>
                     <td style={{ padding: "12px 16px", textAlign: "right" }}>
-                      {f.status === 'DRAFT' && hasPermission("supplier_invoice.validate") && (
+                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center" }}>
                         <button 
-                          onClick={() => handleValidate(f.id)} 
-                          disabled={validatingId === f.id}
-                          style={{ background: "var(--lfd-accent)", color: "white", border: "none", padding: "6px 12px", borderRadius: 6, fontWeight: 600, cursor: validatingId === f.id ? "not-allowed" : "pointer", fontSize: "0.8rem" }}
+                          onClick={() => handleDownload(f.id)} 
+                          style={{ background: "transparent", color: "var(--lfd-text-muted)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: "4px" }}
+                          title="Télécharger la facture"
                         >
-                          {validatingId === f.id ? "..." : "Valider"}
+                          <Download size={18} />
                         </button>
-                      )}
+
+                        {f.status === 'DRAFT' && hasPermission("supplier_invoice.validate") && (
+                          <button 
+                            onClick={() => handleValidate(f.id)} 
+                            disabled={validatingId === f.id}
+                            style={{ background: "var(--lfd-accent)", color: "white", border: "none", padding: "6px 12px", borderRadius: 6, fontWeight: 600, cursor: validatingId === f.id ? "not-allowed" : "pointer", fontSize: "0.8rem" }}
+                          >
+                            {validatingId === f.id ? "..." : "Valider"}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

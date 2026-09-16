@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Search, Plus, Edit2, Building2, Phone, Mail, AlertTriangle } from "lucide-react";
 import LFDModal from "../../../components/LFD/LFDModal";
 import { useLFDAuth } from "../../../contexts/LFDAuthContext";
+import { useLFDAlert } from "../../../contexts/LFDAlertContext";
 import axios from "axios";
+import { downloadLfdPdf } from "../../../utils/lfdPdfGenerator";
 
 // Helper function to format FCFA, normally in a utils file
 const formatFCFA = (amount) => {
@@ -12,6 +14,7 @@ const formatFCFA = (amount) => {
 
 const Fournisseurs = () => {
   const { lfdToken, hasPermission } = useLFDAuth();
+  const { showAlert } = useLFDAlert();
   const [fournisseurs, setFournisseurs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
@@ -121,6 +124,16 @@ const Fournisseurs = () => {
     }
   };
 
+  const handleDownload = (e, f) => {
+    e.stopPropagation();
+    const result = downloadLfdPdf('SUPPLIER', f);
+    if (result.success) {
+      showAlert("Succès", "Fiche fournisseur téléchargée.", "success");
+    } else {
+      showAlert("Erreur", "Impossible de générer le PDF: " + result.error, "error");
+    }
+  };
+
   const filteredFournisseurs = fournisseurs.filter(f => 
     (f.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
     (f.contact_name || "").toLowerCase().includes(searchTerm.toLowerCase())
@@ -192,9 +205,14 @@ const Fournisseurs = () => {
                     </td>
                     <td style={{ padding: "12px 16px", fontWeight: 700, color: f.total_debt > 0 ? "#EF4444" : "var(--lfd-text-muted)" }}>{formatFCFA(f.total_debt || 0)}</td>
                     <td style={{ padding: "12px 16px", textAlign: "right" }}>
-                      {hasPermission("supplier.update") && (
-                        <button onClick={(e) => handleOpenEdit(e, f)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--lfd-text-muted)", marginRight: 8 }} title="Modifier"><Edit2 size={18} /></button>
-                      )}
+                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                        <button onClick={(e) => handleDownload(e, f)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--lfd-text-muted)" }} title="Télécharger Fiche">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        </button>
+                        {hasPermission("supplier.update") && (
+                          <button onClick={(e) => handleOpenEdit(e, f)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--lfd-text-muted)" }} title="Modifier"><Edit2 size={18} /></button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

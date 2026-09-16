@@ -106,4 +106,24 @@ router.put('/:id/password', authenticateLfdToken, requireLfdPermission('settings
   }
 });
 
+// 5. Modifier son propre avatar
+router.put('/avatar', authenticateLfdToken, async (req, res) => {
+  try {
+    const { avatar } = req.body;
+    
+    if (!avatar) {
+      return res.status(400).json({ error: "L'image (base64) de l'avatar est requise." });
+    }
+
+    await runSql(`UPDATE LFD_Employees SET avatar = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`, [avatar, req.user.id]);
+    
+    await logLfdAudit(req.user.id, 'UPDATE_AVATAR', 'EMPLOYEE', req.user.id, null, null, 'Mise à jour de la photo de profil', req.ip);
+
+    res.json({ success: true, avatar });
+  } catch (error) {
+    console.error('[LFD EMPLOYEES] Erreur PUT /avatar:', error);
+    res.status(500).json({ error: "Erreur serveur lors de la mise à jour de l'avatar." });
+  }
+});
+
 module.exports = router;

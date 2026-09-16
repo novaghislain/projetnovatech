@@ -196,4 +196,36 @@ router.get('/journals/:id/entries', authenticateLfdToken, requireLfdPermission('
   }
 });
 
+router.get('/entries/source/:sourceType/:sourceId', authenticateLfdToken, requireLfdPermission('report.read'), async (req, res) => {
+  try {
+    const { sourceType, sourceId } = req.params;
+    const query = `
+      SELECT je.*, 
+             (SELECT SUM(debit) FROM LFD_JournalEntryLines WHERE journal_entry_id = je.id) as total_debit,
+             (SELECT SUM(credit) FROM LFD_JournalEntryLines WHERE journal_entry_id = je.id) as total_credit
+      FROM LFD_JournalEntries je
+      WHERE je.source_type = ? AND je.source_id = ?
+      ORDER BY je.id DESC LIMIT 1
+    `;
+    const entry = await allSql(query, [sourceType.toUpperCase(), sourceId]);
+    
+    if (entry.length === 0) {
+      return res.status(404).json({ error: "Aucune écriture trouvée pour cette source." });
+    }
+
+    // Get lines
+    const lines = await allSql(`
+      SELECT jel.*, a.account_number, a.name as account_name
+      FROM LFD_JournalEntryLines jel
+      JOIN LFD_Accounts a ON jel.account_id = a.id
+      WHERE jel.journal_entry_id = ?
+      ORDER BY jel.debit DESC, jel.credit DESC
+    `, [entry[0].id]);
+
+    res.json({ ...entry[0], lines });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

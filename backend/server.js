@@ -47,7 +47,8 @@ app.use(cors());
 
 // Public Settings route for SEO
 require('./publicSettings')(app);
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Configuration
@@ -76,6 +77,7 @@ app.use('/api/lfd/bank-deposits', require('./routes/lfdBankDepositRoutes'));
 app.use('/api/lfd/cross-checks', require('./routes/lfdCrossCheckRoutes'));
 app.use('/api/lfd/audit', require('./routes/lfdAuditRoutes'));
 app.use('/api/lfd/alerts', require('./routes/lfdAlertRoutes'));
+app.use('/api/lfd/settings', require('./routes/lfdSettingsRoutes'));
 
 // Phase 5A
 app.use('/api/lfd/suppliers', require('./routes/lfdSupplierRoutes'));

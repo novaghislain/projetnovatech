@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Search, Plus, ShoppingCart, Trash2, AlertTriangle } from "lucide-react";
+import { Search, Plus, ShoppingCart, Trash2, AlertTriangle, Download } from "lucide-react";
 import LFDModal from "../../../components/LFD/LFDModal";
 import { useLFDAuth } from "../../../contexts/LFDAuthContext";
+import { useLFDAlert } from "../../../contexts/LFDAlertContext";
 import axios from "axios";
+import { downloadLfdPdf } from "../../../utils/lfdPdfGenerator";
 
 const formatFCFA = (amount) => {
   if (amount === undefined || amount === null) return "0 FCFA";
@@ -11,6 +13,7 @@ const formatFCFA = (amount) => {
 
 const CommandesAchat = () => {
   const { lfdToken, hasPermission } = useLFDAuth();
+  const { showAlert, showConfirm } = useLFDAlert();
   const [commandes, setCommandes] = useState([]);
   const [fournisseurs, setFournisseurs] = useState([]);
   const [produits, setProduits] = useState([]);
@@ -130,19 +133,35 @@ const CommandesAchat = () => {
   };
 
   const handleApprove = async () => {
-    if (!window.confirm("Voulez-vous approuver cette commande d'achat ?")) return;
-    setApprovalLoading(true);
-    try {
-      await axios.post(`http://localhost:5001/api/lfd/purchases/${selectedCommande.id}/approve`, {}, {
-        headers: { Authorization: `Bearer ${lfdToken}` }
-      });
-      setIsDetailsOpen(false);
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.error || "Erreur lors de l'approbation.");
-    } finally {
-      setApprovalLoading(false);
+    showConfirm(
+      "Confirmation",
+      "Voulez-vous approuver cette commande d'achat ?",
+      async () => {
+        setApprovalLoading(true);
+        try {
+          await axios.post(`http://localhost:5001/api/lfd/purchases/${selectedCommande.id}/approve`, {}, {
+            headers: { Authorization: `Bearer ${lfdToken}` }
+          });
+          setIsDetailsOpen(false);
+          fetchData();
+        } catch (err) {
+          console.error(err);
+          showAlert("Erreur", err.response?.data?.error || "Erreur lors de l'approbation.", "error");
+        } finally {
+          setApprovalLoading(false);
+        }
+      }
+    );
+  };
+
+  const handleDownload = () => {
+    if (selectedCommande) {
+      const result = downloadLfdPdf('PURCHASE_ORDER', selectedCommande);
+      if (result.success) {
+        showAlert("Succès", "Commande téléchargée.", "success");
+      } else {
+        showAlert("Erreur", "Impossible de générer le PDF: " + result.error, "error");
+      }
     }
   };
 
@@ -307,9 +326,17 @@ const CommandesAchat = () => {
                 <p style={{ margin: 0, fontWeight: 600, fontSize: "1.1rem" }}>Fournisseur: {selectedCommande.supplier_name}</p>
                 <p style={{ margin: "4px 0", color: "#64748B", fontSize: "0.9rem" }}>Date: {new Date(selectedCommande.created_at).toLocaleDateString('fr-FR')}</p>
               </div>
-              <div style={{ textAlign: "right" }}>
-                {getStatusBadge(selectedCommande.status)}
-                <div style={{ marginTop: 8, fontWeight: 800, fontSize: "1.2rem" }}>{formatFCFA(selectedCommande.total_amount)}</div>
+              <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button 
+                    onClick={handleDownload} 
+                    style={{ background: "var(--lfd-surface-3)", color: "var(--lfd-surface)", border: "none", padding: "6px 12px", borderRadius: 6, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: "0.8rem" }}
+                  >
+                    <Download size={14} /> TÉLÉCHARGER
+                  </button>
+                  {getStatusBadge(selectedCommande.status)}
+                </div>
+                <div style={{ marginTop: 4, fontWeight: 800, fontSize: "1.2rem" }}>{formatFCFA(selectedCommande.total_amount)}</div>
               </div>
             </div>
 

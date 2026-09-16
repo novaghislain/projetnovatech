@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Search, CheckCircle, Clock, FileText, Package, AlertTriangle } from "lucide-react";
 import LFDModal from "../../../components/LFD/LFDModal";
 import { useLFDAuth } from "../../../contexts/LFDAuthContext";
+import { useLFDAlert } from "../../../contexts/LFDAlertContext";
 import axios from "axios";
 
 const Magasin = () => {
   const { lfdToken, employee } = useLFDAuth();
+  const { showAlert, showConfirm } = useLFDAlert();
   const searchParams = new URLSearchParams(window.location.search);
   const initialTab = searchParams.get('tab') || "preparations";
   const [activeTab, setActiveTab] = useState(initialTab); // preparations, sorties, receptions
@@ -83,7 +85,7 @@ const Magasin = () => {
       setPrepDetails(items);
       setIsPrepModalOpen(true);
     } catch (err) {
-      alert(err.response?.data?.error || "Erreur de démarrage");
+      showAlert("Erreur", err.response?.data?.error || "Erreur de démarrage", "error");
     }
   };
 
@@ -95,11 +97,11 @@ const Magasin = () => {
       await axios.post(`http://localhost:5001/api/lfd/ops/preparations/${selectedPrep.id}/complete`, payload, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
-      alert("Préparation terminée avec succès.");
+      showAlert("Succès", "Préparation terminée avec succès.", "success");
       setIsPrepModalOpen(false);
       fetchPreparations();
     } catch (err) {
-      alert(err.response?.data?.error || "Erreur");
+      showAlert("Erreur", err.response?.data?.error || "Erreur", "error");
     }
   };
 
@@ -108,10 +110,10 @@ const Magasin = () => {
       await axios.post(`http://localhost:5001/api/lfd/ops/preparations/${prepId}/release`, {}, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
-      alert("Sortie validée avec succès. Bon de Livraison généré.");
+      showAlert("Succès", "Sortie validée avec succès. Bon de Livraison généré.", "success");
       fetchReleases();
     } catch (err) {
-      alert(err.response?.data?.error || "Erreur lors de la sortie");
+      showAlert("Erreur", err.response?.data?.error || "Erreur lors de la sortie", "error");
     }
   };
 
@@ -130,62 +132,67 @@ const Magasin = () => {
       setReceptionDetails(items);
       setIsReceptionModalOpen(true);
     } catch (err) {
-      alert(err.response?.data?.error || "Erreur de chargement");
+      showAlert("Erreur", err.response?.data?.error || "Erreur de chargement", "error");
     }
   };
 
   const handleConfirmReception = async () => {
-    if (!window.confirm("Confirmer la réception de ces produits ? Cette opération modifiera le stock.")) return;
-    setReceptionLoading(true);
-    try {
-      const payload = {
-        purchase_order_id: selectedCommande.id,
-        items: receptionDetails.map(i => ({ product_id: i.product_id, quantity_received: parseInt(i.quantity_to_receive_today) })).filter(i => i.quantity_received > 0)
-      };
-      
-      if (payload.items.length === 0) {
-        alert("Veuillez saisir au moins une quantité reçue.");
-        setReceptionLoading(false);
-        return;
-      }
+    showConfirm(
+      "Confirmation",
+      "Confirmer la réception de ces produits ? Cette opération modifiera le stock.",
+      async () => {
+        setReceptionLoading(true);
+        try {
+          const payload = {
+            purchase_order_id: selectedCommande.id,
+            items: receptionDetails.map(i => ({ product_id: i.product_id, quantity_received: parseInt(i.quantity_to_receive_today) })).filter(i => i.quantity_received > 0)
+          };
+          
+          if (payload.items.length === 0) {
+            showAlert("Attention", "Veuillez saisir au moins une quantité reçue.", "warning");
+            setReceptionLoading(false);
+            return;
+          }
 
-      await axios.post(`http://localhost:5001/api/lfd/receipts`, payload, {
-        headers: { Authorization: `Bearer ${lfdToken}` }
-      });
-      alert("Réception enregistrée avec succès.");
-      setIsReceptionModalOpen(false);
-      fetchReceptionsAttente();
-    } catch (err) {
-      alert(err.response?.data?.error || "Erreur lors de la réception");
-    } finally {
-      setReceptionLoading(false);
-    }
+          await axios.post(`http://localhost:5001/api/lfd/receipts`, payload, {
+            headers: { Authorization: `Bearer ${lfdToken}` }
+          });
+          showAlert("Succès", "Réception enregistrée avec succès.", "success");
+          setIsReceptionModalOpen(false);
+          fetchReceptionsAttente();
+        } catch (err) {
+          showAlert("Erreur", err.response?.data?.error || "Erreur lors de la réception", "error");
+        } finally {
+          setReceptionLoading(false);
+        }
+      }
+    );
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="lfd-page" style={{ padding: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Contrôle Magasin</h1>
-          <p className="text-gray-500">Gérez les préparations et validez les sorties physiques</p>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--lfd-surface)" }}>Contrôle Magasin</h1>
+          <p style={{ color: "var(--lfd-text-dim)", fontSize: "0.9rem" }}>Gérez les préparations et validez les sorties physiques.</p>
         </div>
       </div>
 
-      <div className="flex space-x-4 border-b border-gray-200">
+      <div style={{ display: "flex", gap: "10px", borderBottom: "2px solid var(--lfd-surface-3)", marginBottom: "20px" }}>
         <button
-          className={`py-3 px-6 font-medium ${activeTab === 'preparations' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
+          style={{ padding: "12px 20px", fontWeight: 600, border: "none", background: "transparent", cursor: "pointer", borderBottom: activeTab === 'preparations' ? "3px solid var(--lfd-accent)" : "3px solid transparent", color: activeTab === 'preparations' ? "var(--lfd-accent)" : "var(--lfd-text-dim)", transition: "all 0.2s" }}
           onClick={() => setActiveTab('preparations')}
         >
           À Préparer (Sorties)
         </button>
         <button
-          className={`py-3 px-6 font-medium ${activeTab === 'sorties' ? 'border-b-2 border-green-600 text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
+          style={{ padding: "12px 20px", fontWeight: 600, border: "none", background: "transparent", cursor: "pointer", borderBottom: activeTab === 'sorties' ? "3px solid #059669" : "3px solid transparent", color: activeTab === 'sorties' ? "#059669" : "var(--lfd-text-dim)", transition: "all 0.2s" }}
           onClick={() => setActiveTab('sorties')}
         >
           Double Contrôle (Sorties)
         </button>
         <button
-          className={`py-3 px-6 font-medium ${activeTab === 'receptions' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+          style={{ padding: "12px 20px", fontWeight: 600, border: "none", background: "transparent", cursor: "pointer", borderBottom: activeTab === 'receptions' ? "3px solid #2563EB" : "3px solid transparent", color: activeTab === 'receptions' ? "#2563EB" : "var(--lfd-text-dim)", transition: "all 0.2s" }}
           onClick={() => setActiveTab('receptions')}
         >
           Réceptions Fournisseurs
@@ -193,34 +200,34 @@ const Magasin = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div style={{ background: "white", borderRadius: "12px", padding: "20px", boxShadow: "0 2px 10px rgba(26,26,46,0.05)", overflowX: "auto" }}>
         
         {activeTab === 'preparations' && (
-          <table className="w-full text-left">
-            <thead className="bg-gray-50 text-gray-600 text-sm">
-              <tr>
-                <th className="px-6 py-4">N° Préparation</th>
-                <th className="px-6 py-4">N° Vente</th>
-                <th className="px-6 py-4">Client</th>
-                <th className="px-6 py-4">Statut</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+            <thead>
+              <tr style={{ borderBottom: "2px solid var(--lfd-surface-3)", color: "var(--lfd-text-muted)", textAlign: "left" }}>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>N° Préparation</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>N° Vente</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>Client</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>Statut</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600, textAlign: "right" }}>Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {preparations.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-800">{p.preparation_number}</td>
-                  <td className="px-6 py-4 text-gray-600">{p.sale_number}</td>
-                  <td className="px-6 py-4 text-gray-600">{p.customer_name}</td>
-                  <td className="px-6 py-4">
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+                <tr key={p.id} style={{ borderBottom: "1px solid var(--lfd-content-bg)" }}>
+                  <td style={{ padding: "12px 16px", fontWeight: 600, color: "var(--lfd-surface)" }}>{p.preparation_number}</td>
+                  <td style={{ padding: "12px 16px", color: "var(--lfd-text-dim)" }}>{p.sale_number}</td>
+                  <td style={{ padding: "12px 16px", fontWeight: 500 }}>{p.customer_name}</td>
+                  <td style={{ padding: "12px 16px" }}>
+                    <span style={{ padding: "4px 8px", borderRadius: 20, fontSize: "0.75rem", fontWeight: 600, background: "rgba(245,158,11,0.1)", color: "#D97706" }}>
                       À Préparer
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td style={{ padding: "12px 16px", textAlign: "right" }}>
                     <button 
                       onClick={() => handleStartPrep(p.id)}
-                      className="text-indigo-600 hover:text-indigo-900 font-medium text-sm border border-indigo-200 px-4 py-2 rounded-lg hover:bg-indigo-50"
+                      className="lfd-btn" style={{ padding: "6px 12px", fontSize: "0.85rem", borderRadius: 6, background: "rgba(99,102,241,0.1)", color: "#4F46E5", border: "1px solid rgba(99,102,241,0.2)", cursor: "pointer", fontWeight: 600 }}
                     >
                       Démarrer
                     </button>
@@ -228,41 +235,41 @@ const Magasin = () => {
                 </tr>
               ))}
               {preparations.length === 0 && (
-                <tr><td colSpan="5" className="text-center py-8 text-gray-500">Aucune préparation en attente</td></tr>
+                <tr><td colSpan="5" style={{ padding: 20, textAlign: "center", color: "var(--lfd-text-dim)" }}>Aucune préparation en attente</td></tr>
               )}
             </tbody>
           </table>
         )}
 
         {activeTab === 'sorties' && (
-          <table className="w-full text-left">
-            <thead className="bg-gray-50 text-gray-600 text-sm">
-              <tr>
-                <th className="px-6 py-4">N° Préparation</th>
-                <th className="px-6 py-4">N° Vente</th>
-                <th className="px-6 py-4">Préparé Par</th>
-                <th className="px-6 py-4">Statut</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+            <thead>
+              <tr style={{ borderBottom: "2px solid var(--lfd-surface-3)", color: "var(--lfd-text-muted)", textAlign: "left" }}>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>N° Préparation</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>N° Vente</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>Préparé Par</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>Statut</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600, textAlign: "right" }}>Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {stockReleases.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-800">{p.preparation_number}</td>
-                  <td className="px-6 py-4 text-gray-600">{p.sale_number}</td>
-                  <td className="px-6 py-4 text-gray-600">ID: {p.prepared_by}</td>
-                  <td className="px-6 py-4">
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 flex items-center w-max gap-1">
+                <tr key={p.id} style={{ borderBottom: "1px solid var(--lfd-content-bg)" }}>
+                  <td style={{ padding: "12px 16px", fontWeight: 600, color: "var(--lfd-surface)" }}>{p.preparation_number}</td>
+                  <td style={{ padding: "12px 16px", color: "var(--lfd-text-dim)" }}>{p.sale_number}</td>
+                  <td style={{ padding: "12px 16px", fontWeight: 500 }}>ID: {p.prepared_by}</td>
+                  <td style={{ padding: "12px 16px" }}>
+                    <span style={{ padding: "4px 8px", borderRadius: 20, fontSize: "0.75rem", fontWeight: 600, background: "rgba(59,130,246,0.1)", color: "#2563EB", display: "inline-flex", alignItems: "center", gap: 4 }}>
                       <Clock size={14} /> Attente Contrôle
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td style={{ padding: "12px 16px", textAlign: "right" }}>
                     {p.prepared_by === employee?.id ? (
-                      <span className="text-sm text-red-500 font-medium">Auto-contrôle interdit</span>
+                      <span style={{ fontSize: "0.85rem", color: "#EF4444", fontWeight: 600 }}>Auto-contrôle interdit</span>
                     ) : (
                       <button 
                         onClick={() => handleRelease(p.id)}
-                        className="text-green-600 hover:text-green-900 font-medium text-sm border border-green-200 px-4 py-2 rounded-lg hover:bg-green-50 flex items-center gap-2 ml-auto"
+                        className="lfd-btn" style={{ padding: "6px 12px", fontSize: "0.85rem", borderRadius: 6, background: "rgba(16,185,129,0.1)", color: "#059669", border: "1px solid rgba(16,185,129,0.2)", cursor: "pointer", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}
                       >
                         <CheckCircle size={16} /> Valider Sortie
                       </button>
@@ -271,36 +278,36 @@ const Magasin = () => {
                 </tr>
               ))}
               {stockReleases.length === 0 && (
-                <tr><td colSpan="5" className="text-center py-8 text-gray-500">Aucun bon en attente de contrôle croisé</td></tr>
+                <tr><td colSpan="5" style={{ padding: 20, textAlign: "center", color: "var(--lfd-text-dim)" }}>Aucun bon en attente de contrôle croisé</td></tr>
               )}
             </tbody>
           </table>
         )}
 
         {activeTab === 'receptions' && (
-          <table className="w-full text-left">
-            <thead className="bg-gray-50 text-gray-600 text-sm">
-              <tr>
-                <th className="px-6 py-4">Commande</th>
-                <th className="px-6 py-4">Fournisseur</th>
-                <th className="px-6 py-4">Statut</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+            <thead>
+              <tr style={{ borderBottom: "2px solid var(--lfd-surface-3)", color: "var(--lfd-text-muted)", textAlign: "left" }}>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>Commande</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>Fournisseur</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>Statut</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600, textAlign: "right" }}>Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {receptionsEnAttente.map((c) => (
-                <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-800">{c.purchase_order_number}</td>
-                  <td className="px-6 py-4 text-gray-600">{c.supplier_name}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${c.status === 'APPROVED' ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                <tr key={c.id} style={{ borderBottom: "1px solid var(--lfd-content-bg)" }}>
+                  <td style={{ padding: "12px 16px", fontWeight: 600, color: "var(--lfd-surface)" }}>{c.purchase_order_number}</td>
+                  <td style={{ padding: "12px 16px", fontWeight: 500 }}>{c.supplier_name}</td>
+                  <td style={{ padding: "12px 16px" }}>
+                    <span style={{ padding: "4px 8px", borderRadius: 20, fontSize: "0.75rem", fontWeight: 600, background: c.status === 'APPROVED' ? "rgba(59,130,246,0.1)" : "rgba(99,102,241,0.1)", color: c.status === 'APPROVED' ? "#2563EB" : "#4F46E5" }}>
                       {c.status === 'APPROVED' ? 'Attente Réception' : 'Réc. Partielle'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td style={{ padding: "12px 16px", textAlign: "right" }}>
                     <button 
                       onClick={() => handleStartReception(c.id)}
-                      className="text-blue-600 hover:text-blue-900 font-medium text-sm border border-blue-200 px-4 py-2 rounded-lg hover:bg-blue-50 flex items-center gap-2 ml-auto"
+                      className="lfd-btn" style={{ padding: "6px 12px", fontSize: "0.85rem", borderRadius: 6, background: "rgba(37,99,235,0.1)", color: "#1D4ED8", border: "1px solid rgba(37,99,235,0.2)", cursor: "pointer", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}
                     >
                       <Package size={16} /> Réceptionner
                     </button>
@@ -308,7 +315,7 @@ const Magasin = () => {
                 </tr>
               ))}
               {receptionsEnAttente.length === 0 && (
-                <tr><td colSpan="4" className="text-center py-8 text-gray-500">Aucune commande en attente de réception</td></tr>
+                <tr><td colSpan="4" style={{ padding: 20, textAlign: "center", color: "var(--lfd-text-dim)" }}>Aucune commande en attente de réception</td></tr>
               )}
             </tbody>
           </table>
@@ -318,26 +325,26 @@ const Magasin = () => {
 
       {/* Modal de Préparation */}
       <LFDModal isOpen={isPrepModalOpen} onClose={() => setIsPrepModalOpen(false)} title={`Préparation : ${selectedPrep?.preparation_number}`}>
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600">Veuillez vérifier les quantités physiques préparées pour chaque article.</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <p style={{ fontSize: "0.9rem", color: "var(--lfd-text-dim)" }}>Veuillez vérifier les quantités physiques préparées pour chaque article.</p>
           
-          <table className="w-full text-left border">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="p-3 text-sm text-gray-600">Produit</th>
-                <th className="p-3 text-sm text-gray-600 text-right">Qté Commandée</th>
-                <th className="p-3 text-sm text-gray-600 text-right">Qté Préparée</th>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem", border: "1px solid var(--lfd-surface-3)" }}>
+            <thead style={{ background: "var(--lfd-content-bg)" }}>
+              <tr style={{ borderBottom: "1px solid var(--lfd-surface-3)" }}>
+                <th style={{ padding: "10px", textAlign: "left", fontWeight: 600 }}>Produit</th>
+                <th style={{ padding: "10px", textAlign: "right", fontWeight: 600 }}>Qté Commandée</th>
+                <th style={{ padding: "10px", textAlign: "right", fontWeight: 600 }}>Qté Préparée</th>
               </tr>
             </thead>
             <tbody>
               {prepDetails.map((item, idx) => (
-                <tr key={item.id} className="border-b">
-                  <td className="p-3">
-                    <div className="font-medium">{item.product_name}</div>
-                    <div className="text-xs text-gray-500">{item.product_code}</div>
+                <tr key={item.id} style={{ borderBottom: "1px solid var(--lfd-surface-3)" }}>
+                  <td style={{ padding: "10px" }}>
+                    <div style={{ fontWeight: 500, color: "var(--lfd-surface)" }}>{item.product_name}</div>
+                    <div style={{ fontSize: "0.8rem", color: "var(--lfd-text-dim)" }}>{item.product_code}</div>
                   </td>
-                  <td className="p-3 text-right font-medium text-gray-800">{item.quantity_to_prepare}</td>
-                  <td className="p-3 text-right">
+                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "var(--lfd-surface)" }}>{item.quantity_to_prepare}</td>
+                  <td style={{ padding: "10px", textAlign: "right" }}>
                     <input 
                       type="number"
                       min="0"
@@ -348,7 +355,7 @@ const Magasin = () => {
                         newDetails[idx].quantity_prepared = e.target.value;
                         setPrepDetails(newDetails);
                       }}
-                      className="w-20 p-2 border border-gray-300 rounded text-right focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      style={{ width: "80px", padding: "8px", border: "1px solid var(--lfd-surface-3)", borderRadius: 6, textAlign: "right", outline: "none" }}
                     />
                   </td>
                 </tr>
@@ -357,22 +364,22 @@ const Magasin = () => {
           </table>
 
           {prepDetails.some(i => i.quantity_prepared < i.quantity_to_prepare) && (
-            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2 text-yellow-800 text-sm">
-              <AlertTriangle className="shrink-0" size={18} />
-              <p>Attention : Les quantités préparées sont inférieures aux quantités commandées. Une alerte sera générée.</p>
+            <div className="lfd-alert" style={{ background: "rgba(245,158,11,0.1)", color: "#D97706", padding: 12, borderRadius: 8, display: "flex", alignItems: "start", gap: 8, fontSize: "0.9rem", fontWeight: 500 }}>
+              <AlertTriangle style={{ flexShrink: 0 }} size={18} />
+              <p style={{ margin: 0 }}>Attention : Les quantités préparées sont inférieures aux quantités commandées. Une alerte sera générée.</p>
             </div>
           )}
 
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10, paddingTop: 16, borderTop: "1px solid var(--lfd-surface-3)" }}>
             <button
               onClick={() => setIsPrepModalOpen(false)}
-              className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+              className="lfd-btn lfd-btn-secondary" style={{ padding: "10px 16px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", background: "transparent", cursor: "pointer", fontWeight: 600, color: "var(--lfd-text-dim)" }}
             >
               Annuler
             </button>
             <button
               onClick={handleCompletePrep}
-              className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+              className="lfd-btn lfd-btn-primary" style={{ padding: "10px 16px", borderRadius: 8, background: "var(--lfd-accent)", color: "white", border: "none", cursor: "pointer", fontWeight: 600 }}
             >
               Terminer la préparation
             </button>
@@ -382,30 +389,30 @@ const Magasin = () => {
 
       {/* Modal de Réception */}
       <LFDModal isOpen={isReceptionModalOpen} onClose={() => setIsReceptionModalOpen(false)} title={`Réception - ${selectedCommande?.purchase_order_number}`}>
-        <div className="space-y-4">
-          <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 mb-4">
-            <p className="font-semibold">Fournisseur : {selectedCommande?.supplier_name}</p>
-            <p>Veuillez saisir la quantité réellement reçue aujourd'hui pour chaque produit.</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div className="lfd-alert" style={{ background: "rgba(37,99,235,0.1)", color: "#1D4ED8", padding: 16, borderRadius: 8, fontSize: "0.9rem" }}>
+            <p style={{ fontWeight: 700, margin: "0 0 4px 0" }}>Fournisseur : {selectedCommande?.supplier_name}</p>
+            <p style={{ margin: 0 }}>Veuillez saisir la quantité réellement reçue aujourd'hui pour chaque produit.</p>
           </div>
           
-          <table className="w-full text-left border">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="p-3 text-sm text-gray-600">Produit</th>
-                <th className="p-3 text-sm text-gray-600 text-center">Commandé</th>
-                <th className="p-3 text-sm text-gray-600 text-center">Déjà Reçu</th>
-                <th className="p-3 text-sm text-gray-600 text-center">Reste</th>
-                <th className="p-3 text-sm text-gray-600 text-right">Reçu aujourd'hui</th>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem", border: "1px solid var(--lfd-surface-3)" }}>
+            <thead style={{ background: "var(--lfd-content-bg)" }}>
+              <tr style={{ borderBottom: "1px solid var(--lfd-surface-3)" }}>
+                <th style={{ padding: "10px", textAlign: "left", fontWeight: 600 }}>Produit</th>
+                <th style={{ padding: "10px", textAlign: "center", fontWeight: 600 }}>Commandé</th>
+                <th style={{ padding: "10px", textAlign: "center", fontWeight: 600 }}>Déjà Reçu</th>
+                <th style={{ padding: "10px", textAlign: "center", fontWeight: 600 }}>Reste</th>
+                <th style={{ padding: "10px", textAlign: "right", fontWeight: 600 }}>Reçu aujourd'hui</th>
               </tr>
             </thead>
             <tbody>
               {receptionDetails.map((item, idx) => (
-                <tr key={item.id} className="border-b">
-                  <td className="p-3 font-medium">{item.product_name}</td>
-                  <td className="p-3 text-center">{item.quantity}</td>
-                  <td className="p-3 text-center text-gray-500">{item.received_quantity}</td>
-                  <td className="p-3 text-center text-red-600 font-medium">{item.remaining_quantity}</td>
-                  <td className="p-3 text-right">
+                <tr key={item.id} style={{ borderBottom: "1px solid var(--lfd-surface-3)" }}>
+                  <td style={{ padding: "10px", fontWeight: 500, color: "var(--lfd-surface)" }}>{item.product_name}</td>
+                  <td style={{ padding: "10px", textAlign: "center" }}>{item.quantity}</td>
+                  <td style={{ padding: "10px", textAlign: "center", color: "var(--lfd-text-dim)" }}>{item.received_quantity}</td>
+                  <td style={{ padding: "10px", textAlign: "center", color: "#EF4444", fontWeight: 600 }}>{item.remaining_quantity}</td>
+                  <td style={{ padding: "10px", textAlign: "right" }}>
                     <input 
                       type="number"
                       min="0"
@@ -417,7 +424,7 @@ const Magasin = () => {
                         newDetails[idx].quantity_to_receive_today = Math.min(val, item.remaining_quantity);
                         setReceptionDetails(newDetails);
                       }}
-                      className="w-24 p-2 border border-gray-300 rounded text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      style={{ width: "90px", padding: "8px", border: "1px solid var(--lfd-surface-3)", borderRadius: 6, textAlign: "right", outline: "none" }}
                     />
                   </td>
                 </tr>
@@ -425,17 +432,17 @@ const Magasin = () => {
             </tbody>
           </table>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10, paddingTop: 16, borderTop: "1px solid var(--lfd-surface-3)" }}>
             <button
               onClick={() => setIsReceptionModalOpen(false)}
-              className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+              className="lfd-btn lfd-btn-secondary" style={{ padding: "10px 16px", borderRadius: 8, border: "1px solid var(--lfd-surface-3)", background: "transparent", cursor: "pointer", fontWeight: 600, color: "var(--lfd-text-dim)" }}
             >
               Annuler
             </button>
             <button
               onClick={handleConfirmReception}
               disabled={receptionLoading}
-              className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50"
+              className="lfd-btn lfd-btn-primary" style={{ padding: "10px 16px", borderRadius: 8, background: "#2563EB", color: "white", border: "none", cursor: "pointer", fontWeight: 600, opacity: receptionLoading ? 0.7 : 1 }}
             >
               {receptionLoading ? "Enregistrement..." : "CONFIRMER RÉCEPTION"}
             </button>
