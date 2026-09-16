@@ -8,9 +8,10 @@ router.get('/', authenticateLfdToken, requireLfdPermission('audit.read'), async 
     const logs = await allSql(`
       SELECT a.*, 
              u.firstName || ' ' || u.lastName as employee_name,
-             u.role_code
+             r.code as role_code
       FROM LFD_AuditLogs a
       LEFT JOIN LFD_Employees u ON a.employee_id = u.id
+      LEFT JOIN LFD_Roles r ON u.role_id = r.id
       ORDER BY a.createdAt DESC
       LIMIT 200
     `);
