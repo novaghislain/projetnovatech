@@ -4,6 +4,16 @@ import './index.css'
 import App from './App.jsx'
 
 import React from 'react';
+import axios from 'axios';
+import { API_URL } from './config';
+
+// Global interceptor to fix hardcoded localhost URLs for network devices (e.g. mobile phones)
+axios.interceptors.request.use((config) => {
+  if (config.url && config.url.startsWith('http://localhost:5001')) {
+    config.url = config.url.replace('http://localhost:5001', API_URL);
+  }
+  return config;
+});
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
