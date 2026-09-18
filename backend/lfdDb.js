@@ -651,18 +651,23 @@ async function initLFDDatabase() {
       { event_type: 'CASH_ADJUSTMENT', debit: '531', credit: '701', desc: 'Ajustement Caisse (Caisse -> Produit divers)' } // A affiner
     ];
 
-    for (const mapping of defaultMappings) {
-      const debitAcc = await getSql('SELECT id FROM LFD_Accounts WHERE account_number = ?', [mapping.debit]);
-      const creditAcc = await getSql('SELECT id FROM LFD_Accounts WHERE account_number = ?', [mapping.credit]);
-      
-      if (debitAcc && creditAcc) {
-        await runSql(`
-          INSERT OR IGNORE INTO LFD_AccountingMappings 
-          (event_type, debit_account_id, credit_account_id, description) 
-          VALUES (?, ?, ?, ?)
-        `, [mapping.event_type, debitAcc.id, creditAcc.id, mapping.desc]);
+    try {
+      for (const mapping of defaultMappings) {
+        const debitAcc = await getSql('SELECT id FROM LFD_Accounts WHERE account_number = ?', [mapping.debit]);
+        const creditAcc = await getSql('SELECT id FROM LFD_Accounts WHERE account_number = ?', [mapping.credit]);
+        
+        if (debitAcc && creditAcc) {
+          await runSql(`
+            INSERT OR IGNORE INTO LFD_AccountingMappings 
+            (event_type, debit_account_id, credit_account_id, description) 
+            VALUES (?, ?, ?, ?)
+          `, [mapping.event_type, debitAcc.id, creditAcc.id, mapping.desc]);
+        }
       }
+    } catch(e) {
+      console.log('[LFD DB] Les tables comptables ne sont pas encore prêtes. On ignore les mappings.');
     }
+
     const roles = [
       { code: 'SUPER_ADMIN', name: 'Super Administrateur' },
       { code: 'DIRECTOR', name: 'Directeur' },
