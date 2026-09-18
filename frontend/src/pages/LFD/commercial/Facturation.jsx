@@ -7,8 +7,9 @@ import { useLFDAlert } from "../../../contexts/LFDAlertContext";
 import axios from "axios";
 import { downloadLfdPdf } from "../../../utils/lfdPdfGenerator";
 
-const API_URL = `${API_URL}/api/lfd`;
+import { API_URL } from "../../../config";
 
+const LFD_API_URL = `${API_URL}/api/lfd`;
 const Facturation = () => {
   const { lfdToken } = useLFDAuth();
   const { showAlert } = useLFDAlert();
@@ -41,16 +42,16 @@ const Facturation = () => {
       const headers = { Authorization: `Bearer ${lfdToken}` };
       
       // 1. Clients
-      const custRes = await axios.get(`${API_URL}/customers`, { headers });
+      const custRes = await axios.get(`${LFD_API_URL}/customers`, { headers });
       setCustomers(custRes.data);
       
       // 2. Produits
-      const prodRes = await axios.get(`${API_URL}/products`, { headers });
+      const prodRes = await axios.get(`${LFD_API_URL}/products`, { headers });
       setProducts(prodRes.data);
       
       // 3. Ventes existantes (si l'API liste les ventes, sinon on mock)
       try {
-        const salesRes = await axios.get(`${API_URL}/sales`, { headers });
+        const salesRes = await axios.get(`${LFD_API_URL}/sales`, { headers });
         setSales(salesRes.data || []);
       } catch (e) {
         console.log("Impossible de charger les ventes:", e.message);
@@ -58,7 +59,7 @@ const Facturation = () => {
       
       // 4. Session de caisse active
       try {
-        const sessRes = await axios.get(`${API_URL}/cash/session`, { headers });
+        const sessRes = await axios.get(`${LFD_API_URL}/cash/session`, { headers });
         setActiveSessionId(sessRes.data.session.id);
       } catch (e) {
         setActiveSessionId(null);
@@ -73,7 +74,7 @@ const Facturation = () => {
     setIsAccountingModalOpen(true);
     setAccountingEntry(null);
     try {
-      const res = await axios.get(`${API_URL}/accounting/entries/source/SALE/${saleId}`, {
+      const res = await axios.get(`${LFD_API_URL}/accounting/entries/source/SALE/${saleId}`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setAccountingEntry(res.data);
@@ -140,11 +141,11 @@ const Facturation = () => {
         items: cart.map(item => ({ product_id: item.product_id, quantity: item.quantity, discount: 0 }))
       };
       
-      const draftRes = await axios.post(`${API_URL}/sales`, draftPayload, { headers });
+      const draftRes = await axios.post(`${LFD_API_URL}/sales`, draftPayload, { headers });
       const saleId = draftRes.data.id;
 
       // 2. Valider la vente
-      await axios.post(`${API_URL}/sales/${saleId}/validate`, {
+      await axios.post(`${LFD_API_URL}/sales/${saleId}/validate`, {
         cash_session_id: paymentType === "CASH" ? activeSessionId : null,
         warehouse_id: 1 // Dépôt par défaut
       }, { headers });

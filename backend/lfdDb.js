@@ -1,27 +1,16 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const db = require('./db');
 const bcrypt = require('bcryptjs');
 
-const dbPath = process.env.VERCEL ? '/tmp/lfd_database.sqlite' : path.resolve(__dirname, 'lfd_database.sqlite');
-console.log('[LFD DB] Connexion à SQLite:', dbPath);
-
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('[LFD DB] Erreur de connexion:', err.message);
-  } else {
-    console.log('[LFD DB] Connecté à la base de données SQLite LFD.');
-    initLFDDatabase();
-  }
-});
+console.log('[LFD DB] Connexion à la base unifiée (db.js)...');
 
 const runSql = (query, params = []) => {
   return new Promise((resolve, reject) => {
-    db.run(query, params, function (err) {
+    db.run(query, params, (err, result) => {
       if (err) {
         console.error(`[LFD DB] Erreur d'exécution: ${query}`, err.message);
         reject(err);
       } else {
-        resolve(this);
+        resolve(result);
       }
     });
   });
@@ -52,6 +41,9 @@ const allSql = (query, params = []) => {
     });
   });
 };
+
+// Start LFD DB Initialization
+initLFDDatabase();
 
 async function initLFDDatabase() {
   try {
