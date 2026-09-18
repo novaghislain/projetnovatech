@@ -9,8 +9,8 @@ import { API_URL } from './config';
 
 // Global interceptor to fix hardcoded localhost URLs for network devices (e.g. mobile phones)
 axios.interceptors.request.use((config) => {
-  if (config.url && config.url.startsWith('http://localhost:5001')) {
-    config.url = config.url.replace('http://localhost:5001', API_URL);
+  if (config.url && config.url.startsWith(`${API_URL}`)) {
+    config.url = config.url.replace(`${API_URL}`, API_URL);
   }
   return config;
 });

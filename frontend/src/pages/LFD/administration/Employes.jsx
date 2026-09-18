@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from "react";
 import { Search, Filter, Plus, UserCog, Mail, Phone, Edit2, ShieldAlert, KeyRound, CheckCircle2 } from "lucide-react";
 import { useLFDAuth } from "../../../contexts/LFDAuthContext";
@@ -26,7 +27,7 @@ const Employes = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5001/api/lfd/employees", {
+      const res = await axios.get(`${API_URL}/api/lfd/employees`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setEmployes(res.data.employes);
@@ -45,7 +46,7 @@ const Employes = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5001/api/lfd/employees", formData, {
+      await axios.post(`${API_URL}/api/lfd/employees`, formData, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setSuccess("Employé créé avec succès !");
@@ -62,7 +63,7 @@ const Employes = () => {
   const toggleStatus = async (id, currentStatus) => {
     try {
       const newStatus = currentStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
-      await axios.put(`http://localhost:5001/api/lfd/employees/${id}/status`, { status: newStatus }, {
+      await axios.put(`${API_URL}/api/lfd/employees/${id}/status`, { status: newStatus }, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       fetchData();
@@ -75,7 +76,7 @@ const Employes = () => {
   const handleChangePassword = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5001/api/lfd/employees/${selectedEmpId}/password`, { newPassword }, {
+      await axios.put(`${API_URL}/api/lfd/employees/${selectedEmpId}/password`, { newPassword }, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setSuccess("Mot de passe modifié avec succès !");

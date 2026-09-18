@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from "react";
 import { Search, CheckCircle, Clock, FileText, Package, AlertTriangle } from "lucide-react";
 import LFDModal from "../../../components/LFD/LFDModal";
@@ -31,7 +32,7 @@ const Magasin = () => {
   const fetchPreparations = async () => {
     try {
       const status = activeTab === "preparations" ? "TO_PREPARE" : "PREPARED";
-      const res = await axios.get(`http://localhost:5001/api/lfd/ops/preparations?status=${status}`, {
+      const res = await axios.get(`${API_URL}/api/lfd/ops/preparations?status=${status}`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setPreparations(res.data);
@@ -42,7 +43,7 @@ const Magasin = () => {
 
   const fetchReleases = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/api/lfd/ops/stock-releases", {
+      const res = await axios.get(`${API_URL}/api/lfd/ops/stock-releases`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setStockReleases(res.data);
@@ -53,7 +54,7 @@ const Magasin = () => {
 
   const fetchReceptionsAttente = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/api/lfd/purchases", {
+      const res = await axios.get(`${API_URL}/api/lfd/purchases`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       // Garder uniquement APPROVED et PARTIALLY_RECEIVED
@@ -72,11 +73,11 @@ const Magasin = () => {
 
   const handleStartPrep = async (prepId) => {
     try {
-      await axios.post(`http://localhost:5001/api/lfd/ops/preparations/${prepId}/start`, {}, {
+      await axios.post(`${API_URL}/api/lfd/ops/preparations/${prepId}/start`, {}, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       
-      const res = await axios.get(`http://localhost:5001/api/lfd/ops/preparations/${prepId}`, {
+      const res = await axios.get(`${API_URL}/api/lfd/ops/preparations/${prepId}`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setSelectedPrep(res.data);
@@ -94,7 +95,7 @@ const Magasin = () => {
       const payload = {
         prepared_items: prepDetails.map(i => ({ id: i.id, quantity_prepared: parseInt(i.quantity_prepared) }))
       };
-      await axios.post(`http://localhost:5001/api/lfd/ops/preparations/${selectedPrep.id}/complete`, payload, {
+      await axios.post(`${API_URL}/api/lfd/ops/preparations/${selectedPrep.id}/complete`, payload, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       showAlert("Succès", "Préparation terminée avec succès.", "success");
@@ -107,7 +108,7 @@ const Magasin = () => {
 
   const handleRelease = async (prepId) => {
     try {
-      await axios.post(`http://localhost:5001/api/lfd/ops/preparations/${prepId}/release`, {}, {
+      await axios.post(`${API_URL}/api/lfd/ops/preparations/${prepId}/release`, {}, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       showAlert("Succès", "Sortie validée avec succès. Bon de Livraison généré.", "success");
@@ -119,7 +120,7 @@ const Magasin = () => {
 
   const handleStartReception = async (cmdId) => {
     try {
-      const res = await axios.get(`http://localhost:5001/api/lfd/purchases/${cmdId}`, {
+      const res = await axios.get(`${API_URL}/api/lfd/purchases/${cmdId}`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setSelectedCommande(res.data);
@@ -154,7 +155,7 @@ const Magasin = () => {
             return;
           }
 
-          await axios.post(`http://localhost:5001/api/lfd/receipts`, payload, {
+          await axios.post(`${API_URL}/api/lfd/receipts`, payload, {
             headers: { Authorization: `Bearer ${lfdToken}` }
           });
           showAlert("Succès", "Réception enregistrée avec succès.", "success");

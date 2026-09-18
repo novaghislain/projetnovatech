@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
@@ -18,7 +19,7 @@ const Journaux = () => {
     try {
       const token = localStorage.getItem('lfd_token');
       const headers = { Authorization: `Bearer ${token}` };
-      const res = await axios.get(`http://localhost:5001/api/lfd/accounting/journals/${id}/entries`, { headers });
+      const res = await axios.get(`${API_URL}/api/lfd/accounting/journals/${id}/entries`, { headers });
       setEntries(res.data);
     } catch (error) {
       console.error(error);
@@ -32,7 +33,7 @@ const Journaux = () => {
     try {
       const token = localStorage.getItem('lfd_token');
       const headers = { Authorization: `Bearer ${token}` };
-      await axios.post(`http://localhost:5001/api/lfd/accounting/entries/${entryId}/post`, {}, { headers });
+      await axios.post(`${API_URL}/api/lfd/accounting/entries/${entryId}/post`, {}, { headers });
       setSuccess("Écriture validée avec succès.");
       fetchData();
     } catch (err) {
@@ -45,7 +46,7 @@ const Journaux = () => {
     try {
       const token = localStorage.getItem('lfd_token');
       const headers = { Authorization: `Bearer ${token}` };
-      await axios.post(`http://localhost:5001/api/lfd/accounting/entries/${entryId}/reverse`, {}, { headers });
+      await axios.post(`${API_URL}/api/lfd/accounting/entries/${entryId}/reverse`, {}, { headers });
       setSuccess("Écriture contrepassée avec succès.");
       fetchData();
     } catch (err) {

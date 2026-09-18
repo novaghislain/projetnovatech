@@ -48,57 +48,60 @@ router.get('/cockpit', authenticateLfdToken, requireLfdPermission('direction.rea
     const today = new Date().toISOString().split('T')[0];
     const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
-    // Ventes
-    const ventesToday = await getSql(`SELECT SUM(total) as ca FROM LFD_Sales WHERE status IN ('VALIDATED', 'PARTIALLY_PAID', 'PAID', 'DELIVERED') AND date(createdAt) = ?`, [today]);
-    const ventesMonth = await getSql(`SELECT SUM(total) as ca FROM LFD_Sales WHERE status IN ('VALIDATED', 'PARTIALLY_PAID', 'PAID', 'DELIVERED') AND date(createdAt) >= ?`, [firstDayOfMonth]);
-    const ventesCash = await getSql(`SELECT SUM(total) as ca FROM LFD_Sales WHERE status IN ('VALIDATED', 'PARTIALLY_PAID', 'PAID', 'DELIVERED') AND payment_type = 'CASH'`);
-    const ventesCredit = await getSql(`SELECT SUM(total) as ca FROM LFD_Sales WHERE status IN ('VALIDATED', 'PARTIALLY_PAID', 'PAID', 'DELIVERED') AND payment_type = 'CREDIT'`);
-    const facturesAnnulees = await getSql(`SELECT COUNT(*) as cnt FROM LFD_Sales WHERE status = 'CANCELLED'`);
-
-    // Encaissements
-    const encaissementsToday = await getSql(`SELECT SUM(amount) as total FROM LFD_Payments WHERE date(paid_at) = ?`, [today]);
-    const encaissementsMonth = await getSql(`SELECT SUM(amount) as total FROM LFD_Payments WHERE date(paid_at) >= ?`, [firstDayOfMonth]);
-
-    // Créances
-    const creances = await getSql(`SELECT SUM(remaining_amount) as total FROM LFD_Receivables WHERE status != 'PAID' AND status != 'CANCELLED'`);
-
-    // Caisse (Sessions actives)
-    const caisseActive = await getSql(`SELECT SUM(theoretical_balance) as total FROM LFD_CashSessions WHERE status = 'OPEN'`);
-
-    // Achats / Dettes
-    const achatsMonth = await getSql(`SELECT SUM(total) as total FROM LFD_PurchaseOrders WHERE status != 'CANCELLED' AND date(order_date) >= ?`, [firstDayOfMonth]);
-    const dettesTotal = await getSql(`SELECT SUM(remaining_amount) as total FROM LFD_Payables WHERE status != 'PAID' AND status != 'CANCELLED'`);
-
-    // Dépôts Bancaires
-    const depotsPending = await getSql(`SELECT SUM(amount) as total FROM LFD_BankDeposits WHERE status = 'PENDING'`);
-    const depotsConfirmed = await getSql(`SELECT SUM(amount) as total FROM LFD_BankDeposits WHERE status = 'CONFIRMED' AND date(confirmed_at) = ?`, [today]);
-
-    // Alertes
-    const alertesActive = await getSql(`SELECT COUNT(*) as cnt FROM LFD_Alerts WHERE status = 'NEW'`);
+    // Exécution de toutes les requêtes en parallèle pour améliorer les performances
+    const [
+      ventesToday, ventesMonth, ventesCash, ventesCredit, facturesAnnulees,
+      encaissementsToday, encaissementsMonth,
+      creances, caisseActive,
+      achatsMonth, dettesTotal,
+      depotsPending, depotsConfirmed,
+      alertesActive
+    ] = await Promise.all([
+      getSql(`SELECT SUM(total) as ca FROM LFD_Sales WHERE status IN ('VALIDATED', 'PARTIALLY_PAID', 'PAID', 'DELIVERED') AND date(createdAt) = ?`, [today]),
+      getSql(`SELECT SUM(total) as ca FROM LFD_Sales WHERE status IN ('VALIDATED', 'PARTIALLY_PAID', 'PAID', 'DELIVERED') AND date(createdAt) >= ?`, [firstDayOfMonth]),
+      getSql(`SELECT SUM(total) as ca FROM LFD_Sales WHERE status IN ('VALIDATED', 'PARTIALLY_PAID', 'PAID', 'DELIVERED') AND payment_type = 'CASH'`),
+      getSql(`SELECT SUM(total) as ca FROM LFD_Sales WHERE status IN ('VALIDATED', 'PARTIALLY_PAID', 'PAID', 'DELIVERED') AND payment_type = 'CREDIT'`),
+      getSql(`SELECT COUNT(*) as cnt FROM LFD_Sales WHERE status = 'CANCELLED'`),
+      
+      getSql(`SELECT SUM(amount) as total FROM LFD_Payments WHERE date(paid_at) = ?`, [today]),
+      getSql(`SELECT SUM(amount) as total FROM LFD_Payments WHERE date(paid_at) >= ?`, [firstDayOfMonth]),
+      
+      getSql(`SELECT SUM(remaining_amount) as total FROM LFD_Receivables WHERE status != 'PAID' AND status != 'CANCELLED'`),
+      
+      getSql(`SELECT SUM(theoretical_balance) as total FROM LFD_CashSessions WHERE status = 'OPEN'`),
+      
+      getSql(`SELECT SUM(total) as total FROM LFD_PurchaseOrders WHERE status != 'CANCELLED' AND date(order_date) >= ?`, [firstDayOfMonth]),
+      getSql(`SELECT SUM(remaining_amount) as total FROM LFD_Payables WHERE status != 'PAID' AND status != 'CANCELLED'`),
+      
+      getSql(`SELECT SUM(amount) as total FROM LFD_BankDeposits WHERE status = 'PENDING'`),
+      getSql(`SELECT SUM(amount) as total FROM LFD_BankDeposits WHERE status = 'CONFIRMED' AND date(confirmed_at) = ?`, [today]),
+      
+      getSql(`SELECT COUNT(*) as cnt FROM LFD_Alerts WHERE status = 'NEW'`)
+    ]);
 
     res.json({
       ventes: {
-        today: ventesToday.ca || 0,
-        month: ventesMonth.ca || 0,
-        cash: ventesCash.ca || 0,
-        credit: ventesCredit.ca || 0,
-        cancelledCount: facturesAnnulees.cnt || 0
+        today: ventesToday?.ca || 0,
+        month: ventesMonth?.ca || 0,
+        cash: ventesCash?.ca || 0,
+        credit: ventesCredit?.ca || 0,
+        cancelledCount: facturesAnnulees?.cnt || 0
       },
       encaissements: {
-        today: encaissementsToday.total || 0,
-        month: encaissementsMonth.total || 0
+        today: encaissementsToday?.total || 0,
+        month: encaissementsMonth?.total || 0
       },
-      creances: creances.total || 0,
-      caisse_active: caisseActive.total || 0,
+      creances: creances?.total || 0,
+      caisse_active: caisseActive?.total || 0,
       achats: {
-        month: achatsMonth.total || 0,
-        dettes: dettesTotal.total || 0
+        month: achatsMonth?.total || 0,
+        dettes: dettesTotal?.total || 0
       },
       depots: {
-        pending: depotsPending.total || 0,
-        confirmedToday: depotsConfirmed.total || 0
+        pending: depotsPending?.total || 0,
+        confirmedToday: depotsConfirmed?.total || 0
       },
-      alertesCount: alertesActive.cnt || 0
+      alertesCount: alertesActive?.cnt || 0
     });
 
   } catch (error) {

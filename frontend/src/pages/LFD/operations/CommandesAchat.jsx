@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from "react";
 import { Search, Plus, ShoppingCart, Trash2, AlertTriangle, Download } from "lucide-react";
 import LFDModal from "../../../components/LFD/LFDModal";
@@ -40,9 +41,9 @@ const CommandesAchat = () => {
     try {
       setLoading(true);
       const [cmdRes, suppRes, prodRes] = await Promise.all([
-        axios.get("http://localhost:5001/api/lfd/purchases", { headers: { Authorization: `Bearer ${lfdToken}` } }),
-        axios.get("http://localhost:5001/api/lfd/suppliers", { headers: { Authorization: `Bearer ${lfdToken}` } }),
-        axios.get("http://localhost:5001/api/lfd/products", { headers: { Authorization: `Bearer ${lfdToken}` } })
+        axios.get(`${API_URL}/api/lfd/purchases`, { headers: { Authorization: `Bearer ${lfdToken}` } }),
+        axios.get(`${API_URL}/api/lfd/suppliers`, { headers: { Authorization: `Bearer ${lfdToken}` } }),
+        axios.get(`${API_URL}/api/lfd/products`, { headers: { Authorization: `Bearer ${lfdToken}` } })
       ]);
       setCommandes(cmdRes.data);
       setFournisseurs(suppRes.data.filter(f => f.is_active));
@@ -101,7 +102,7 @@ const CommandesAchat = () => {
 
     setFormLoading(true);
     try {
-      await axios.post("http://localhost:5001/api/lfd/purchases", {
+      await axios.post(`${API_URL}/api/lfd/purchases`, {
         supplier_id: formSupplier,
         items: formItems
       }, { headers: { Authorization: `Bearer ${lfdToken}` } });
@@ -121,7 +122,7 @@ const CommandesAchat = () => {
     setIsDetailsOpen(true);
     setDetailsLoading(true);
     try {
-      const res = await axios.get(`http://localhost:5001/api/lfd/purchases/${cmd.id}`, {
+      const res = await axios.get(`${API_URL}/api/lfd/purchases/${cmd.id}`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setDetailsData(res.data);
@@ -139,7 +140,7 @@ const CommandesAchat = () => {
       async () => {
         setApprovalLoading(true);
         try {
-          await axios.post(`http://localhost:5001/api/lfd/purchases/${selectedCommande.id}/approve`, {}, {
+          await axios.post(`${API_URL}/api/lfd/purchases/${selectedCommande.id}/approve`, {}, {
             headers: { Authorization: `Bearer ${lfdToken}` }
           });
           setIsDetailsOpen(false);

@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -30,8 +31,8 @@ const SaisieEcriture = () => {
       const token = localStorage.getItem('lfd_token');
       const headers = { Authorization: `Bearer ${token}` };
       const [resJournals, resAccounts] = await Promise.all([
-        axios.get('http://localhost:5001/api/lfd/accounting/journals', { headers }),
-        axios.get('http://localhost:5001/api/lfd/accounting/accounts', { headers })
+        axios.get(`${API_URL}/api/lfd/accounting/journals`, { headers }),
+        axios.get(`${API_URL}/api/lfd/accounting/accounts`, { headers })
       ]);
       setJournals(resJournals.data);
       setAccounts(resAccounts.data);
@@ -109,7 +110,7 @@ const SaisieEcriture = () => {
         }))
       };
 
-      await axios.post('http://localhost:5001/api/lfd/accounting/entries', payload, { headers });
+      await axios.post(`${API_URL}/api/lfd/accounting/entries`, payload, { headers });
       setSuccess("Écriture créée avec succès !");
       setFormData({ ...formData, description: '' });
       setLines([

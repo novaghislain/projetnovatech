@@ -7,7 +7,7 @@ import { useLFDAlert } from "../../../contexts/LFDAlertContext";
 import axios from "axios";
 import { downloadLfdPdf } from "../../../utils/lfdPdfGenerator";
 
-const API_URL = "http://localhost:5001/api/lfd";
+const API_URL = `${API_URL}/api/lfd`;
 
 const Facturation = () => {
   const { lfdToken } = useLFDAuth();

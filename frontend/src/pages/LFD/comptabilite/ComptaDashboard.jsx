@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -15,7 +16,7 @@ const ComptaDashboard = () => {
     try {
       const token = localStorage.getItem('lfd_token');
       const headers = { Authorization: `Bearer ${token}` };
-      const res = await axios.get('http://localhost:5001/api/lfd/accounting/journals', { headers });
+      const res = await axios.get(`${API_URL}/api/lfd/accounting/journals`, { headers });
       setJournals(res.data);
     } catch (error) {
       console.error(error);

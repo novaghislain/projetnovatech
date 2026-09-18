@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from "react";
 import { Save, Building, MapPin, FileText, CheckCircle2, Lock, KeyRound, Image as ImageIcon } from "lucide-react";
 import { useLFDAuth } from "../../../contexts/LFDAuthContext";
@@ -31,7 +32,7 @@ const Parametres = () => {
 
   const fetchSettings = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/api/lfd/settings", {
+      const res = await axios.get(`${API_URL}/api/lfd/settings`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setSettings(prev => ({ ...prev, ...res.data }));
@@ -60,7 +61,7 @@ const Parametres = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5001/api/lfd/settings", settings, {
+      await axios.post(`${API_URL}/api/lfd/settings`, settings, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setSaved(true);
@@ -79,7 +80,7 @@ const Parametres = () => {
       return;
     }
     try {
-      await axios.put("http://localhost:5001/api/lfd/auth/change-password", {
+      await axios.put(`${API_URL}/api/lfd/auth/change-password`, {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       }, {

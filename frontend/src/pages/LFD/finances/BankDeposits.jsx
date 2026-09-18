@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from 'react';
 import { useLFDAuth } from '../../../contexts/LFDAuthContext';
 import axios from 'axios';
@@ -28,7 +29,7 @@ const BankDeposits = () => {
   const fetchDeposits = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('http://localhost:5001/api/lfd/bank-deposits', {
+      const res = await axios.get(`${API_URL}/api/lfd/bank-deposits`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setDeposits(res.data);
@@ -43,7 +44,7 @@ const BankDeposits = () => {
   const handleDeclare = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5001/api/lfd/bank-deposits', {
+      await axios.post(`${API_URL}/api/lfd/bank-deposits`, {
         ...formData,
         amount: parseInt(formData.amount, 10),
         cash_session_id: formData.cash_session_id ? parseInt(formData.cash_session_id, 10) : null
@@ -62,7 +63,7 @@ const BankDeposits = () => {
   const handleConfirm = async (id) => {
     if (!window.confirm("Confirmer ce dépôt bancaire ? L'argent est bien sur le compte ?")) return;
     try {
-      await axios.post(`http://localhost:5001/api/lfd/bank-deposits/${id}/confirm`, {}, {
+      await axios.post(`${API_URL}/api/lfd/bank-deposits/${id}/confirm`, {}, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       fetchDeposits();
@@ -75,7 +76,7 @@ const BankDeposits = () => {
     const obs = window.prompt("Motif du rejet :");
     if (obs === null) return;
     try {
-      await axios.post(`http://localhost:5001/api/lfd/bank-deposits/${id}/reject`, { observation: obs }, {
+      await axios.post(`${API_URL}/api/lfd/bank-deposits/${id}/reject`, { observation: obs }, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       fetchDeposits();

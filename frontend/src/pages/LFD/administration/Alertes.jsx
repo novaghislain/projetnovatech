@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from "react";
 import { Bell, AlertTriangle, Info, CheckCircle2, Search, Check } from "lucide-react";
 import { useLFDAuth } from "../../../contexts/LFDAuthContext";
@@ -10,7 +11,7 @@ const Alertes = () => {
 
   const fetchAlerts = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/api/lfd/alerts", {
+      const res = await axios.get(`${API_URL}/api/lfd/alerts`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setAlertes(res.data);
@@ -25,7 +26,7 @@ const Alertes = () => {
 
   const handleResolve = async (id) => {
     try {
-      await axios.post(`http://localhost:5001/api/lfd/alerts/${id}/resolve`, {}, {
+      await axios.post(`${API_URL}/api/lfd/alerts/${id}/resolve`, {}, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       fetchAlerts();

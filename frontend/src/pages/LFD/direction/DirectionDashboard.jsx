@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from 'react';
 import { useLFDAuth } from '../../../contexts/LFDAuthContext';
 import { 
@@ -32,7 +33,7 @@ const DirectionDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('http://localhost:5001/api/lfd/dashboard/cockpit', {
+      const res = await axios.get(`${API_URL}/api/lfd/dashboard/cockpit`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setData(res.data);

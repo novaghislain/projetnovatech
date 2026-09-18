@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from "react";
 import { Search, Download, Shield, ShieldAlert, Monitor, FileText } from "lucide-react";
 import { useLFDAuth } from "../../../contexts/LFDAuthContext";
@@ -19,7 +20,7 @@ const Audit = () => {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5001/api/lfd/audit", {
+      const res = await axios.get(`${API_URL}/api/lfd/audit`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setLogs(res.data);

@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from "react";
 import { Search, CreditCard, CheckCircle, Clock, AlertTriangle, FileText, Building2 } from "lucide-react";
 import LFDModal from "../../../components/LFD/LFDModal";
@@ -28,7 +29,7 @@ const DettesFournisseurs = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5001/api/lfd/payables", {
+      const res = await axios.get(`${API_URL}/api/lfd/payables`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setDettes(res.data);
@@ -64,7 +65,7 @@ const DettesFournisseurs = () => {
 
     setPaymentLoading(true);
     try {
-      await axios.post(`http://localhost:5001/api/lfd/payables/${selectedDette.id}/pay`, {
+      await axios.post(`${API_URL}/api/lfd/payables/${selectedDette.id}/pay`, {
         amount: amt
       }, {
         headers: { Authorization: `Bearer ${lfdToken}` }

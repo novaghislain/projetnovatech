@@ -104,7 +104,7 @@ const DEMO_USERS = [
 ];
 
 const LFDAuthContext = createContext(null);
-const API_URL = "http://localhost:5001/api/lfd/auth";
+const LFD_AUTH_API_URL = `${API_URL}/api/lfd/auth`;
 
 export const LFDAuthProvider = ({ children }) => {
   const navigate = useNavigate();
@@ -119,7 +119,7 @@ export const LFDAuthProvider = ({ children }) => {
     const validateToken = async () => {
       if (!lfdToken) return;
       try {
-        const res = await fetch(`${API_URL}/me`, {
+        const res = await fetch(`${LFD_AUTH_API_URL}/me`, {
           headers: { 'Authorization': `Bearer ${lfdToken}` }
         });
         if (res.ok) {
@@ -136,7 +136,7 @@ export const LFDAuthProvider = ({ children }) => {
   }, []); // Exécuté une seule fois au montage
 
   const login = async ({ email, password }) => {
-    const response = await fetch(`${API_URL}/login`, {
+    const response = await fetch(`${LFD_AUTH_API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })

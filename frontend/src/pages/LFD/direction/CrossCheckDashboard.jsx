@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from 'react';
 import { useLFDAuth } from '../../../contexts/LFDAuthContext';
 import axios from 'axios';
@@ -19,7 +20,7 @@ const CrossCheckDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('http://localhost:5001/api/lfd/cross-checks/analysis', {
+      const res = await axios.get(`${API_URL}/api/lfd/cross-checks/analysis`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setData(res.data);

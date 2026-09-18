@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from "react";
 import { Search, Plus, FileText, CheckCircle, AlertTriangle, Download } from "lucide-react";
 import LFDModal from "../../../components/LFD/LFDModal";
@@ -43,9 +44,9 @@ const FacturesFournisseurs = () => {
     try {
       setLoading(true);
       const [invRes, suppRes, cmdRes] = await Promise.all([
-        axios.get("http://localhost:5001/api/lfd/supplier-invoices", { headers: { Authorization: `Bearer ${lfdToken}` } }),
-        axios.get("http://localhost:5001/api/lfd/suppliers", { headers: { Authorization: `Bearer ${lfdToken}` } }),
-        axios.get("http://localhost:5001/api/lfd/purchases", { headers: { Authorization: `Bearer ${lfdToken}` } })
+        axios.get(`${API_URL}/api/lfd/supplier-invoices`, { headers: { Authorization: `Bearer ${lfdToken}` } }),
+        axios.get(`${API_URL}/api/lfd/suppliers`, { headers: { Authorization: `Bearer ${lfdToken}` } }),
+        axios.get(`${API_URL}/api/lfd/purchases`, { headers: { Authorization: `Bearer ${lfdToken}` } })
       ]);
       setFactures(invRes.data);
       setFournisseurs(suppRes.data.filter(f => f.is_active));
@@ -90,7 +91,7 @@ const FacturesFournisseurs = () => {
 
     setFormLoading(true);
     try {
-      await axios.post("http://localhost:5001/api/lfd/supplier-invoices", formData, {
+      await axios.post(`${API_URL}/api/lfd/supplier-invoices`, formData, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setIsModalOpen(false);
@@ -114,7 +115,7 @@ const FacturesFournisseurs = () => {
       async () => {
         setValidatingId(id);
         try {
-          await axios.post(`http://localhost:5001/api/lfd/supplier-invoices/${id}/validate`, {}, {
+          await axios.post(`${API_URL}/api/lfd/supplier-invoices/${id}/validate`, {}, {
             headers: { Authorization: `Bearer ${lfdToken}` }
           });
           showAlert("Succès", "Facture validée avec succès", "success");

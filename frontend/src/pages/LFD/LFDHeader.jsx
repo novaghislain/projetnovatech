@@ -1,3 +1,4 @@
+import { API_URL } from '../../config';
 import React from "react";
 import { Bell, Menu, RefreshCw } from "lucide-react";
 import { useLFDAuth, ROLE_LABELS } from "../../contexts/LFDAuthContext";
@@ -45,7 +46,7 @@ const LFDHeader = ({ pageTitle, pageSubtitle, onMobileMenuOpen, alertCount = 2 }
 
           const { default: axios } = await import('axios');
           const token = localStorage.getItem('lfd_token');
-          await axios.put("http://localhost:5001/api/lfd/employees/avatar", {
+          await axios.put(`${API_URL}/api/lfd/employees/avatar`, {
             avatar: compressedBase64
           }, {
             headers: { Authorization: `Bearer ${token}` }

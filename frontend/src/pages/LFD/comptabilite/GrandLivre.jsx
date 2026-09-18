@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -17,7 +18,7 @@ const GrandLivre = () => {
       const headers = { Authorization: `Bearer ${token}` };
       
       const year = new Date().getFullYear();
-      const res = await axios.get(`http://localhost:5001/api/lfd/accounting/ledger?startDate=${year}-01-01&endDate=${year}-12-31`, { headers });
+      const res = await axios.get(`${API_URL}/api/lfd/accounting/ledger?startDate=${year}-01-01&endDate=${year}-12-31`, { headers });
       setLedger(res.data);
     } catch (error) {
       console.error(error);

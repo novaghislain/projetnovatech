@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from "react";
 import { Search, Filter, Plus, ArrowDownCircle, ArrowUpCircle, Lock } from "lucide-react";
 import { formatFCFA } from "../mockDataPhase2";
@@ -19,7 +20,7 @@ const Caisse = () => {
   // 1. Charger la session actuelle
   const fetchSession = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/api/lfd/cash/session", {
+      const res = await axios.get(`${API_URL}/api/lfd/cash/session`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setSessionInfo(res.data.session);
@@ -59,7 +60,7 @@ const Caisse = () => {
   const handleCloture = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5001/api/lfd/cash/close", {
+      await axios.post(`${API_URL}/api/lfd/cash/close`, {
         physical_balance: Number(clotureData.physical_balance),
         difference_reason: clotureData.difference_reason
       }, { headers: { Authorization: `Bearer ${lfdToken}` } });
@@ -73,7 +74,7 @@ const Caisse = () => {
 
   const handleOuvrir = async () => {
     try {
-      await axios.post("http://localhost:5001/api/lfd/cash/open", {
+      await axios.post(`${API_URL}/api/lfd/cash/open`, {
         cash_register_id: 1, // Fixe pour le moment
         opening_balance: 0 // Par défaut
       }, { headers: { Authorization: `Bearer ${lfdToken}` } });

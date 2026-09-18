@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from "react";
 import { Search, Plus, Edit2, Building2, Phone, Mail, AlertTriangle } from "lucide-react";
 import LFDModal from "../../../components/LFD/LFDModal";
@@ -35,7 +36,7 @@ const Fournisseurs = () => {
   const fetchFournisseurs = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5001/api/lfd/suppliers", {
+      const res = await axios.get(`${API_URL}/api/lfd/suppliers`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setFournisseurs(res.data);
@@ -58,11 +59,11 @@ const Fournisseurs = () => {
     setFormLoading(true);
     try {
       if (editingFournisseur) {
-        await axios.put(`http://localhost:5001/api/lfd/suppliers/${editingFournisseur.id}`, formData, {
+        await axios.put(`${API_URL}/api/lfd/suppliers/${editingFournisseur.id}`, formData, {
           headers: { Authorization: `Bearer ${lfdToken}` }
         });
       } else {
-        await axios.post("http://localhost:5001/api/lfd/suppliers", formData, {
+        await axios.post(`${API_URL}/api/lfd/suppliers`, formData, {
           headers: { Authorization: `Bearer ${lfdToken}` }
         });
       }
@@ -113,7 +114,7 @@ const Fournisseurs = () => {
     setIsDetailsOpen(true);
     setDetailsLoading(true);
     try {
-      const res = await axios.get(`http://localhost:5001/api/lfd/suppliers/${f.id}/stats`, {
+      const res = await axios.get(`${API_URL}/api/lfd/suppliers/${f.id}/stats`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setDetailsData(res.data);

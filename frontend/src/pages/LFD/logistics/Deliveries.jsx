@@ -1,3 +1,4 @@
+import { API_URL } from '../../../config';
 import React, { useState, useEffect } from "react";
 import { Truck, CheckCircle, XCircle, MapPin, Package } from "lucide-react";
 import LFDModal from "../../../components/LFD/LFDModal";
@@ -16,7 +17,7 @@ const Deliveries = () => {
 
   const fetchDeliveries = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/api/lfd/ops/deliveries", {
+      const res = await axios.get(`${API_URL}/api/lfd/ops/deliveries`, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setDeliveries(res.data);
@@ -31,7 +32,7 @@ const Deliveries = () => {
 
   const handleStart = async (id) => {
     try {
-      await axios.post(`http://localhost:5001/api/lfd/ops/deliveries/${id}/start`, {}, {
+      await axios.post(`${API_URL}/api/lfd/ops/deliveries/${id}/start`, {}, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       fetchDeliveries();
@@ -43,7 +44,7 @@ const Deliveries = () => {
   const handleComplete = async () => {
     if (!completeForm.recipient_name) return alert("Nom du réceptionnaire requis");
     try {
-      await axios.post(`http://localhost:5001/api/lfd/ops/deliveries/${selectedDeliv.id}/complete`, completeForm, {
+      await axios.post(`${API_URL}/api/lfd/ops/deliveries/${selectedDeliv.id}/complete`, completeForm, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setIsCompleteModalOpen(false);
@@ -57,7 +58,7 @@ const Deliveries = () => {
   const handleFail = async () => {
     if (!failForm.failed_reason) return alert("Motif d'échec requis");
     try {
-      await axios.post(`http://localhost:5001/api/lfd/ops/deliveries/${selectedDeliv.id}/fail`, failForm, {
+      await axios.post(`${API_URL}/api/lfd/ops/deliveries/${selectedDeliv.id}/fail`, failForm, {
         headers: { Authorization: `Bearer ${lfdToken}` }
       });
       setIsFailModalOpen(false);
