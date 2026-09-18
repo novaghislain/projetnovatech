@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const dbPath = path.resolve(__dirname, 'lfd_database.sqlite');
+const dbPath = process.env.VERCEL ? '/tmp/lfd_database.sqlite' : path.resolve(__dirname, 'lfd_database.sqlite');
 console.log('[LFD DB] Connexion à SQLite:', dbPath);
 
 const db = new sqlite3.Database(dbPath, (err) => {
