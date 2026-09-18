@@ -51,6 +51,8 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+app.use('/api/public', require('./routes/lfdSeedRoutes'));
+
 // Configuration
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
