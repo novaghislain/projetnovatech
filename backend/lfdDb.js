@@ -786,6 +786,20 @@ async function initLFDDatabase() {
     // --- MIGRATION DES EMPLOYÉS TERMINÉE ---
     // Les migrations étaient ici et ont été retirées car elles tournaient en boucle.
 
+    // Injecter un employé par défaut si la table est vide (ex: sur une nouvelle base Vercel/Turso)
+    const empCount = await getSql(`SELECT COUNT(*) as count FROM LFD_Employees`);
+    if (empCount && empCount.count === 0) {
+      const superAdminRole = await getSql(`SELECT id FROM LFD_Roles WHERE code = 'SUPER_ADMIN'`);
+      if (superAdminRole) {
+        const hashedAdminPass = await bcrypt.hash('admin123', 10);
+        await runSql(`
+          INSERT INTO LFD_Employees (employee_code, firstName, lastName, email, phone, password_hash, role_id, status)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, ['EMP-001', 'Admin', 'LFD', 'admin@formationnova.com', '+22901000000', hashedAdminPass, superAdminRole.id, 'ACTIVE']);
+        console.log('[LFD DB] Employé Admin par défaut injecté.');
+      }
+    }
+
     // Création du dépôt par défaut s'il n'existe pas
     await runSql(`INSERT OR IGNORE INTO LFD_Warehouses (code, name, location) VALUES (?, ?, ?)`, ['DEP-01', 'Dépôt Principal', 'Siège']);
 
