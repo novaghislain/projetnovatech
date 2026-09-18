@@ -9,7 +9,9 @@ const tursoToken = process.env.TURSO_AUTH_TOKEN;
 
 const dbPath = process.env.DATABASE_PATH 
   ? path.resolve(process.env.DATABASE_PATH) 
-  : path.resolve(__dirname, 'database.sqlite');
+  : process.env.VERCEL 
+    ? '/tmp/database.sqlite' 
+    : path.resolve(__dirname, 'database.sqlite');
 
 let client;
 if (tursoUrl && tursoToken) {
